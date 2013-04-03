@@ -8,7 +8,6 @@
 *.v.d
 
 # Tex 
-
 *.fdb_latexmk
 *.aux
 *.log
@@ -27,4 +26,8 @@ report.pdf
 *.lof
 *.pyg
 .*.tex
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
 
