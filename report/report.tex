@@ -1,0 +1,68 @@
+%!TEX TS-options = -shell-escape
+\documentclass[oribibl]{llncs}
+\pagestyle{headings} %page numbers
+\usepackage{makeidx}  % allows for indexgeneration
+
+\usepackage[utf8]{inputenc}
+\usepackage{pdfpages}
+
+% \usepackage[nottoc,numbib]{tocbibind}
+% \usepackage[center]{caption}
+
+\usepackage{float}
+
+\usepackage{enumitem}
+\usepackage[T1]{fontenc} % Fixed missing font warning for \maketitle
+%\usepackage[margin=1.5in]{geometry}
+\usepackage{url}
+\usepackage[multiple]{footmisc} % DOUBLE FOOTNOTES ACROSS THE SKY
+\renewcommand{\footnotemargin}{3.99pt}
+
+% %% to make urls look better in bibliography
+% \makeatletter
+% \def\url@leostyle{%
+%   \@ifundefined{selectfont}{\def\UrlFont{\sf}}{\def\UrlFont{\small\ttfamily}}}
+% \makeatother
+% %% Now actually use the newly defined style.
+% \urlstyle{leo}
+
+\bibliographystyle{plain}
+
+
+
+\begin{document}
+
+% insert the table of contents if want, it is not required
+% llncs says: "If you are the author of a single contribution you
+% normally have no running heads and no table of contents."
+% \tableofcontents
+
+\mainmatter              % start of the contributionsmainmatter
+\title{Seperation Logic in an Imperative Language}
+
+\author{Thomas Hallier Didriksen \and Sune Alkærsig\\
+\email{\{thdi, sual\}@itu.dk}}
+
+% Do we want to show our emails?
+\institute{IT University of Copenhagen, Rued Langgaards Vej 7, 2300 Copenhagen S, Denmark}
+
+
+\maketitle              % typeset the title of the contribution
+
+\begin{abstract}
+This is an Abstract
+\keywords{Coq}
+\end{abstract}
+
+\input{introduction}
+
+\end{document}
+
+
+
+
+
+
+
+
+
