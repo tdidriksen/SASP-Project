@@ -1,4 +1,30 @@
+# OSX
+.DS_store
+.cache
+
+# Coq
 *.vo
 *.glob
 *.v.d
+
+# Tex 
+
+*.fdb_latexmk
+*.aux
+*.log
+report.pdf
+*.synctex.gz
+*.toc
+*.ent
+*.out
+*.bbl
+*.fls
+*.fmt
+*.ini
+*.watcher_pid
+*.bbl
+*.blg
+*.lof
+*.pyg
+.*.tex
 
