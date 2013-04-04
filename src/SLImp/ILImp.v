@@ -46,6 +46,18 @@ Proof.
 Definition assn_sub (X: id) a Q : Assertion :=
   fun (st : state) => Q (update st X (aeval st a)).
 
+Lemma bexp_eval_false : forall b st,
+  beval st b = false |-- (~ (bassn b)) st.
+Proof.
+  intros b st.
+  apply limplAdj.
+  intros lhs.
+  inversion lhs.
+  unfold bassn in H0.
+  rewrite H in H0.
+  inversion H0.
+Qed.
+
 Theorem hoare_asgn : forall Q X a,
   {{assn_sub X a Q}} (X ::= a) {{Q}}.
 Proof.
@@ -53,7 +65,6 @@ Proof.
   intros Q X a st st' HE HQ.
   inversion HE. subst.
   unfold assn_sub in HQ. assumption.  Qed.
-
 
 Theorem hoare_if : forall P Q b c1 c2,
   {{P //\\ bassn b}} c1 {{Q}} ->
@@ -74,26 +85,9 @@ Proof.
 		assumption.
 		split.
 		assumption.
-		admit.
+		apply bexp_eval_false.
+		assumption.
 Qed.
-		
-		
-		
-	
-	
-
-
-Lemma bexp_eval_false : forall b st,
-  beval st b = false |-- (~ (bassn b)) st.
-Proof.
-  intros b st.
-  apply limplAdj.
-  intros lhs.
-  inversion lhs.
-  unfold bassn in H0.
-  rewrite H in H0.
-  inversion H0.
-Qed.  
 
 Theorem hoare_while : forall P b c,
   {{P //\\ bassn b}} c {{P}} ->
@@ -117,4 +111,3 @@ Proof.
   		subst.
   		assumption.
 Qed.
-    
