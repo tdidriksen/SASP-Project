@@ -13,6 +13,12 @@ Instance AssertionILogic : ILogic Assertion := _.
 
 Definition bassn b : Assertion :=
   fun st => (beval st b = true).
+  
+Inductive False : Assertion := .
+  
+Definition not (P:Assertion) := P -->> False.
+
+Notation "~ x" := (not x) : type_scope.
 
 Definition hoare_triple (P:Assertion) (c:com) (Q:Assertion) : Prop :=
   forall st st', 
@@ -41,9 +47,8 @@ Proof.
   apply (H1 st'0 st'); try assumption.
   apply (H2 st st'0); assumption. Qed.
   
-Definition assn_sub X a Q : Assertion :=
-  fun (st : state) =>
-    Q (update st X (aeval st a)).
+Definition assn_sub (X: id) a Q : Assertion :=
+  fun (st : state) => Q (update st X (aeval st a)).
 
 Theorem hoare_asgn : forall Q X a,
   {{assn_sub X a Q}} (X ::= a) {{Q}}.
@@ -55,13 +60,13 @@ Proof.
 
 Theorem hoare_if : forall P Q b c1 c2,
   {{P //\\ bassn b}} c1 {{Q}} ->
-  {{P //\\ ~(bassn b)}} c2 {{Q}} ->
+  {{P //\\ ~ (bassn b)}} c2 {{Q}} ->
   {{P}} (IFB b THEN c1 ELSE c2 FI) {{Q}}.
 Proof.
 Admitted.
 
 Theorem hoare_while : forall P b c,
-  {{fun st => P st /\ bassn b st}} c {{P}} ->
-  {{P}} WHILE b DO c END {{fun st => P st /\ ~ (bassn b st)}}.
+  {{P //\\ bassn b}} c {{P}} ->
+  {{P}} WHILE b DO c END {{P //\\ ~ (bassn b)}}.
 Proof.
 Admitted.
