@@ -54,12 +54,33 @@ Proof.
   inversion HE. subst.
   unfold assn_sub in HQ. assumption.  Qed.
 
+
 Theorem hoare_if : forall P Q b c1 c2,
   {{P //\\ bassn b}} c1 {{Q}} ->
   {{P //\\ ~ (bassn b)}} c2 {{Q}} ->
   {{P}} (IFB b THEN c1 ELSE c2 FI) {{Q}}.
 Proof.
-Admitted.
+	intros P Q b c1 c2 H1 H2 st st' H3 H4.
+	inversion H3; subst.
+	Case "b is true".
+		apply (H1 st st').
+		assumption.
+		split.
+		assumption.
+		unfold bassn.
+		assumption.
+	Case "b is false".
+		apply (H2 st st').
+		assumption.
+		split.
+		assumption.
+		admit.
+Qed.
+		
+		
+		
+	
+	
 
 
 Lemma bexp_eval_false : forall b st,
