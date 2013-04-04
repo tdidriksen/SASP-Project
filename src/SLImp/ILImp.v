@@ -1,7 +1,5 @@
 Require Import ILogic ILTac ILInsts ImpDependencies.
 
-Definition state := id -> nat.
-
 Definition Assertion := state -> Prop.
 
 Local Existing Instance ILFun_Ops.
@@ -14,10 +12,8 @@ Instance AssertionILogic : ILogic Assertion := _.
 Definition bassn b : Assertion :=
   fun st => (beval st b = true).
   
-Inductive False : Assertion := .
-  
-Definition not (P:Assertion) := P -->> False.
-
+Definition not (P: Assertion) := P -->> lfalse.
+Check not.
 Notation "~ x" := (not x) : type_scope.
 
 Definition hoare_triple (P:Assertion) (c:com) (Q:Assertion) : Prop :=
@@ -65,8 +61,39 @@ Theorem hoare_if : forall P Q b c1 c2,
 Proof.
 Admitted.
 
+
+Lemma bexp_eval_false : forall b st,
+  beval st b = false |-- (~ (bassn b)) st.
+Proof.
+  intros b st.
+  apply limplAdj.
+  intros lhs.
+  inversion lhs.
+  unfold bassn in H0.
+  rewrite H in H0.
+  inversion H0.
+Qed.  
+
 Theorem hoare_while : forall P b c,
   {{P //\\ bassn b}} c {{P}} ->
   {{P}} WHILE b DO c END {{P //\\ ~ (bassn b)}}.
 Proof.
-Admitted.
+  intros P b c H st st' Hc HP.
+  remember (WHILE b DO c END) as w.
+  induction Hc; inversion Heqw.
+  Case "E_WhileEnd".
+    split. assumption.
+    apply bexp_eval_false. subst.
+    assumption.
+  Case "E_WhileLoop".
+  	apply IHHc2. subst.
+  	reflexivity.
+  	apply (H st st'). subst.
+  	assumption.
+  	split.
+  		assumption.
+  		unfold bassn.
+  		subst.
+  		assumption.
+Qed.
+    
