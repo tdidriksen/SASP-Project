@@ -4,7 +4,7 @@ Module Heap.
 
 Inductive MemoryCell :=
     Holds : nat -> MemoryCell
-  | Free : MemoryCell.
+  | Free  : MemoryCell.
 
 Definition Heap := Map [ nat, MemoryCell ].
 
@@ -19,8 +19,8 @@ Definition read (key : nat) (heap : Heap) : option MemoryCell :=
  
 Definition write (key value : nat) (heap : Heap) : Heap :=
   match find key heap with
-    | Some mc => heap [ key <- Holds value ]
-    | None => heap
+    Some _ => heap [ key <- Holds value ]
+  | None   => heap
   end.
 
 (* Allocation *)
@@ -51,9 +51,18 @@ Theorem deallocation_cardinality : forall heap key,
 
 Theorem deallocate_key : forall heap key,
   (dealloc key heap) [ key ] = None.
+Proof.
+  intros.
+  unfold dealloc.
+  rewrite remove_eq_o.
+  reflexivity.
+  reflexivity.
+Qed.
   
 Theorem deallocate_empty_heap : forall heap key,
-	Empty heap -> Empty (dealloc key heap). 
+  Empty heap -> Empty (dealloc key heap).
+Proof.
+Admitted.
 
 (* Write *)
 
@@ -63,7 +72,16 @@ Theorem deallocate_empty_heap : forall heap key,
 (* Read *)
 
 Theorem read_sound : forall heap key value,
-  read key (write key value heap) = Some (Holds value).
+  In key heap -> read key (write key value heap) = Some (Holds value).
+Proof.
+  intros.
+  unfold read.
+  inversion H.
+  rewrite find_mapsto_iff in H0.
+  unfold write.
+  rewrite H0.
+  intuition.
+Qed.
   
 
 End Heap.
