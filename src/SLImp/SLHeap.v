@@ -1,7 +1,5 @@
 Require Export Maps MapNotations MapInterface MapFacts.
 
-Module Heap.
-
 (* HEAP *)
 Definition Heap := Map [ nat, nat ].
 
@@ -24,6 +22,7 @@ Definition write (key value : nat) (heap : Heap) : Heap :=
   end.
 
 (* Allocation *)
+(**
 Theorem allocation_cardinality : forall heap key,
   ~ In key heap -> S (cardinal heap) = cardinal (alloc [key] heap).
 Proof.
@@ -36,18 +35,20 @@ Proof.
   unfold Add.
   reflexivity.
 Qed.
-
+*)
+(**
 Theorem allocate_none : forall heap key,
   (alloc key heap) [ key ] = Some Free.
 Proof.
   unfold alloc.
   intuition.
 Qed.
-
+*)
 (* Deallocation *)
 
 Theorem deallocation_cardinality : forall heap key,
   In key heap -> cardinal heap = S (cardinal (dealloc key heap)).
+Proof. Admitted.
 
 Theorem deallocate_key : forall heap key,
   (dealloc key heap) [ key ] = None.
@@ -70,7 +71,7 @@ Admitted.
   In key heap -> write key value heap = heap'. *)
 
 (* Read *)
-
+(**
 Theorem read_sound : forall heap key value,
   In key heap -> read key (write key value heap) = Some (Holds value).
 Proof.
@@ -82,6 +83,4 @@ Proof.
   rewrite H0.
   intuition.
 Qed.
-  
-
-End Heap.
+*)

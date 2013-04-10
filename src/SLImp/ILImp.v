@@ -1,4 +1,5 @@
 Require Import ILogic ILTac ILInsts ImpDependencies Maps MapNotations.
+Load SLHeap.
 
 Module ILImp.
 
@@ -6,28 +7,6 @@ Definition Assertion := state -> Prop.
 
 Local Existing Instance ILFun_Ops.
 Local Existing Instance ILFun_ILogic.
-
-(* HEAP *)
-
-Definition Heap := Map [ nat, nat ].
-
-Fixpoint alloc (key cells : nat) (heap : Heap) : nat :=
-  match cells with
-  | 0 => key
-  | S c => alloc (key-1) c (heap [ key <- 0 ])
-  end.
-
-Definition dealloc (key : nat) (heap : Heap) : Heap :=
-  remove key heap.
-   
-Definition read (key : nat) (heap : Heap) : option nat :=
-  heap [ key ].
- 
-Definition write (key value : nat) (heap : Heap) : Heap :=
-  match find key heap with
-  | Some _ => heap [ key <- value ]
-  | None   => heap
-  end.
 
 (* com *)
 Inductive com : Type :=
