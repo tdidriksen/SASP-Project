@@ -110,6 +110,11 @@ Example remove_element_with_prop :
   Equivb beq_nat (remove 1 (add 1 5 [])) [].
 Proof. rewrite equal_iff. reflexivity. Qed.
 
+Example remove_empty :
+  Equivb beq_nat (remove 1 []) [].
+Proof. rewrite equal_iff. reflexivity. Qed.
+  
+
 
 (** Mapping over elements *)
 

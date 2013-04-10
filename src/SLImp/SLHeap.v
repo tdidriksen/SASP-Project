@@ -2,53 +2,25 @@ Require Export Maps MapNotations MapInterface MapFacts.
 
 Module Heap.
 
-Inductive MemoryCell :=
-    Holds : nat -> MemoryCell
-  | Free  : MemoryCell.
+(* HEAP *)
+Definition Heap := Map [ nat, nat ].
 
-(* HEAP #1 *)
-Definition Heap := Map [ nat, MemoryCell ].
-
-Definition alloc (key : nat) (heap : Heap) : Heap :=
-  heap [ key <- Free ].
+Fixpoint alloc (key cells : nat) (heap : Heap) : nat :=
+  match cells with
+  | 0 => key
+  | S c => alloc (key-1) c (heap [ key <- 0 ])
+  end.
 
 Definition dealloc (key : nat) (heap : Heap) : Heap :=
   remove key heap.
    
-Definition read (key : nat) (heap : Heap) : option MemoryCell :=
+Definition read (key : nat) (heap : Heap) : option nat :=
   heap [ key ].
  
 Definition write (key value : nat) (heap : Heap) : Heap :=
   match find key heap with
-    Some _ => heap [ key <- Holds value ]
+  | Some _ => heap [ key <- value ]
   | None   => heap
-  end.
-
-(* HEAP #2 *)
-Definition Heap' := Map [ nat, nat ].
-
-Definition alloc' (key value : nat) (heap : Heap') : Heap' :=
-  heap [ key <- value ].
-
-Fixpoint allocl (key : nat) (values : list nat) (heap : Heap') : Heap' :=
-  match values with
-  | nil => heap
-  | x :: xs => allocl (key+1) xs (heap [ key <- x ])
-  end.
-
-Definition dealloc' (key : nat) (heap : Heap') : option Heap' :=
-  match find key heap with
-  | Some _ => Some (remove key heap)
-  | None   => None
-  end.
-   
-Definition read' (key : nat) (heap : Heap') : option nat :=
-  heap [ key ].
- 
-Definition write' (key value : nat) (heap : Heap') : option Heap' :=
-  match find key heap with
-  | Some _ => Some (heap [ key <- value ])
-  | None   => None
   end.
 
 (* Allocation *)
