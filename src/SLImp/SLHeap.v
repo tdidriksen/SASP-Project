@@ -6,6 +6,7 @@ Inductive MemoryCell :=
     Holds : nat -> MemoryCell
   | Free  : MemoryCell.
 
+(* HEAP #1 *)
 Definition Heap := Map [ nat, MemoryCell ].
 
 Definition alloc (key : nat) (heap : Heap) : Heap :=
@@ -23,9 +24,36 @@ Definition write (key value : nat) (heap : Heap) : Heap :=
   | None   => heap
   end.
 
+(* HEAP #2 *)
+Definition Heap' := Map [ nat, nat ].
+
+Definition alloc' (key value : nat) (heap : Heap') : Heap' :=
+  heap [ key <- value ].
+
+Fixpoint allocl (key : nat) (values : list nat) (heap : Heap') : Heap' :=
+  match values with
+  | nil => heap
+  | x :: xs => allocl (key+1) xs (heap [ key <- x ])
+  end.
+
+Definition dealloc' (key : nat) (heap : Heap') : option Heap' :=
+  match find key heap with
+  | Some _ => Some (remove key heap)
+  | None   => None
+  end.
+   
+Definition read' (key : nat) (heap : Heap') : option nat :=
+  heap [ key ].
+ 
+Definition write' (key value : nat) (heap : Heap') : option Heap' :=
+  match find key heap with
+  | Some _ => Some (heap [ key <- value ])
+  | None   => None
+  end.
+
 (* Allocation *)
 Theorem allocation_cardinality : forall heap key,
-  ~ In key heap -> S (cardinal heap) = cardinal (alloc key heap).
+  ~ In key heap -> S (cardinal heap) = cardinal (alloc [key] heap).
 Proof.
   intros.
   symmetry.
