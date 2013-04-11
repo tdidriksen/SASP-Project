@@ -1,5 +1,4 @@
-Require Import ILogic ILTac ILInsts ImpDependencies Maps MapNotations.
-Load SLHeap.
+Require Import ILogic ILTac ILInsts ImpDependencies Maps MapNotations MapInterface.
 
 Module ILImp.
 
@@ -7,6 +6,27 @@ Definition Assertion := state -> Prop.
 
 Local Existing Instance ILFun_Ops.
 Local Existing Instance ILFun_ILogic.
+
+(* HEAP *)
+Definition Heap := Map [ nat, nat ].
+
+Fixpoint alloc (key cells : nat) (heap : Heap) : nat :=
+  match cells with
+  | 0 => key
+  | S c => alloc (key-1) c (heap [ key <- 0 ])
+  end.
+
+Definition dealloc (key : nat) (heap : Heap) : Heap :=
+  remove key heap.
+   
+Definition read (key : nat) (heap : Heap) : option nat :=
+  heap [ key ].
+ 
+Definition write (key value : nat) (heap : Heap) : Heap :=
+  match find key heap with
+  | Some _ => heap [ key <- value ]
+  | None   => heap
+  end.
 
 (* com *)
 Inductive com : Type :=
@@ -48,15 +68,22 @@ Notation "'[' a1 ']' '<~' a2" :=
   
 Reserved Notation "c1 '/' st '||' st'" (at level 40, st at level 39).
 
+Definition getHeap opheap : Heap :=
+  match opheap with
+  | Some h => h
+  | None   => []
+  end.
+
 Inductive ceval : com -> (state * Heap) -> (state * option Heap) -> Prop :=
   | E_Skip : forall st,
       SKIP / st || (fst st, Some (snd st))
   | E_Ass  : forall st a1 n X,
       aeval (fst st) a1 = n ->
       (X ::= a1) / st || ((update (fst st) X n), Some (snd st))
-  | E_Seq : forall c1 c2 st st' st'',
+  | E_Seq : forall c1 c2 st st' st'' h,
       c1 / st  || st' ->
-      c2 / st' || st'' ->
+      (snd st') = Some h ->
+      c2 / (fst st, getHeap (snd st')) || st'' ->
       (c1 ; c2) / st || st''
   | E_IfTrue : forall st st' b1 c1 c2,
       beval (fst st) b1 = true ->
@@ -68,30 +95,31 @@ Inductive ceval : com -> (state * Heap) -> (state * option Heap) -> Prop :=
       (IFB b1 THEN c1 ELSE c2 FI) / st || st'
   | E_WhileEnd : forall b1 st c1,
       beval (fst st) b1 = false ->
-      (WHILE b1 DO c1 END) / st || st
-  | E_WhileLoop : forall st st' st'' b1 c1,
+      (WHILE b1 DO c1 END) / st || (fst st, Some (snd st))
+  | E_WhileLoop : forall st st' st'' b1 c1 h,
       beval (fst st) b1 = true ->
       c1 / st || st' ->
-      (WHILE b1 DO c1 END) / st' || st'' ->
+      (snd st') = Some h ->
+      (WHILE b1 DO c1 END) / (fst st', getHeap (snd st')) || st'' ->
       (WHILE b1 DO c1 END) / st || st'' 
   | E_Alloc : forall st st' a1,
   	  (ALLOC a1) / st || st'
-  | E_Dealloc : forall (st : state * Heap) st' a1,
+  | E_Dealloc : forall st st' a1,
   	  In (aeval (fst st) a1) (snd st) ->
       (DEALLOC a1) / st || st'
-  | E_DeallocError : forall st st' a1,
+  | E_DeallocError : forall st a1,
   	  ~ In (aeval (fst st) a1) (snd st) ->
       (DEALLOC a1) / st || (fst st, None)
   | E_Read : forall st a1,
       In (aeval (fst st) a1) (snd st) ->
-      ([ a1 ]) / st || st
-  | E_ReadError : forall st st' a1,
+      ([ a1 ]) / st || (fst st, Some (snd st))
+  | E_ReadError : forall st a1,
   	  ~ In (aeval (fst st) a1) (snd st) ->
       ([ a1 ]) / st || (fst st, None)
   | E_Write : forall st st' a1 a2,
   	  In (aeval (fst st) a1) (snd st) ->
       ([ a1 ] <~ a2) / st || st'
-  | E_WriteError : forall st st' a1,
+  | E_WriteError : forall st a1 a2,
   	  ~ In (aeval (fst st) a1) (snd st) ->
       ([ a1 ] <~ a2) / st || (fst st, None)
 

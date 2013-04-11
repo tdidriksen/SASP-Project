@@ -1,5 +1,7 @@
 Require Export Maps MapNotations MapInterface MapFacts.
 
+Module SLHeap.
+
 (* HEAP *)
 Definition Heap := Map [ nat, nat ].
 
@@ -84,3 +86,5 @@ Proof.
   intuition.
 Qed.
 *)
+
+End SLHeap.
