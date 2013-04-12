@@ -10,21 +10,24 @@ Local Existing Instance ILFun_ILogic.
 (* HEAP *)
 Definition Heap := Map [ nat, nat ].
 
-Fixpoint alloc (key cells : nat) (heap : Heap) : nat :=
+Fixpoint alloc (addr cells : nat) (heap : Heap) : nat :=
   match cells with
-  | 0 => key
-  | S c => alloc (key-1) c (heap [ key <- 0 ])
+  | 0 => addr
+  | S c => alloc (addr-1) c (heap [ addr <- 0 ])
   end.
 
-Definition dealloc (key : nat) (heap : Heap) : Heap :=
-  remove key heap.
+Definition dealloc (addr : nat) (heap : Heap) : Heap :=
+  remove addr heap.
    
-Definition read (key : nat) (heap : Heap) : option nat :=
-  heap [ key ].
+Definition read (addr : nat) (heap : Heap) : nat :=
+  match find addr heap with
+  | Some n => n
+  | None => 0
+  end.
  
-Definition write (key value : nat) (heap : Heap) : Heap :=
-  match find key heap with
-  | Some _ => heap [ key <- value ]
+Definition write (addr value : nat) (heap : Heap) : Heap :=
+  match find addr heap with
+  | Some _ => heap [ addr <- value ]
   | None   => heap
   end.
 
@@ -37,7 +40,7 @@ Inductive com : Type :=
   | CWhile   : bexp -> com -> com
   | CAlloc   : aexp -> com
   | CDealloc : aexp -> com
-  | CRead    : aexp -> com
+  | CRead    : id -> aexp -> com
   | CWrite   : aexp -> aexp -> com.
   
 Tactic Notation "com_cases" tactic(first) ident(c) :=
@@ -61,68 +64,87 @@ Notation "'ALLOC' a" :=
   (CAlloc a) (at level 80).
 Notation "'DEALLOC' a" :=
   (CDealloc a) (at level 80).
-Notation "'[' a ']'" :=
-  (CRead a) (at level 80). 
+Notation "X '<~' '[' a ']'" :=
+  (CRead X a) (at level 80). 
 Notation "'[' a1 ']' '<~' a2" :=
   (CWrite a1 a2) (at level 80).
   
 Reserved Notation "c1 '/' st '||' st'" (at level 40, st at level 39).
 
-Definition getHeap opheap : Heap :=
-  match opheap with
-  | Some h => h
-  | None   => []
+Definition cstate := (state * Heap)%type.
+
+Definition getCState opcstate : cstate :=
+  match opcstate with
+  | Some cs => cs
+  | None    => (empty_state, [])
   end.
 
-Inductive ceval : com -> (state * Heap) -> (state * option Heap) -> Prop :=
+Definition cstack (cs : cstate) : state :=
+  match cs with
+  | (st, _) => st
+  end.
+  
+Definition cheap (cs : cstate) : Heap :=
+  match cs with
+  | (_, h) => h
+  end.
+
+Inductive ceval : com -> cstate -> option cstate -> Prop :=
   | E_Skip : forall st,
-      SKIP / st || (fst st, Some (snd st))
+      SKIP / st || Some st
   | E_Ass  : forall st a1 n X,
-      aeval (fst st) a1 = n ->
-      (X ::= a1) / st || ((update (fst st) X n), Some (snd st))
-  | E_Seq : forall c1 c2 st st' st'' h,
+      aeval (cstack st) a1 = n ->
+      (X ::= a1) / st || Some ((update (cstack st) X n), cheap st)
+  | E_Seq : forall c1 c2 st st' st'' cs,
       c1 / st  || st' ->
-      (snd st') = Some h ->
-      c2 / (fst st, getHeap (snd st')) || st'' ->
+      st' = Some cs ->
+      c2 / getCState st' || st'' ->
       (c1 ; c2) / st || st''
   | E_IfTrue : forall st st' b1 c1 c2,
-      beval (fst st) b1 = true ->
+      beval (cstack st) b1 = true ->
       c1 / st || st' ->
       (IFB b1 THEN c1 ELSE c2 FI) / st || st'
   | E_IfFalse : forall st st' b1 c1 c2,
-      beval (fst st) b1 = false ->
+      beval (cstack st) b1 = false ->
       c2 / st || st' ->
       (IFB b1 THEN c1 ELSE c2 FI) / st || st'
   | E_WhileEnd : forall b1 st c1,
-      beval (fst st) b1 = false ->
-      (WHILE b1 DO c1 END) / st || (fst st, Some (snd st))
-  | E_WhileLoop : forall st st' st'' b1 c1 h,
-      beval (fst st) b1 = true ->
+      beval (cstack st) b1 = false ->
+      (WHILE b1 DO c1 END) / st || Some st
+  | E_WhileLoop : forall st st' st'' b1 c1 cs,
+      beval (cstack st) b1 = true ->
       c1 / st || st' ->
-      (snd st') = Some h ->
-      (WHILE b1 DO c1 END) / (fst st', getHeap (snd st')) || st'' ->
+      st' = Some cs ->
+      (WHILE b1 DO c1 END) / getCState st' || st'' ->
       (WHILE b1 DO c1 END) / st || st'' 
   | E_Alloc : forall st st' a1,
   	  (ALLOC a1) / st || st'
-  | E_Dealloc : forall st st' a1,
-  	  In (aeval (fst st) a1) (snd st) ->
-      (DEALLOC a1) / st || st'
-  | E_DeallocError : forall st a1,
-  	  ~ In (aeval (fst st) a1) (snd st) ->
-      (DEALLOC a1) / st || (fst st, None)
-  | E_Read : forall st a1,
-      In (aeval (fst st) a1) (snd st) ->
-      ([ a1 ]) / st || (fst st, Some (snd st))
-  | E_ReadError : forall st a1,
-  	  ~ In (aeval (fst st) a1) (snd st) ->
-      ([ a1 ]) / st || (fst st, None)
-  | E_Write : forall st st' a1 a2,
-  	  In (aeval (fst st) a1) (snd st) ->
-      ([ a1 ] <~ a2) / st || st'
-  | E_WriteError : forall st a1 a2,
-  	  ~ In (aeval (fst st) a1) (snd st) ->
-      ([ a1 ] <~ a2) / st || (fst st, None)
-
+  | E_Dealloc : forall st a1 addr,
+  	  aeval (cstack st) a1 = addr ->
+  	  In addr (cheap st) ->
+      (DEALLOC a1) / st || Some (cstack st, dealloc addr (cheap st))
+  | E_DeallocError : forall st a1 addr,
+  	  aeval (cstack st) a1 = addr ->
+  	  ~ In addr (cheap st) ->
+      (DEALLOC a1) / st || None
+  | E_Read : forall st X a1 addr value,
+  	  aeval (cstack st) a1 = addr ->
+      In addr (cheap st) ->
+      read addr (cheap st) = value ->
+      (X <~ [ a1 ]) / st || Some (update (cstack st) X value, cheap st)
+  | E_ReadError : forall st X a1 addr,
+      aeval (cstack st) a1 = addr ->
+  	  ~ In addr (cheap st) ->
+      (X <~ [ a1 ]) / st || None
+  | E_Write : forall st a1 a2 addr value,
+  	  aeval (cstack st) a1 = addr ->
+  	  aeval (cstack st) a2 = value ->
+  	  In addr (cheap st) ->
+      ([ a1 ] <~ a2) / st || Some (cstack st, write addr value (cheap st))
+  | E_WriteError : forall st a1 a2 addr,
+  	  aeval (cstack st) a1 = addr ->
+  	  ~ In addr (cheap st) ->
+      ([ a1 ] <~ a2) / st || None
   where "c1 '/' st '||' st'" := (ceval c1 st st').
 
 Tactic Notation "ceval_cases" tactic(first) ident(c) :=
