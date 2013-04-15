@@ -1,6 +1,6 @@
 
 
-MODULES := Equiv ILogic ILTac ILInsts
+MODULES := Equiv ILogic ILTac SepAlg BILogic SepAlgMap ILInsts BILTac
 
 VS := $(MODULES:%=%.v)
 

@@ -1,11 +1,10 @@
-Require Import ILogic ILTac ILInsts ImpDependencies Maps MapNotations MapInterface.
+Require Import ILogic ILTac ILInsts.
+Require Import ImpDependencies.
+Require Import MapNotations MapInterface.
+Require Import BILogic SepAlgMap.
+Require Import Equiv.
 
 Module ILImp.
-
-Definition Assertion := state -> Prop.
-
-Local Existing Instance ILFun_Ops.
-Local Existing Instance ILFun_ILogic.
 
 (* HEAP *)
 Definition Heap := Map [ nat, nat ].
@@ -13,7 +12,7 @@ Definition Heap := Map [ nat, nat ].
 Fixpoint alloc (addr cells : nat) (heap : Heap) : nat :=
   match cells with
   | 0 => addr
-  | S c => alloc (addr-1) c (heap [ addr <- 0 ])
+  | S c => alloc (addr-1) c (add addr 0 heap)
   end.
 
 Definition dealloc (addr : nat) (heap : Heap) : Heap :=
@@ -27,7 +26,7 @@ Definition read (addr : nat) (heap : Heap) : nat :=
  
 Definition write (addr value : nat) (heap : Heap) : Heap :=
   match find addr heap with
-  | Some _ => heap [ addr <- value ]
+  | Some _ => add addr value heap
   | None   => heap
   end.
 
@@ -73,10 +72,10 @@ Reserved Notation "c1 '/' st '||' st'" (at level 40, st at level 39).
 
 Definition cstate := (state * Heap)%type.
 
-Definition getCState opcstate : cstate :=
+Definition get opcstate : cstate :=
   match opcstate with
   | Some cs => cs
-  | None    => (empty_state, [])
+  | None    => (empty_state, empty nat)
   end.
 
 Definition cstack (cs : cstate) : state :=
@@ -98,7 +97,7 @@ Inductive ceval : com -> cstate -> option cstate -> Prop :=
   | E_Seq : forall c1 c2 st st' st'' cs,
       c1 / st  || st' ->
       st' = Some cs ->
-      c2 / getCState st' || st'' ->
+      c2 / get st' || st'' ->
       (c1 ; c2) / st || st''
   | E_IfTrue : forall st st' b1 c1 c2,
       beval (cstack st) b1 = true ->
@@ -115,7 +114,7 @@ Inductive ceval : com -> cstate -> option cstate -> Prop :=
       beval (cstack st) b1 = true ->
       c1 / st || st' ->
       st' = Some cs ->
-      (WHILE b1 DO c1 END) / getCState st' || st'' ->
+      (WHILE b1 DO c1 END) / get st' || st'' ->
       (WHILE b1 DO c1 END) / st || st'' 
   | E_Alloc : forall st st' a1,
   	  (ALLOC a1) / st || st'
@@ -157,22 +156,38 @@ Tactic Notation "ceval_cases" tactic(first) ident(c) :=
   ].
 (* /com *)
 
+(* Hoare triples *)
+Local Existing Instance ILFun_Ops.
+Local Existing Instance ILFun_ILogic.
+Local Existing Instance ILPre_Ops.
+Local Existing Instance SABIOps.
+Local Existing Instance SABILogic.
+
 (* Assertions are an intuitionistic logic *)
 
-Instance AssertionILogic : ILogic Assertion := _.
+Definition Assertion := ILPreFrm (@Equiv.equiv Heap _) (state -> Prop).
 
-Definition bassn b : Assertion :=
-  fun st => (beval st b = true).
+Instance AssertionILogic : BILogic Assertion := _.
+
+Definition mk_asn (f: Heap -> state -> Prop) (Hheap: forall h h' st st', h === h' -> st === st' -> f h st -> f h' st') : Assertion.
+  refine (_ _ (fun h st => f h st)).
+
+Defined.
+
+Program Definition bassn b : Assertion :=
+  mk_asn (fun h st => beval st b = true) _.
+Next Obligation.
+  rewrite <- H0; assumption.
+Qed.
   
 Definition not (P: Assertion) := P -->> lfalse.
-Check not.
 Notation "~ x" := (not x) : type_scope.
 
 Definition hoare_triple (P:Assertion) (c:com) (Q:Assertion) : Prop :=
   forall st st', 
        c / st || st'  ->
-       P st  ->
-       Q st'.
+       P (cheap st) (cstack st)  ->
+       Q (cheap (get st')) (cstack (get st')).
 
 Notation "{{ P }}  c  {{ Q }}" := (hoare_triple P c Q) 
                                   (at level 90, c at next level) 
@@ -192,11 +207,12 @@ Theorem hoare_seq : forall P Q R c1 c2,
 Proof.
   intros P Q R c1 c2 H1 H2 st st' H12 Pre.
   inversion H12; subst.
-  apply (H1 st'0 st'); try assumption.
-  apply (H2 st st'0); assumption. Qed.
-  
+  apply (H1 cs st'); try assumption.
+  apply (H2 st (Some cs)); assumption. Qed.
+
+(**
 Definition assn_sub (X: id) a Q : Assertion :=
-  fun (st : state) => Q (update st X (aeval st a)).
+  mk_asn (fun h st => Q h (update st X (aeval st a))) _.
 
 Lemma bexp_eval_false : forall b st,
   beval st b = false |-- (~ (bassn b)) st.
@@ -217,6 +233,16 @@ Proof.
   intros Q X a st st' HE HQ.
   inversion HE. subst.
   unfold assn_sub in HQ. assumption.  Qed.
+*)
+
+Lemma bexp_eval_true : forall st b,
+  beval (cstack st) b = true <-> (bassn b) (cheap st) (cstack st).
+Proof.
+  split.
+  	intros.
+  	
+  	
+Admitted.
 
 Theorem hoare_if : forall P Q b c1 c2,
   {{P //\\ bassn b}} c1 {{Q}} ->
@@ -230,7 +256,7 @@ Proof.
 		assumption.
 		split.
 		assumption.
-		unfold bassn.
+		apply bexp_eval_true.
 		assumption.
 	Case "b is false".
 		apply (H2 st st').

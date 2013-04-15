@@ -1,11 +1,14 @@
+
+
 Require Import ILogic ILTac ILInsts.
+Require Import BILogic BILTac SepAlgMap.
+Require Import MapInterface MapFacts.
 
 Inductive id : Type := 
   Id : nat -> id.
 
 Definition state := id -> nat.
-
-Definition Assertion := state -> Prop.
+Definition heap := Map [nat, nat].
 
 (* To create an intuitionistic logic, we must first open up these already existing type class instances.
    These are no generally available as Coq's type class inference engine can take a very long time if too
@@ -14,10 +17,15 @@ Definition Assertion := state -> Prop.
 
 Local Existing Instance ILFun_Ops.
 Local Existing Instance ILFun_ILogic.
+Local Existing Instance ILPre_Ops.
+Local Existing Instance SABIOps.
+Local Existing Instance SABILogic.
+
+Definition Assertion := ILPreFrm (@Equiv.equiv heap _) (state -> Prop).
 
 (* Assertions are an intuitionistic logic *)
 
-Instance AssertionILogic : ILogic Assertion := _.
+Instance AssertionILogic : BILogic Assertion := _.
 
 (* And that's all you have to do :) *)
 
@@ -101,10 +109,12 @@ reflexivity.
 Qed.
 
 Local Transparent ILFun_Ops.
+Local Transparent ILPre_Ops.
+Local Transparent SABIOps.
 
 Example test_expose (p q : Assertion) : p //\\ q |-- q //\\  p.
 Proof.
-  intros st.
+  intros _ h s.
   simpl.
   firstorder.
 Qed.
