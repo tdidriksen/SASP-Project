@@ -2,17 +2,16 @@ Require Import ILogic ILTac ILInsts.
 Require Import ImpDependencies.
 Require Import MapNotations MapInterface.
 Require Import BILogic SepAlgMap.
-Require Import Equiv.
 
 Module ILImp.
 
 (* HEAP *)
 Definition Heap := Map [ nat, nat ].
 
-Fixpoint alloc (addr cells : nat) (heap : Heap) : nat :=
+Fixpoint alloc (addr cells : nat) (heap : Heap) : Heap :=
   match cells with
-  | 0 => addr
-  | S c => alloc (addr-1) c (add addr 0 heap)
+  | 0 => heap
+  | S c => alloc (addr+1) c (add addr 0 heap)
   end.
 
 Definition dealloc (addr : nat) (heap : Heap) : Heap :=
@@ -37,7 +36,7 @@ Inductive com : Type :=
   | CSeq     : com -> com -> com
   | CIf      : bexp -> com -> com -> com
   | CWhile   : bexp -> com -> com
-  | CAlloc   : aexp -> com
+  | CAlloc   : id -> aexp -> com
   | CDealloc : aexp -> com
   | CRead    : id -> aexp -> com
   | CWrite   : aexp -> aexp -> com.
@@ -59,8 +58,8 @@ Notation "'WHILE' b 'DO' c 'END'" :=
   (CWhile b c) (at level 80, right associativity).
 Notation "'IFB' e1 'THEN' e2 'ELSE' e3 'FI'" := 
   (CIf e1 e2 e3) (at level 80, right associativity).
-Notation "'ALLOC' a" :=
-  (CAlloc a) (at level 80).
+Notation "X &= 'ALLOC' a" :=
+  (CAlloc X a) (at level 80).
 Notation "'DEALLOC' a" :=
   (CDealloc a) (at level 80).
 Notation "X '<~' '[' a ']'" :=
@@ -116,8 +115,10 @@ Inductive ceval : com -> cstate -> option cstate -> Prop :=
       st' = Some cs ->
       (WHILE b1 DO c1 END) / get st' || st'' ->
       (WHILE b1 DO c1 END) / st || st'' 
-  | E_Alloc : forall st st' a1,
-  	  (ALLOC a1) / st || st'
+  | E_Alloc : forall st X a1 cells addr,
+  	  (exists addr, ~ In addr (cheap st)) ->
+  	  aeval (cstack st) a1 = cells ->
+  	  (X &= ALLOC a1) / st || Some (cstack st, alloc addr cells (cheap st))
   | E_Dealloc : forall st a1 addr,
   	  aeval (cstack st) a1 = addr ->
   	  In addr (cheap st) ->
@@ -127,9 +128,8 @@ Inductive ceval : com -> cstate -> option cstate -> Prop :=
   	  ~ In addr (cheap st) ->
       (DEALLOC a1) / st || None
   | E_Read : forall st X a1 addr value,
-  	  aeval (cstack st) a1 = addr ->
-      In addr (cheap st) ->
-      read addr (cheap st) = value ->
+      aeval (cstack st) a1 = addr ->
+      MapsTo addr value (cheap st) ->
       (X <~ [ a1 ]) / st || Some (update (cstack st) X value, cheap st)
   | E_ReadError : forall st X a1 addr,
       aeval (cstack st) a1 = addr ->
@@ -156,7 +156,7 @@ Tactic Notation "ceval_cases" tactic(first) ident(c) :=
   ].
 (* /com *)
 
-(* Hoare triples *)
+(* Assertions *)
 Local Existing Instance ILFun_Ops.
 Local Existing Instance ILFun_ILogic.
 Local Existing Instance ILPre_Ops.
@@ -166,22 +166,26 @@ Local Existing Instance SABILogic.
 (* Assertions are an intuitionistic logic *)
 
 Definition Assertion := ILPreFrm (@Equiv.equiv Heap _) (state -> Prop).
+Check ILPreFrm.
 
 Instance AssertionILogic : BILogic Assertion := _.
 
-Definition mk_asn (f: Heap -> state -> Prop) (Hheap: forall h h' st st', h === h' -> st === st' -> f h st -> f h' st') : Assertion.
-  refine (_ _ (fun h st => f h st)).
+Local Transparent ILFun_Ops.
+Local Transparent ILPre_Ops.
+Local Transparent SABIOps.
 
-Defined.
-
-Program Definition bassn b : Assertion :=
-  mk_asn (fun h st => beval st b = true) _.
-Next Obligation.
-  rewrite <- H0; assumption.
-Qed.
+Definition mk_asn (f: Heap -> state -> Prop) (Hstate: forall h h' st st', h === h' -> st === st' -> f h st -> f h' st) : Assertion.
+  refine (mkILPreFrm (fun h st => f h st) _).
+  intros.
   
-Definition not (P: Assertion) := P -->> lfalse.
-Notation "~ x" := (not x) : type_scope.
+  unfold equiv in H.
+  unfold MapEquiv, Equal in H.
+  admit.
+  
+Defined.
+  
+Definition notA (P: Assertion) := P -->> lfalse.
+Notation "~ x" := (notA x) : type_scope.
 
 Definition hoare_triple (P:Assertion) (c:com) (Q:Assertion) : Prop :=
   forall st st', 
@@ -194,11 +198,60 @@ Notation "{{ P }}  c  {{ Q }}" := (hoare_triple P c Q)
                                   : hoare_spec_scope.
 Open Scope hoare_spec_scope.
 
+(* Points-to *)
+Program Definition points_to a v : Assertion :=
+  mk_asn (fun h st => MapsTo (aeval st a) v h) _.
+Next Obligation.
+Admitted.
+
+(* Heap membership *)
+Program Definition in_heap a : Assertion :=
+  mk_asn (fun h st => In (aeval st a) h) _.
+Next Obligation.
+Admitted.
+
+(* bassn *)
+Program Definition bassn b : Assertion :=
+  mk_asn (fun h st => beval st b = true) _.
+(* No Obligations *)
+
+(* aexp equality *)
+Program Definition aexp_eq (a1 : aexp) n : Assertion :=
+  mk_asn (fun h st => aeval st a1 = n) _.
+(* No Obligations *)
+
+
+Lemma bexp_eval_true : forall st b,
+  beval (cstack st) b = true <-> (bassn b) (cheap st) (cstack st).
+Proof.
+  split; (intros; simpl; assumption).
+Qed.
+
+Lemma bexp_eval_false: forall st b,
+  beval (cstack st) b = false <-> not ((bassn b) (cheap st) (cstack st)).
+Proof.
+  split.
+    intros.
+	unfold not.
+	intros.
+	congruence.
+  
+    intros.
+    apply not_true_iff_false.
+    assumption.
+Qed.
+
+
+(** Hoare rules *)
+Section Hoare_Rules.
+Require Import MapFacts SepAlg.
+  
+
 Theorem hoare_skip : forall P,
      {{P}} SKIP {{P}}.
 Proof.
   intros P st st' H HP. inversion H. subst.
-  assumption.  Qed.
+  unfold get. assumption.  Qed.
 
 Theorem hoare_seq : forall P Q R c1 c2,
      {{Q}} c2 {{R}} ->
@@ -210,21 +263,11 @@ Proof.
   apply (H1 cs st'); try assumption.
   apply (H2 st (Some cs)); assumption. Qed.
 
-(**
-Definition assn_sub (X: id) a Q : Assertion :=
-  mk_asn (fun h st => Q h (update st X (aeval st a))) _.
 
-Lemma bexp_eval_false : forall b st,
-  beval st b = false |-- (~ (bassn b)) st.
-Proof.
-  intros b st.
-  apply limplAdj.
-  intros lhs.
-  inversion lhs.
-  unfold bassn in H0.
-  rewrite H in H0.
-  inversion H0.
-Qed.
+Program Definition assn_sub (X: id) a (Q : Assertion) : Assertion :=
+  mk_asn (fun h st => Q h (ImpDependencies.update st X (aeval st a))) _.
+Next Obligation.
+Admitted.
 
 Theorem hoare_asgn : forall Q X a,
   {{assn_sub X a Q}} (X ::= a) {{Q}}.
@@ -232,17 +275,10 @@ Proof.
   unfold hoare_triple.
   intros Q X a st st' HE HQ.
   inversion HE. subst.
-  unfold assn_sub in HQ. assumption.  Qed.
-*)
-
-Lemma bexp_eval_true : forall st b,
-  beval (cstack st) b = true <-> (bassn b) (cheap st) (cstack st).
-Proof.
-  split.
-  	intros.
-  	
-  	
-Admitted.
+  simpl.
+  simpl in HQ.
+  assumption.
+Qed.
 
 Theorem hoare_if : forall P Q b c1 c2,
   {{P //\\ bassn b}} c1 {{Q}} ->
@@ -254,17 +290,13 @@ Proof.
 	Case "b is true".
 		apply (H1 st st').
 		assumption.
-		split.
-		assumption.
-		apply bexp_eval_true.
-		assumption.
+		split; assumption.
 	Case "b is false".
 		apply (H2 st st').
 		assumption.
 		split.
 		assumption.
-		apply bexp_eval_false.
-		assumption.
+		simpl; intros; congruence.
 Qed.
 
 Theorem hoare_while : forall P b c,
@@ -276,18 +308,58 @@ Proof.
   induction Hc; inversion Heqw.
   Case "E_WhileEnd".
     split. assumption.
-    apply bexp_eval_false. subst.
-    assumption.
+    simpl; intros; congruence.
   Case "E_WhileLoop".
-  	apply IHHc2. subst.
-  	reflexivity.
-  	apply (H st st'). subst.
-  	assumption.
+  	apply IHHc2. subst. reflexivity.
+  	apply (H st st'). subst. assumption.
   	split.
   		assumption.
-  		unfold bassn.
-  		subst.
+		apply bexp_eval_true in H0. subst.
   		assumption.
 Qed.
+
+Lemma not_None_iff_Some : forall n (m: nat),
+  (n = Some m <-> n <> None).
+Proof.
+Admitted.
+
+Notation "a '|->' v" :=
+  (points_to a v) (at level 100).
+Notation "e '|->_'" :=
+  (in_heap e) (at level 100).
+
+Theorem hoare_read : forall X e e',
+  {{ e |-> e' }} X <~ [ e ] {{ aexp_eq (AId X) e' //\\ (e |-> e') }}.
+Proof.
+  intros X e e' st st' H H'.
+  inversion H.
+  subst. simpl.
+  split.
+    rewrite update_eq.
+
+	admit.
+  admit.
+Admitted.
+
+Theorem hoare_write : forall e e' e'',
+  {{ e |->_ }} [ e ] <~ e' {{ (aexp_eq e' e'') //\\ (e |-> e'') }}.
+Proof. 
+  unfold hoare_triple.
+  intros.
+  simpl in H0.
+  simpl.
+Admitted.
+
+Theorem hoare_deallocate : forall e,
+  {{ e |->_ }} DEALLOC e {{ empSP }}.
+Proof.
+Admitted.
+
+Theorem hoare_allocate : forall X n a,
+  {{ empSP }} X &= ALLOC n {{ aexp_eq (AId X) a //\\ (((ANum a) |-> 0) ** (APlus (ANum a) (ANum 1) |-> 0)) }}.
+Proof.
+Admitted.
+
+End Hoare_Rules.
 
 End ILImp.

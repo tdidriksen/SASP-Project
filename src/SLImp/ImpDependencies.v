@@ -12,9 +12,35 @@ Definition beq_id X1 X2 :=
   match (X1, X2) with
     (Id n1, Id n2) => beq_nat n1 n2
   end.
+
+Theorem beq_id_refl : forall X,
+  true = beq_id X X.
+Proof.
+  intros. destruct X.
+  apply beq_nat_refl.  Qed.
  
 Definition update (st : state) (X:id) (n : nat) : state :=
   fun X' => if beq_id X X' then n else st X'.
+  
+Theorem update_eq : forall n X st,
+  (update st X n) X = n.
+Proof.
+  intros.
+  unfold update.
+  rewrite <- beq_id_refl.
+  reflexivity.
+Qed.
+(** [] *)
+
+Theorem update_neq : forall V2 V1 n st,
+  beq_id V2 V1 = false ->
+  (update st V2 n) V1 = (st V1).
+Proof.
+  intros.
+  unfold update.
+  rewrite H.
+  reflexivity.
+Qed.
 
 (* aexp *)
 Inductive aexp : Type := 
