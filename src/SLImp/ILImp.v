@@ -220,8 +220,8 @@ Program Definition bassn b : Assertion :=
 (* No Obligations *)
 
 (* aexp equality *)
-Program Definition aexp_eq (a1 : aexp) n : Assertion :=
-  mk_asn (fun h st => aeval st a1 = n) _.
+Program Definition aexp_eq (a1 a2 : aexp) : Assertion :=
+  mk_asn (fun h st => aeval st a1 = aeval st a2) _.
 (* No Obligations *)
 
 Lemma bexp_eval_true : forall st b,
@@ -355,18 +355,25 @@ Proof.
   assumption.
 Qed.
 
-Theorem hoare_read : forall X e Q,
-  {{ (e |->_) //\\ (hassn_sub X e Q) }} X <~ [ e ] {{ Q //\\ (e |->_) }}.
+Theorem hoare_read : forall X e e',
+  {{ assn_sub X e' (e |-> e') }} X <~ [ e ] {{ aexp_eq (AId X) e' //\\ (e |-> e') }}.
 Proof.
-  intros X e Q st st' H H'.
+  intros X e e' st st' H H'.
   Case "E_Read".
 	  SCase "Proof of postcondition".
+	    split.
+	    inversion H. subst.
+	    simpl in H'.
+	    simpl.
+	    rewrite update_eq.
+	    
+
+	  
 	    inversion H.
 	    simpl. subst.
 	    split.
-	    SSCase "Q".
+	    SSCase "Substituting X for [ e ]".
 		  simpl in H'.
-		  inversion H'.
 		  assumption.
 		SSCase "e |->_".
 		  simpl in H'.
