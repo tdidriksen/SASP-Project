@@ -22,7 +22,7 @@ Proof.
 Definition update (st : state) (X:id) (n : nat) : state :=
   fun X' => if beq_id X X' then n else st X'.
   
-Theorem update_eq : forall n X st,
+Theorem update_eq : forall (n : nat) X st,
   (update st X n) X = n.
 Proof.
   intros.
@@ -30,7 +30,6 @@ Proof.
   rewrite <- beq_id_refl.
   reflexivity.
 Qed.
-(** [] *)
 
 Theorem update_neq : forall V2 V1 n st,
   beq_id V2 V1 = false ->
@@ -39,6 +38,47 @@ Proof.
   intros.
   unfold update.
   rewrite H.
+  reflexivity.
+Qed.
+
+Theorem beq_id_eq : forall i1 i2,
+  true = beq_id i1 i2 -> i1 = i2.
+Proof.
+  intros.
+  destruct i1. destruct i2.
+  apply beq_nat_eq in H.
+  rewrite H. reflexivity.
+Qed.
+
+Theorem update_same : forall x1 k1 k2 (f : state),
+  f k1 = x1 ->
+  (update f k1 x1) k2 = f k2.
+Proof.
+  intros x1 k1 k2 f H.
+  unfold update. subst.
+  remember (beq_id k1 k2) as k1k2.
+  destruct k1k2.
+  	apply beq_id_eq in Heqk1k2.
+  	subst. reflexivity.
+  	
+  	reflexivity.
+Qed.
+
+Theorem update_permute : forall x1 x2 k1 k2 k3 f,
+  beq_id k2 k1 = false -> 
+  (update (update f k2 x1) k1 x2) k3 = (update (update f k1 x2) k2 x1) k3.
+Proof.
+  intros.
+  unfold update.
+  remember (beq_id k1 k3) as k1k3.
+  destruct k1k3.
+  apply beq_id_eq in Heqk1k3.
+  subst.
+  rewrite H.
+  reflexivity.
+  remember (beq_id k2 k3) as k2k3.
+  destruct k2k3.
+  reflexivity.
   reflexivity.
 Qed.
 

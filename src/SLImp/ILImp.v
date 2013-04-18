@@ -127,10 +127,10 @@ Inductive ceval : com -> cstate -> option cstate -> Prop :=
   	  aeval (cstack st) a1 = addr ->
   	  ~ In addr (cheap st) ->
       (DEALLOC a1) / st || None
-  | E_Read : forall st X a1 addr,
+  | E_Read : forall st X a1 addr n,
       aeval (cstack st) a1 = addr ->
-      In addr (cheap st) ->
-      (X <~ [ a1 ]) / st || Some (update (cstack st) X (read addr (cheap st)), cheap st)
+      find addr (cheap st) = Some n ->
+      (X <~ [ a1 ]) / st || Some (update (cstack st) X n, cheap st)
   | E_ReadError : forall st X a1 addr,
       aeval (cstack st) a1 = addr ->
   	  ~ In addr (cheap st) ->
@@ -202,17 +202,13 @@ Open Scope hoare_spec_scope.
 Program Definition points_to a v : Assertion :=
   mk_asn (fun h st => MapsTo (aeval st a) (aeval st v) h) _.
 Next Obligation.
-  rewrite <- H.
-  assumption.
-Qed.
+Admitted.
 
 (* Heap membership *)
 Program Definition in_heap a : Assertion :=
-  mk_asn (fun h st => In (aeval st a) h) _.
+  mk_asn (fun h st => exists v, MapsTo (aeval st a) v h) _.
 Next Obligation.
-  rewrite <- H.
-  assumption.
-Qed.
+Admitted.
 
 (* bassn *)
 Program Definition bassn b : Assertion :=
@@ -325,8 +321,8 @@ Proof.
   		assumption.
 Qed.
 
-Lemma not_None_iff_Some : forall n (m: nat),
-  (n = Some m <-> n <> None).
+Lemma not_None_iff_Some : forall n (m : nat),
+   (n = Some m <-> n <> None).
 Proof.
 Admitted.
 
@@ -336,7 +332,7 @@ Notation "e '|->_'" :=
   (in_heap e) (at level 100).
   
 Program Definition hassn_sub (X: id) a (Q : Assertion) : Assertion :=
-  mk_asn (fun h st => Q h (ImpDependencies.update st X (read (aeval st a) h))) _.
+  mk_asn (fun h st => forall n, (find (aeval st a) h) = Some n -> Q h (ImpDependencies.update st X n)) _.
 Next Obligation.
   unfold read.
 (**
@@ -355,49 +351,43 @@ Proof.
   assumption.
 Qed.
 
-Theorem hoare_read : forall X e e',
-  {{ assn_sub X e' (e |-> e') }} X <~ [ e ] {{ aexp_eq (AId X) e' //\\ (e |-> e') }}.
+Lemma aeval_update_extend : forall (st : state) (h : Heap) (e : aexp) (e' : nat) (X : id),
+  aeval st e = aeval (ImpDependencies.update st X e') e.
 Proof.
-  intros X e e' st st' H H'.
-  Case "E_Read".
-	  SCase "Proof of postcondition".
-	    split.
-	    inversion H. subst.
-	    simpl in H'.
-	    simpl.
-	    rewrite update_eq.
-	    
+Admitted.
 
+Lemma Some_eq : forall m (n : nat),
+  m = n <-> Some m = Some n.
+Proof.
+  intros.
+  split.
+    intros.
+    rewrite H.
+    reflexivity.
+    
+    intros.
+    destruct m. destruct n.
+    reflexivity.
+    inversion H.
+    inversion H.
+    reflexivity.
+Qed.
+    
+Theorem hoare_read : forall X e e' P,
+  {{ (e |-> e') //\\ assn_sub X e' P }} X <~ [ e ] {{ P }}.
+Proof.
+  intros X e e' P st st' H H'.
+  inversion H; subst.
+  inversion H'.
+  Case "Proof of postcondition".
+	  simpl in *.
+	  apply find_mapsto_iff in H0.
+	  rewrite H5 in H0.
+	  apply Some_eq in H0.
+	  rewrite <- H0 in H1.
+	  assumption.
 	  
-	    inversion H.
-	    simpl. subst.
-	    split.
-	    SSCase "Substituting X for [ e ]".
-		  simpl in H'.
-		  assumption.
-		SSCase "e |->_".
-		  simpl in H'.
-		  inversion H'.
-		  apply in_update_extend.
-		  assumption.
-		  SSSCase "Proof obligation from in_update_extend".
-		  intuition.
-		    assert (Haeval: forall st e e' X,
-		                    aeval st e = aeval (ImpDependencies.update st X e') e).
-		      intros.
-		      apply update_neq.
-		    
-		
-		subst.
-		remember (X <~ [ e ]) as r.
-		induction H; inversion Heqr.
-		subst.
-		congruence.
-		subst.
-		split.
-		inversion H'.
-		simpl in H1.
-
+	  admit.
 
 Admitted.
 
@@ -405,10 +395,14 @@ Admitted.
 Theorem hoare_write : forall e e',
   {{ e |->_ }} [ e ] <~ e' {{ (e |-> e') }}.
 Proof. 
-  unfold hoare_triple.
-  intros.
-  simpl in H0.
-  simpl.
+  intros e e' st st' H H'.
+  simpl in *.
+  inversion H; subst; simpl.
+  inversion H'.
+  unfold write.
+  apply in_find_iff in H6.
+  rewrite <- not_None_iff_Some in H6.
+  rewrite H6.
 Admitted.
 
 Theorem hoare_deallocate : forall e,
