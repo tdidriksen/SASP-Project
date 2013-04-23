@@ -82,6 +82,14 @@ Proof.
   reflexivity.
 Qed.
 
+Theorem update_shadow : forall x1 x2 k1 k2 (f : state),
+   (update  (update f k2 x1) k2 x2) k1 = (update f k2 x2) k1.
+Proof.
+  intros.
+  unfold update.
+  destruct (beq_id k2 k1); reflexivity.
+Qed.
+
 (* aexp *)
 Inductive aexp : Type := 
   | ANum : nat -> aexp
