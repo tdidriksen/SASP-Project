@@ -540,4 +540,19 @@ Admitted.
 
 End Hoare_Rules.
 
+(* Function calls *)
+Module Functions.
+
+Definition prog := Map [ (id -> list id -> com), com ]. 
+
+Definition substitution := (id * aexp)%type.
+
+Fixpoint substitute (ast: state) (ost: state) (subs: list substitution) : state :=
+	match subs with
+	| nil => ast
+	| sub :: subz => substitute (update ast (fst sub) (aeval ost (snd sub))) ost subz
+	end.
+
+End Functions.
+
 End ILImp.
