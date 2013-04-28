@@ -25,7 +25,7 @@ Definition read (addr : nat) (heap : Heap) : nat :=
  
 Definition write (addr value : nat) (heap : Heap) : Heap :=
   match find addr heap with
-  | Some _ => add addr value heap
+  | Some _ => add addr value (remove addr heap)
   | None   => heap
   end.
 
@@ -95,27 +95,26 @@ Inductive ceval : com -> cstate -> option cstate -> Prop :=
       (X ::= a1) / st || Some ((update (cstack st) X n), cheap st)
   | E_Seq : forall c1 c2 st st' st'',
       c1 / st  || Some st' ->
-      c2 / st' || st'' ->
-      (c1 ; c2) / st || st''
+      c2 / st' || Some st'' ->
+      (c1 ; c2) / st || Some st''
   | E_IfTrue : forall st st' b1 c1 c2,
       beval (cstack st) b1 = true ->
-      c1 / st || st' ->
-      (IFB b1 THEN c1 ELSE c2 FI) / st || st'
+      c1 / st || Some st' ->
+      (IFB b1 THEN c1 ELSE c2 FI) / st || Some st'
   | E_IfFalse : forall st st' b1 c1 c2,
       beval (cstack st) b1 = false ->
-      c2 / st || st' ->
-      (IFB b1 THEN c1 ELSE c2 FI) / st || st'
+      c2 / st || Some st' ->
+      (IFB b1 THEN c1 ELSE c2 FI) / st || Some st'
   | E_WhileEnd : forall b1 st c1,
       beval (cstack st) b1 = false ->
       (WHILE b1 DO c1 END) / st || Some st
   | E_WhileLoop : forall st st' st'' b1 c1,
       beval (cstack st) b1 = true ->
-      c1 / st || st' ->
-      (WHILE b1 DO c1 END) / get st' || st'' ->
-      (WHILE b1 DO c1 END) / st || st'' 
+      c1 / st || Some st' ->
+      (WHILE b1 DO c1 END) / st' || Some st'' ->
+      (WHILE b1 DO c1 END) / st || Some st'' 
   | E_Alloc : forall st X a1 cells addr,
-  	  ~ In addr (cheap st) ->
-  	  (* aeval (cstack st) a1 = cells -> *)
+  	  (exists n, n >= addr -> forall n', n' >= n -> not (In n' (cheap st))) -> (*Der findes en memory chunk, som er fri*)
   	  (X &= ALLOC a1) / st || Some (update (cstack st) X addr, alloc addr cells (cheap st))
   | E_Dealloc : forall st a1 addr,
   	  aeval (cstack st) a1 = addr ->
@@ -186,10 +185,29 @@ Defined.
 Definition notA (P: Assertion) := P -->> lfalse.
 Notation "~ x" := (notA x) : type_scope.
 
+Definition safe c st := not (c / st || None).
+
+(**
+Lemma Some_iff_safe : forall c st st',
+  c / st || Some st' <-> safe c st.
+Proof.
+  induction c.
+  Case "SKIP".
+    split.
+      intros.
+      unfold safe; unfold not; intros.
+      inversion H0.
+      
+      intros.
+      unfold safe in H.
+      unfold not in H.
+      Admitted.
+ *)     
+    
 Definition hoare_triple (P:Assertion) (c:com) (Q:Assertion) : Prop :=
-  forall st st', 
-       c / st || Some st'  ->
+  forall st, 
        P (cheap st) (cstack st)  ->
+       safe c st /\ forall st', c / st || Some st'  ->
        Q (cheap st') (cstack st').
 
 Notation "{{ P }}  c  {{ Q }}" := (hoare_triple P c Q) 
@@ -199,11 +217,8 @@ Open Scope hoare_spec_scope.
 
 (* Points-to, i.e. e |-> v *)
 Program Definition points_to_precise a v : Assertion :=
-  mk_asn (fun h st => (MapsTo (aeval st a) (aeval st v) h) /\ h === (add (aeval st a) (aeval st v) (empty nat))) _.
+  mk_asn (fun h st => Equiv.equiv h (add (aeval st a) (aeval st v) (empty nat))) _.
 Next Obligation.
-  split.
-  rewrite <- H.
-  assumption.
   rewrite <- H.
   assumption.
 Defined.
@@ -266,18 +281,38 @@ Require Import MapFacts SepAlg.
 Theorem hoare_skip : forall P,
      {{P}} SKIP {{P}}.
 Proof.
-  intros P st st' H HP. inversion H. subst.
-  assumption.  Qed.
+  intros P st H.
+  split.
+    unfold safe.
+    unfold not. intros.
+    inversion H0.
+  
+    intros.
+    inversion H0.
+    subst.
+    assumption.
+Qed.
 
 Theorem hoare_seq : forall P Q R c1 c2,
      {{Q}} c2 {{R}} ->
      {{P}} c1 {{Q}} ->
      {{P}} c1;c2 {{R}}.
-Proof.
-  intros P Q R c1 c2 H1 H2 st st' H12 Pre.
-  inversion H12; subst.
-  apply (H1 st'0 st'); try assumption.
-  apply (H2 st st'0); assumption. Qed.
+Proof. 
+  intros P Q R c1 c2 H1 H2 st HP.
+  
+  split.
+    unfold safe; unfold not; intros.
+    inversion H; subst.
+    
+    intros.
+    inversion H.
+    subst.
+    apply H1 with st'0.
+    apply H2 with st.
+    assumption.
+    assumption.
+    assumption.
+ Qed.
 
 
 Program Definition assn_sub (X: id) a (Q : Assertion) : Assertion :=
@@ -292,12 +327,15 @@ Admitted.
 Theorem hoare_asgn : forall Q X a,
   {{assn_sub X a Q}} (X ::= a) {{Q}}.
 Proof.
-  unfold hoare_triple.
-  intros Q X a st st' HE HQ.
-  inversion HE. subst.
-  simpl.
-  simpl in HQ.
-  assumption.
+  intros Q X a st Pre.
+  split.
+    unfold safe; unfold not; intros.
+    inversion H.
+    
+    intros.
+    inversion H; subst.
+    simpl in *.
+    assumption.
 Qed.
 
 Theorem hoare_if : forall P Q b c1 c2,
@@ -305,18 +343,23 @@ Theorem hoare_if : forall P Q b c1 c2,
   {{P //\\ ~ (bassn b)}} c2 {{Q}} ->
   {{P}} (IFB b THEN c1 ELSE c2 FI) {{Q}}.
 Proof.
-	intros P Q b c1 c2 H1 H2 st st' H3 H4.
-	inversion H3; subst.
-	Case "b is true".
-		apply (H1 st st').
-		assumption.
-		split; assumption.
-	Case "b is false".
-		apply (H2 st st').
-		assumption.
-		split.
-		assumption.
-		simpl; intros; congruence.
+	intros P Q b c1 c2 H1 H2 st HP.
+	split.
+	  unfold safe; unfold not; intros.
+	  inversion H.
+	  
+	  intros.
+	  inversion H; subst.
+	  Case "b is true".
+	    apply H1 with st.
+	    split; assumption.
+	    assumption.
+	  Case "b is false".
+	    apply H2 with st.
+	    split.
+	      assumption.
+	      simpl; intros; congruence.
+	      assumption.
 Qed.
 
 (**
@@ -324,25 +367,26 @@ Theorem hoare_while : forall P b c,
   {{P //\\ bassn b}} c {{P}} ->
   {{P}} WHILE b DO c END {{P //\\ ~ (bassn b)}}.
 Proof.
-  intros.
-  unfold hoare_triple.
-  intros.
-  intros P b c Hhoare st st' He HP.
-  remember (WHILE b DO c END) as wcom.
-  induction He; try (inversion Heqwcom); subst.
-  Case "E_WhileEnd".
-  	split. 
-   		assumption.
-  		simpl; intros; congruence.
-  Case "E_WhileLoop".
+  intros P b c H1 st HP.
+  split.
+    unfold safe; unfold not; intros.
+    inversion H.
+    
+    intros.
+    split.
+      
+      remember (WHILE b DO c END / st || Some st') as wcom.
+  	  induction H; try (inversion Heqwcom); subst.
+  	  unfold hoare_triple in *.
+  	  
+  	  
+  	  
+  	  
+    
     subst.
-  	apply IHHc2. reflexivity.
-  	inversion Hc2.
-  	apply (H st st''). assumption.
-  	split.
-  		assumption.
-  		assumption.
-  		
+    inversion H3.
+  induction He; try (inversion Heqwcom); subst.
+
     
   intros P b c Hhoare st st' He HP.
   (* Like we've seen before, we need to reason by induction 
@@ -387,15 +431,110 @@ Proof.
     inversion H.
     reflexivity.
 Qed.
-    
-(* Second backward-reasoning form *)
-Theorem hoare_read : forall X e Q,
-  {{ Exists e', (e |~> e') //\\ assn_sub X e' Q }} X <~ [ e ] {{ Q }}.
+
+Lemma aeval_update_extend : forall (st : state) (e : aexp) (e' : nat) (X : id),
+  aeval st e = aeval (ImpDependencies.update st X e') e.
 Proof.
-  intros X e Q st st' H H'.
+  intros.
+  
+  induction e.
+  simpl. reflexivity.
+  simpl. rewrite update_neq. reflexivity.
+  
+Admitted.
+
+
+
+Lemma test : forall a v (h h': Heap) st,
+  Equiv.equiv h (add (aeval st a) (aeval st v) h') <-> MapsTo (aeval st a) (aeval st v) h.
+Proof.
+  intros.
+  split.
+    intros.
+    rewrite H.
+    intuition.
+    
+    intros.
+    apply Equal_mapsto_iff.
+    intros.
+    split.
+      intros.
+      
+Admitted.
+
+
+Theorem hoare_read : forall X e e',
+  {{ (e |-> e') //\\ aexp_eq (AId X) e' }} X <~ [ e ] {{ (e |-> e') }}.
+Proof.
+  intros X e e' st H.
   inversion H; subst.
-  inversion H'.
-  inversion H0.
+  split.
+  Case "safe".
+    unfold safe. unfold not. intros.
+    inversion H2. subst.
+    simpl in H0.
+    rewrite H0 in H7.
+    unfold not in H7.
+    apply H7.
+    apply add_in_iff.
+    left. reflexivity.
+  Case "postcondition".
+    intros.
+    simpl in *.    
+    inversion H2; subst.
+    simpl.
+    rewrite H0.
+    apply Equal_mapsto_iff in H0.
+    intros.
+      split.
+        intros.
+        
+    replace (ImpDependencies.update (cstack st) X n) with (cstack st).
+    reflexivity.
+    
+    repeat rewrite <- aeval_update_extend.
+    reflexivity.
+    reflexivity.
+    apply test in H0.
+    apply find_mapsto_iff in H0.
+    rewrite H0 in H8.
+    apply Some_eq in H8.
+    rewrite <- H8.
+    rewrite <- H1.
+    apply update_same.
+    
+    rewrite H0.
+    rewrite H1.
+    
+    simpl in *.
+    apply find_mapsto_iff in H1.
+    rewrite H5 in H1.
+    apply Some_eq in H1.
+    rewrite <- H1 in H2.
+    assumption.
+    
+    apply Equal_mapsto_iff.
+    split.
+      intros.
+      apply find_mapsto_iff.
+      apply add_eq_o.
+      apply add_mapsto_iff.
+      right.
+      split.
+        
+    replace (ImpDependencies.update (cstack st) X n) with (cstack st).
+    assumption.
+    
+    
+    simpl in *.
+    rewrite H0.
+    unfold Equiv.equiv, MapEquiv.
+    apply Equal_mapsto_iff.
+    split.
+      intros.
+      
+      
+    
   
   simpl in *.
   apply find_mapsto_iff in H1.
@@ -406,15 +545,15 @@ Proof.
 Qed.
 
 Lemma or_commut : forall P Q : Prop,
-  P \/ Q  -> Q \/ P.
+  P \/ Q -> Q \/ P.
 Proof.
   intros P Q H.
   inversion H as [HP | HQ].
     Case "left". apply or_intror. apply HP.
     Case "right". apply or_introl. apply HQ.  Qed.
 
-Lemma add_same : forall a (v : nat) v' (h : Heap),
- Equiv.equiv (write a v (write a v' h)) (write a v h).
+Lemma remove_addedL : forall a (v : nat) (h : Heap),
+ h === []%map -> Equiv.equiv (remove a (add a v h)) h.
 Proof.
   intros.
   unfold Equiv.equiv, MapEquiv.
@@ -422,120 +561,181 @@ Proof.
   intros.
   split.
   	intros.
-  	apply find_mapsto_iff in H.
-  	apply find_mapsto_iff.
-  	rewrite <- H.
-  	inversion H.
-  	apply add_mapsto_iff.
-  	left.
-  	  assumption.
-  	  
-  	
- 
-  	right.
-  	  split.
-  	  apply or_commut in H.
-  	  inversion H.
-  	  
-Admitted.
-  
-Theorem hoare_write : forall e e',
-  {{ e |->_ }} [ e ] <~ e' {{ (e |-> e') }}.
-Proof.
-  intros e e' st st' H H'.
-  simpl in *.
-  inversion H. subst. simpl.
-  
-  split.
-    unfold write.
-    rewrite H6.
-    apply add_mapsto_iff.
-    left.
-  	  split; reflexivity.
-  	
-  	unfold write.
-  	rewrite H6.
-  	inversion H'.
+  	apply remove_mapsto_iff in H0.
   	inversion H0.
-  	rewrite H2.
-  	rewrite <- add_same.
+  	apply add_mapsto_iff in H2.
+  	inversion H2.
+  	inversion H3.
+  	congruence.
+  	inversion H3.
+  	assumption.
   	
+  	intros.
+  	rewrite H in H0.
+  	inversion H0.
+Qed.
 
-Admitted.
-
-Lemma remove_added : forall a (v : nat) (h: Heap),
-  Equiv.equiv (remove a (add a v h)) h.
+Lemma remove_addedR : forall a (v : nat) (h : Heap),
+  h === []%map -> Equiv.equiv h (remove a (add a v h)).
 Proof.
   intros a v h.
-  unfold Equiv.equiv.
-  unfold MapEquiv.
+  unfold Equiv.equiv, MapEquiv.
+  intros.
   apply Equal_mapsto_iff.
   intros.
   split.
   	intros.
-  	apply remove_mapsto_iff in H.
-  	inversion H.
-  	apply add_mapsto_iff in H1.
-  	apply or_commut in H1.
-  	inversion H1.
-  	inversion H2.
-  	assumption.
-  	inversion H2.
-  	congruence.
+  	rewrite H in H0.
+  	inversion H0.
   	
   	intros.
-  	apply find_mapsto_iff in H.
-  	apply remove_mapsto_iff.
-  	split.
-  	  
-  	  admit.
-  	  
-  	  apply add_mapsto_iff.
-  	  right.
-  	    split.
-  	    admit.
-  	    assumption.
+  	apply remove_mapsto_iff in H0.
+  	inversion H0.
+  	apply add_mapsto_iff in H2.
+  	apply or_commut in H2.
+  	inversion H2.
+  	inversion H3.
+  	assumption.
+  	inversion H3.
+  	congruence.
+Qed.
+
+Theorem hoare_write : forall e e',
+  {{ e |->_ }} [ e ] <~ e' {{ (e |-> e') }}.
+Proof.
+  intros e e' st Pre.
+  split.
+    unfold safe; unfold not; intros.
+    inversion H. subst.
+    unfold not in H4.
+    apply H4.
+    simpl in Pre.
+    inversion Pre.
+    rewrite H0.
+    apply add_in_iff.
+    left.
+      reflexivity.
+ 
+    simpl in *.
+    intros.
+    inversion H. subst. simpl.
+  	unfold write.
+  	rewrite H6.
+  	inversion Pre.
+  	rewrite H0.
+  	assert ((remove (aeval (cstack st) e) ([]) [aeval (cstack st) e <- aeval (cstack st) x]) === []%map).
+        apply remove_addedL.
+        reflexivity.
+    rewrite H1.
+    reflexivity.
 Qed.
 
 Theorem hoare_deallocate : forall e,
   {{ e |->_ }} DEALLOC e {{ empSP }}.
 Proof.
-  intros e st st' H H'.
-  
-  inversion H. subst. simpl in H'.
-  simpl.
-  unfold dealloc.
+  intros e st Pre.
   split.
-    inversion H'.
-    inversion H0.
-    rewrite H2.
-    rewrite remove_added.
-    intuition.
-    trivial.
+  Case "safe".
+    unfold safe; unfold not; intros.
+    inversion H; subst.
+    unfold not in H2.
+    apply H2.
+    simpl in Pre.
+    inversion Pre.
+    rewrite H0.
+    apply add_in_iff.
+    left. reflexivity.
+  Case "postcondition".
+    intros.
+    inversion H. subst.
+    simpl.
+    unfold dealloc.
+    split.
+    SCase "[] === (remove (aeval (cstack st) e) (cheap st))".
+      inversion Pre.
+      simpl in H0.
+      rewrite H0.
+      apply remove_addedR.
+      reflexivity.
+    SCase "True".
+      trivial.
 Qed.
 
 Program Definition alloc_cell a : Assertion :=
-  a |-> (ANum 0).
+  (ANum a) |-> (ANum 0).
  
-
-Fixpoint alloc_cells (a n : nat) : Assertion :=
+Program Fixpoint alloc_cells (a n : nat) : Assertion :=
   match n with
   | 0    => empSP
-  | S n' => alloc_cell (ANum a) ** alloc_cells (a+1) (n')
+  | S n' => alloc_cell a ** alloc_cells (a+1) (n')
   end.
 
-Theorem hoare_allocate : forall X v n,
+Lemma heap_eq : forall (h h': Heap),
+  Equiv.equiv h h' = (h === h').
+Proof.
+  reflexivity.
+Qed.
+
+Lemma forall heaps exists n, not In n heap -> forall n' > n, not In n' heap
+
+Theorem hoare_allocate : forall X n,
   {{ empSP }} X &= ALLOC n {{ Exists a, aexp_eq (AId X) (ANum a) //\\ alloc_cells a n }}.
 Proof.
   intros X v' st st' Hx Pre.
-  inversion Hx. subst.
   simpl.
-  inversion Pre.
-  simpl in *.
-  intros.
-  exists addr.
-  subst.
+  inversion Hx. subst.
+  simpl. exists addr.
+  destruct cells. destruct v'.
   split.
+    apply update_eq.
+    simpl.
+    assumption.
+  
+  split.
+    apply update_eq.
+    unfold alloc.
+    inversion H2. subst.
+    rewrite H5.
+    
+    
+  Case "v' = 0".
+    split.
+    apply update_eq.
+    split.
+    unfold alloc.
+    unfold alloc_cells.
+    simpl.
+    assumption.
+    simpl.
+    split.
+      
+  
+  inversion Hx. subst.
+  
+  simpl.
+  exists addr.
+  split.
+    apply update_eq.
+    simpl in Pre.
+    inversion Pre.
+    inversion H2.
+    induction cells.
+    destruct v'.
+    simpl.
+    assumption.
+    simpl.
+    
+    simpl.
+    split.
+      
+    assert (alloc_cells addr 3 -|- (((ANum addr) |-> (ANum 0)) ** ((APlus (ANum addr) (ANum 1)) |-> (ANum 0)))).
+    	unfold alloc_cells.
+    	unfold alloc_cell.
+    	apply empSPR.
+    	
+    	
+    unfold alloc_cells.
+    
 Admitted.
 
 End Hoare_Rules.
