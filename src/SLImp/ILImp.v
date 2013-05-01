@@ -860,7 +860,7 @@ Definition substitution := (id * aexp)%type.
 Fixpoint substitute (ast: state) (ost: state) (subs: list substitution) : state :=
 	match subs with
 	| nil => ast
-	| sub :: subz => substitute (update ast (fst sub) (aeval ost (snd sub))) ost subz
+	| sub :: subz => substitute (ImpDependencies.update ast (fst sub) (aeval ost (snd sub))) ost subz
 	end.
 
 End Functions.

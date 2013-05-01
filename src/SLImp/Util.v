@@ -113,3 +113,15 @@ Proof.
 (** 
 {{ empSP }} X &= ALLOC n {{ aexp_eq (AId X) a //\\ ((ANum a) |-> (ANum 0)) ** (((APlus (ANum a) (ANum 1)) |-> ANum 0)) }}.
 *)
+
+(**
+  | E_FuncDef : forall i,
+      (* prog ? *)
+      FuncDef / st || Some st
+  | E_FuncCall : forall X name params body prog st st',
+      body = prog [ name ] ->
+      ps = parameters body ->
+      comm = commands body ->
+      comm / (substitute (cstack st)...., (cheap st)) || Some st'
+      (X ::= name ( params )) / Some (update (cstack st) X result, (cheap st'))
+*)
