@@ -255,6 +255,109 @@ Proof.
     assumption.
 Qed.    
 
+(* Function calls *)
+
+
+Require Import Orders.
+
+Definition FunctionBody := list id -> com -> aexp.
+
+(**
+Inductive id_eq : id -> id -> Prop :=
+  | id_eq_eq : forall id1 id2, true = beq_id id1 id2 -> id_eq id1 id2.
+
+Inductive id_lt : id -> id -> Prop :=
+  | id_lt_lt : forall id1 id2, true = blt_id id1 id2 -> id_lt id1 id2.
+
+Program Instance id_Equivalence `(Equivalence nat _eq) :
+  Equivalence (id_eq).
+Next Obligation.
+  simpl_relation.
+  apply id_eq_eq.
+  apply beq_id_refl.
+Qed.
+Next Obligation.
+  simpl_relation.
+  apply id_eq_eq.
+  apply beq_id_sym.
+  inversion H0.
+  assumption.
+Qed.
+Next Obligation.
+  simpl_relation.
+  inversion H0.
+  inversion H1.
+  apply id_eq_eq.
+  apply beq_id_eq in H2.
+  apply beq_id_eq in H5.
+  subst.
+  inversion H0.
+  assumption.
+Qed.  
+  
+Program Instance IdOrderedType : OrderedType.StrictOrder id_lt id_eq.
+Next Obligation.
+	simpl_relation.
+	inversion H.
+	inversion H0.
+	
+	
+	Admitted.
+Next Obligation.
+	
+  
+  Admitted.
+
+Program Instance id_UsualStrictOrder :
+  OrderedType.StrictOrder (@id_lt ) (@Logic.eq _).
+Next Obligation.
+  Admitted.
+  
+Fixpoint id_compare (x y : id) :=
+  match beq_id x y with
+    | true => Eq
+    | _ =>
+      match blt_id x y with
+        | true => Lt 
+        | _ => Gt
+      end
+  end.
+
+Check id_compare.
+
+Program Instance id_OrderedType: OrderedType (id) := 
+  {
+    _eq := id_eq;
+    _cmp := id_compare;
+    _lt := id_lt;
+    _cmp := id_compare;
+    OT_Equivalence := id_Equivalence _;
+    OT_StrictOrder := id_StrictOrder 
+  }.
+ *)
+Definition Prog := Map [ id, FunctionBody ]. 
+
+Definition ProgSpec := Prog -> nat -> Prop.
+
+Instance ProgSpecILogic : ILogic ProgSpec := _.
+
+Definition mkspec (f: Prog -> nat -> Prop) 
+					(Spec: forall c st n (P: Assertion) (Q: Assertion), 
+						P (cheap st) (cstack st) -> forall n', n' < n -> 
+						safe c st /\ forall st', c / st || Some st' ->
+						Q (cheap st') (cstack st')) : ProgSpec.
+	Admitted.			
+						
+Definition substitution := (id * aexp)%type.
+
+Fixpoint substitute (ast: state) (ost: state) (subs: list substitution) : state :=
+	match subs with
+	| nil => ast
+	| sub :: subz => substitute (ImpDependencies.update ast (fst sub) (aeval ost (snd sub))) ost subz
+	end.
+
+(* End function calls *) 
+
 
 (** Hoare rules *)
 Section Hoare_Rules.

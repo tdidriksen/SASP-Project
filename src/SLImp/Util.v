@@ -1,3 +1,54 @@
+Require Export ImpDependencies.
+
+Definition blt_id X1 X2 :=
+  match (X1, X2) with
+    (n1, n2) => blt_nat n1 n2
+  end.
+
+(**
+Theorem beq_id_sym : forall n m,
+  true = beq_id n m <-> true = beq_id m n.
+Proof.
+  split; unfold beq_id; destruct n, m.
+  Case "->".
+    
+    rewrite <- beq_nat_sym.
+    intros. assumption.
+  Case "<-".
+    rewrite beq_nat_sym.
+    intros. assumption.
+Qed.   
+
+Theorem beq_id_trans : forall n m o,
+  true = beq_id n m -> true = beq_id m o -> true = beq_id n o.
+Proof.
+  intros n m o.
+  intros.
+  apply beq_id_eq in H.
+  apply beq_id_eq in H0.
+  subst.
+  unfold beq_id.
+  destruct o.
+  apply beq_nat_refl.
+Qed.
+
+Theorem blt_id_trans : forall n m o,
+  true = blt_id n m -> true = blt_id m o -> true = blt_id n o.
+Proof.
+  intros.
+  unfold blt_id in *.
+  destruct n, m, o.
+  transitivity (blt_nat n n0).
+  apply H.
+  assert(blt_nat n n1 = true).
+  admit.
+  rewrite <- H.
+  rewrite H1.
+  reflexivity.
+Qed.
+
+*)
+(** 
 Lemma not_None_iff_Some : forall n (m : nat),
    (n = Some m <-> n <> None).
 Proof.
@@ -44,6 +95,7 @@ Program Definition free a n : Assertion :=
 Next Obligation.
 Admitted.
 
+
 (**
 Theorem hoare_allocate : forall X n a Q,
   {{ free a n //\\ ((a |-> (ANum 0)) -* assn_sub X a Q) }} X &= ALLOC n {{ Q }}.
@@ -56,7 +108,7 @@ Proof.
   split.
     inversion Hc. subst.
     simpl in *.
-*)    
+*)  *)  
 
 (** 
 {{ empSP }} X &= ALLOC n {{ aexp_eq (AId X) a //\\ ((ANum a) |-> (ANum 0)) ** (((APlus (ANum a) (ANum 1)) |-> ANum 0)) }}.
