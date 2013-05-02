@@ -497,7 +497,6 @@ Qed.
 Lemma aeval_update_extend : forall (st : state) (e : aexp) (e' n : nat) (X : id),
   st X = (ImpDependencies.update st X e') X -> aeval st e = aeval (ImpDependencies.update st X e') e.
 Proof.
-  
   (**
   rewrite <- update_same.
   rewrite <- H.
@@ -515,10 +514,9 @@ Lemma test : forall a v (h : Heap) st,
   Equiv.equiv h (add (aeval st a) (aeval st v) (empty nat)) -> MapsTo (aeval st a) (aeval st v) h.
 Proof.
   intros.
-
-      
+  rewrite find_mapsto_iff.  
+ 
 Admitted.
-
 
 Theorem hoare_read : forall X e e',
   {{ (e |-> e') //\\ aexp_eq (AId X) e' }} X <~ [ e ] {{ (e |-> e') }}.
@@ -544,7 +542,6 @@ Proof.
       rewrite update_same.
       reflexivity.
       assumption.
-    
     assert (MapsTo (aeval (cstack st) e) (aeval (cstack st) e') (cheap st)).
       apply test.
       assumption.
@@ -554,12 +551,13 @@ Proof.
     simpl.
     rewrite H0.
     inversion H2; subst.
+    
     repeat rewrite <- aeval_update_extend with (X:=X) (e':=aeval (cstack st) e').
     reflexivity.
     intuition.
-    admit.
-    admit.
-    admit.
+    apply H3.
+    intuition.
+    apply H3.  
 Qed.
 
 Lemma or_commut : forall P Q : Prop,
