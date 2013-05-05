@@ -11,7 +11,7 @@ Definition Heap := Map [ nat, nat ].
 Fixpoint alloc (addr cells : nat) (heap : Heap) : Heap :=
   match cells with
   | 0 => heap
-  | S c => alloc (addr+1) c (add addr 0 heap)
+  | S c => add addr 0 (alloc (addr+1) c heap)
   end.
 
 Definition dealloc (addr : nat) (heap : Heap) : Heap :=
@@ -661,7 +661,7 @@ Proof.
     apply H2.
     simpl in Pre.
     inversion Pre.
-    rewrite H0.
+    rewrite H0.	
     apply add_in_iff.
     left. reflexivity.
   Case "postcondition".
@@ -727,24 +727,338 @@ Proof.
   split; assumption.
 Qed.
 
-Lemma not_in_alloc_heap : forall h a addr n,
-  h === (empty nat) ->
-  a < addr ->
-  not (In a (alloc addr n h)).
+
+(** ~ In addr (alloc (addr + 1) n (cheap st)) *)
+Lemma not_in_larger_heap_old : forall (h: Heap) a b n,
+  not (In a (alloc b n h)).
+Proof.
+Admitted.
+(**
+  intros.
+  generalize dependent addr.
+  generalize dependent h.
+  induction n.
+  intros.
+  simpl.
+  assumption.
+  
+  intros.
+  simpl.
+  apply IHn with (addr:=addr+1) (h:=add addr 0 h).
+  unfold not; intros.
+  unfold not in H.
+  apply add_in_iff in H1.
+  apply or_commut in H1.
+  inversion H1.
+  apply H.
+  assumption.
+  admit.
+  omega.
+Qed.
+
+Lemma in_larger_heap : forall a addr n (h: Heap),
+   In a h ->
+   In a (alloc (addr) n h).
 Proof.
   intros.
+  generalize dependent addr.
+  generalize dependent h.
+  induction n.
+  intros.
+  simpl.
+  assumption.
+  
+  intros.
+  simpl.
+  apply IHn with (addr:=addr+1) (h:=(add addr 0 h)).
+  apply add_in_iff.
+  right. assumption.
+Qed.
+*)
+
+Lemma find_in_larger_heap : forall a addr n m (h: Heap),
+   find a h = Some m ->
+   a < addr ->
+   find a (add a n h) = Some m.
+Proof.
+Admitted.
+(*
+  intros.
+  generalize dependent addr.
+  generalize dependent h.
   induction n.
   simpl.
-  rewrite H.
-  unfold not; intros.
-  inversion H1.
-  inversion H2.
+  intros.
+  assumption.
   
+  intros.
+  simpl.
+
+  apply IHn.
+  apply find_mapsto_iff.
+  apply add_mapsto_iff.
+  right.
+  apply find_mapsto_iff in H.
+  split.
+    admit.
+    
+    assumption.
+    omega.
+Qed.*)
+
+(**
+Lemma not_None_iff_Some : forall (n: option nat),
+   n <> None <-> exists (m:nat), n = Some m.
+Proof.
+  intros.
+  split.
+  destruct n. exists n.
+  reflexivity.
+  intros.
+  unfold not in H.
+  apply ex_falso_quodlibet.
+  apply H.
+  reflexivity.
+  intros.
   unfold not; intros.
-  unfold alloc in H1.
+  inversion H.
+  congruence.
+Qed.
+
+Require Export Containers.Tactics.
+
+
+Lemma mapsto_permute : forall a b n m k (h : Heap),
+  MapsTo k m (alloc (b) n (add a 0 h)) <-> MapsTo k m (add a 0 (alloc (b) n h)).
+Proof.
+  intros.
+  split.
+    intros.
+    generalize dependent b.
+    generalize dependent h.
+    induction n.
+    simpl.
+    intros.
+    apply add_mapsto_iff.
+    simpl in H.
+    apply add_mapsto_iff in H.
+    assumption.
+    
+    simpl.
+    intros.
+    apply IHn.
+    admit.
+    
+    intros.
+    apply add_mapsto_iff in H.
+    generalize dependent b.
+    generalize dependent h.
+    induction n.
+    simpl.
+    intros.
+    simpl in H.
+    apply add_mapsto_iff.
+    assumption.
+    
+    simpl.
+    intros.
+    
+    
 Admitted.
   
 
+Lemma find_permute : forall a b n k (h h': Heap),
+  h === h' ->
+  find k (alloc (b) n (add a 0 h')) = find k (add a 0 (alloc (b) n h)).
+Proof.
+  intros.
+  generalize dependent b.
+  generalize dependent h.
+  generalize dependent h'.
+  induction n.
+  simpl.
+  intros.
+  rewrite H.
+  reflexivity.	
+  
+  simpl.
+  intros.
+  apply IHn with (b:=b+1) (h:=add b 0) ().
+  
+  (alloc (b + 1) n ((h) [a <- 0]) [b <- 0]) [k]%map =
+ ((alloc (b + 1) n  (h) [b <- 0]) [a <- 0]) [k]%map
+  remember (((alloc (b + 1) n (h) [b <- 0]) [a <- 0]) [k]%map) as h''.
+  
+  
+Admitted.
+*)
+
+Lemma find_in_smaller_heap_old : forall a k n (h: Heap),
+  find k (add a 0 h) = Some n ->
+  a =/= k ->
+  MapsTo k n h.
+Proof.
+  intros.
+  apply find_mapsto_iff in H.
+  apply add_mapsto_iff in H.
+  apply or_commut in H.
+  inversion H.
+  inversion H1.
+  assumption.
+  inversion H1.
+  congruence.
+Qed.
+(**
+  intros.
+  generalize dependent h.
+  generalize dependent b.
+  induction n.
+  intros.
+  simpl.
+  simpl in H.
+  apply find_mapsto_iff in H.
+  apply add_mapsto_iff in H.
+  inversion H.
+  inversion H1.
+  congruence.
+  inversion H1.
+  assumption.
+  
+  intros.
+  simpl.
+  simpl in H.
+  
+  apply IHn with (b:=b+1) (h:=add b 0 h).
+  assumption.
+Qed.
+*)
+
+(** ~ In k (alloc (addr + 1) n (cheap st)) *)
+Lemma not_in_smaller_heap_old : forall a n k (h: Heap),
+  find k (add a n h) = None ->
+  a =/= k ->
+  not (In k h).
+Proof.
+  intros.
+  unfold not; intros.
+  apply not_find_in_iff in H.
+  unfold not in H.
+  apply H.
+  apply add_in_iff.
+  right. assumption.
+Qed.
+(**
+  intros.
+  generalize dependent b.
+  generalize dependent h.
+  induction n.
+  intros.
+  simpl.
+  apply not_find_in_iff in H.
+  simpl in H.
+  unfold not; intros.
+  unfold not in H.
+  apply H.
+  apply add_in_iff.
+  right. assumption.
+  
+  simpl.
+  intros.
+  apply IHn.
+  assumption.
+Qed.
+*)
+
+(**
+Theorem sep_hoare_consequence_pre : forall (P P' Q : Assertion) c,
+  {{ P' }} c {{ Q }} ->
+  (forall h st, P h st -> P' h st) ->
+  {{ P }} c {{ Q }}.
+Proof.
+  intros P P' Q c HP' Himpl st' HP.
+  unfold hoare_triple in HP'.
+  split.
+    generalize dependent Q.
+    induction c.
+    intros; unfold safe; unfold not; intros; inversion H.
+    intros; unfold safe; unfold not; intros; inversion H.
+    intros; unfold safe; unfold not; intros; inversion H.
+    intros; unfold safe; unfold not; intros; inversion H.
+    intros; unfold safe; unfold not; intros; inversion H.
+    intros; unfold safe; unfold not; intros; inversion H.
+    intros. unfold safe; unfold not; intros.
+    eapply hoare_deallocate in H.
+    inversion H.
+    
+    inversion H; subst.
+    unfold not in H2.	
+    apply H2.
+  
+  intros.
+  apply HP' with st'.
+  apply Himpl.
+  assumption.
+  assumption.
+*)
+
+Lemma find_in_smaller_heap : forall a k n m (h: Heap),
+  find k (add a m h) = Some n ->
+  a =/= k ->
+  MapsTo k n h.
+Proof.
+  intros.
+  apply find_mapsto_iff in H.
+  apply add_mapsto_iff in H.
+  apply or_commut in H.
+  inversion H.
+  inversion H1.
+  assumption.
+  inversion H1.
+  congruence.
+Qed.
+
+Lemma not_in_smaller_heap : forall a n k (h: Heap),
+  find k (add a n h) = None ->
+  a =/= k ->
+  not (In k h).
+Proof.
+  intros.
+  unfold not; intros.
+  apply not_find_in_iff in H.
+  unfold not in H.
+  apply H.
+  apply add_in_iff.
+  right. assumption.
+Qed.
+
+Lemma not_in_larger_heap : forall (h: Heap) a b n,
+  not (In a h) ->
+  a < b \/ a >= (b+n) ->
+  not (In a (alloc b n h)).
+Proof.
+  intros.
+  generalize dependent b.
+  induction n.
+  Case "n = 0".
+    intros.
+    simpl.
+    assumption.
+  Case "n = S n'".
+    intros.
+    simpl.
+    unfold not; intros.
+    apply add_in_iff in H1.
+    inversion H1.
+    inversion H2.
+    inversion H0.
+    omega.
+    omega.
+    apply IHn with (b+1).
+    omega.
+    assumption. 
+Qed.
+
+(* Make operators opaque, so separating conjunction does not unfold *)
 Local Opaque ILFun_Ops.
 Local Opaque ILPre_Ops.
 Local Opaque SABIOps.
@@ -757,96 +1071,103 @@ Proof.
   Case "safe".
     unfold safe; unfold not; intros.
     inversion H.
-  intros.
-  inversion H; subst.
-  exists addr.
-  simpl.
-  split.
-  Case "aexp_eq".
-    apply update_eq.
-    clear H.
-    simpl in Pre.
-    inversion Pre.
-    generalize dependent (ImpDependencies.update (cstack st) X addr).
-    generalize dependent addr.
-    induction n.
-  
-  Case "n = 0".
-    intros. simpl.
-    assumption.
-  
-  Case "n = S n'". 
+  Case "postcondition".
     intros.
-	simpl.
+    inversion H; subst.
+    exists addr.
+    simpl.
+    split.
+    SCase "aexp_eq".
+      apply update_eq.
     
-    apply conj_comp with (a:=(add addr 0 (cheap st))) (b:=((alloc (addr+1) n (cheap st)))).
-    SCase "(alloc_cell addr) (cheap st) [addr <- 0]".
-      unfold alloc_cell.
-      simpl.
-      rewrite x.
-      reflexivity.
-    SCase "(alloc_cells (addr + 1) n) (alloc (addr + 1) n (cheap st))".
-      apply IHn with (addr:=addr+1).
-      assert (forall a, a > addr -> not (In a (cheap st))).
+    (* Do induction on number of cells allocated *)
+    SCase "alloc_cells".
+      clear H.
+      inversion Pre.
+      simpl in *.  
+      generalize dependent (ImpDependencies.update (cstack st) X addr).
+      generalize dependent addr.
+      induction n.
+  
+      SSCase "n = 0".
+        intros. simpl.
+        assumption.
+  
+      SSCase "n = S n'". 
         intros.
-        rewrite <- x.
-        unfold not; intros.
-        inversion H1.
-        inversion H2.
-      apply H0.
-      omega.
-    SCase "sa_mul".
-      simpl.
-      intros.
-      destruct (eqb_dec addr k) as [H'|].
-      SSCase "addr === k".
-        rewrite <- H'.
-    
-        assert (find addr (alloc (addr + 1) n (add addr 0 (cheap st))) = Some 0).
-          admit.
-    
-        rewrite H0.
-        left. split.
-        intuition.
-        apply not_in_alloc_heap.
-        symmetry.
-        assumption.
-        omega.
-      SSCase "addr =/= k".
-        remember (find k (alloc (addr + 1) n (add addr 0 (cheap st)))) as h.
-        destruct h.
-        right. split.
-        assert (((alloc (addr + 1) n (cheap st) [addr <- 0]) [k]%map = Some n0) ->
-                addr =/= k ->
-                MapsTo k n0 (alloc (addr + 1) n (cheap st))).
-                admit.
-        apply H0.
-        symmetry.
-        assumption.
-        assumption.
-        rewrite <- x.
-        simpl.
-        rewrite add_neq_in_iff.
-        unfold not; intros.
-        inversion H0. inversion H1.
-        assumption.
-      
-        split.
-        rewrite <- x.
-        simpl.
-        rewrite add_neq_in_iff.
-        unfold not; intros.
-        inversion H0. inversion H1.
-        assumption.
-        assert (((alloc (addr + 1) n (cheap st) [addr <- 0]) [k]%map = None) ->
-                addr =/= k ->
-                not (In k (alloc (addr + 1) n (cheap st)))).
-                admit.
-        apply H0.
-        symmetry.
-        assumption.
-        assumption.
+	    simpl.
+        apply conj_comp with (a:=(add addr 0 (cheap st))) (b:=(alloc (addr+1) n (cheap st))).
+        SSSCase "add addr 0 (cheap st)".
+          simpl.
+          rewrite x.
+          reflexivity.
+        SSSCase "alloc (addr+1) n (cheap st)".
+          apply IHn with (addr:=addr+1).
+          assert (Hnotin: forall a, a > addr -> not (In a (cheap st))).
+            intros.
+            rewrite <- x.
+            unfold not; intros.
+            inversion H1.
+            inversion H2.
+          apply Hnotin.
+          omega.
+        SSSCase "sa_mul (heap composition)".
+          simpl.
+          intros.
+          destruct (eq_dec addr k) as [H'|]. (* Divide possible addresses into addr === k and addr =/= k *)
+          SSSSCase "addr === k".
+            rewrite <- H'.
+  
+            assert (Hfind: find addr (add addr 0 (alloc (addr + 1) n (cheap st))) = Some 0).
+              intuition.
+              
+            rewrite Hfind.
+            left. split.
+            SSSSSCase "MapsTo addr 0 (add addr 0 (cheap st))".
+              intuition.
+            SSSSSCase "~ In addr (alloc (addr + 1) n (cheap st))".
+              apply not_in_larger_heap.
+              assumption.
+              omega.
+          SSSSCase "addr =/= k".
+            remember (find k (add addr 0 (alloc (addr + 1) n (cheap st)))) as h.
+            destruct h.
+            SSSSSCase "find k = Some n".
+              right. split.
+              SSSSSSCase "MapsTo k n0 (alloc (addr + 1) n (cheap st))".
+                apply find_in_smaller_heap with (a:=addr) (m:=0).
+		        symmetry.
+		        assumption.
+                assumption.
+              SSSSSSCase "~ In k (add addr 0 (cheap st))".
+                rewrite <- x.
+                rewrite add_neq_in_iff.
+                unfold not; intros.
+                inversion H1. inversion H2.
+                assumption.
+            SSSSSCase "find k = None".
+              split.
+              SSSSSSCase "~ In k (add addr 0 (cheap st))".
+                rewrite <- x.
+                rewrite add_neq_in_iff.
+                unfold not; intros.
+                inversion H1. inversion H2.
+                assumption.
+              SSSSSSCase "~ In k (alloc (addr + 1) n (cheap st))".
+                apply not_in_smaller_heap with (a:=addr) (n:=0).
+                symmetry.
+                assumption.
+                assumption.
 Qed.
+
+Theorem frame_rule : forall P Q R c,
+   {{ P }} c {{ Q }} ->
+   {{ P ** R }} c {{ Q ** R }}.
+Proof.
+  intros.
+  induction c.
+  
+Admitted.
 
 End Hoare_Rules.
 

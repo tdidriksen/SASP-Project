@@ -124,4 +124,7 @@ Proof.
       comm = commands body ->
       comm / (substitute (cstack st)...., (cheap st)) || Some st'
       (X ::= name ( params )) / Some (update (cstack st) X result, (cheap st'))
+
+  | CFuncDef : id -> FunctionBody -> com
+  | CFuncCall: id -> id -> list id -> com.
 *)
