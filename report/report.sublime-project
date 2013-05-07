@@ -1,0 +1,16 @@
+{
+	"folders":
+	[
+		{
+			"path": ".",
+			"folder_exclude_patterns": ["llncs2e"],
+			"file_exclude_patterns": ["*.cls", 
+									  "*.log",
+									  "*.aux",
+									  "*.pdf",
+									  "*.fdb_latexmk",
+									  "*.fls",
+									  "*.gz"]
+		}
+	]
+}

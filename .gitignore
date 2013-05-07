@@ -28,6 +28,6 @@ report.pdf
 .*.tex
 
 # Sublime Text
-*.sublime-project
-*.sublime-workspace
+
+
 

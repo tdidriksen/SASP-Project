@@ -1,0 +1,215 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "solution.tex",
+			"settings":
+			{
+				"buffer_size": 248,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 392.0,
+		"selected_items":
+		[
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"package",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 449.0
+	},
+	"console":
+	{
+		"height": 125.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/report.sublime-workspace",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/background.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/introduction.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/report.sublime-project",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/Solution.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/problem.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/related_work.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/abstract.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/report.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/discussion.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/example.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/bacground.tex",
+		"/Users/sunealkaersig/Library/Application Support/Sublime Text 2/Packages/Default/Preferences.sublime-settings",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/Containers/theories/MapFacts.v",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/Projekt/SASP-Projekt/report/report.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/Projekt/SASP-Projekt/report/introduction.tex",
+		"/Users/sunealkaersig/Downloads/thomas_sune/Example.v",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/Projekt/SASP-Projekt/report/report.sublime-project",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/Projekt/SASP-Projekt/report/report.sublime-workspace",
+		"/Users/sunealkaersig/Library/Application Support/Sublime Text 2/Packages/User/LaTeXTools Preferences.sublime-settings",
+		"/Users/sunealkaersig/Library/Application Support/Sublime Text 2/Packages/LaTeXTools/LaTeXTools Preferences.sublime-settings",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/1. Semester/MDD/MDD/report/appendix.tex",
+		"/Users/sunealkaersig/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"'",
+			"    \n",
+			"<",
+			"<~"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "solution.tex",
+					"settings":
+					{
+						"buffer_size": 248,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								211,
+								211
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 31.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 100.0
+	},
+	"replace":
+	{
+		"height": 64.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+			[
+				"",
+				"report.sublime-project"
+			],
+			[
+				"ap",
+				"appendix.tex"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"selected_items":
+		[
+		],
+		"width": 380.0
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 254.0,
+	"status_bar_visible": true
+}
