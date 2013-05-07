@@ -1,25 +1,26 @@
 Require Export Maps MapNotations MapInterface MapFacts.
 
-Module SLHeap.
-
 (* HEAP *)
 Definition Heap := Map [ nat, nat ].
 
-Fixpoint alloc (key cells : nat) (heap : Heap) : nat :=
+Fixpoint alloc (addr cells : nat) (heap : Heap) : Heap :=
   match cells with
-  | 0 => key
-  | S c => alloc (key-1) c (heap [ key <- 0 ])
+  | 0 => heap
+  | S c => add addr 0 (alloc (addr+1) c heap)
   end.
 
-Definition dealloc (key : nat) (heap : Heap) : Heap :=
-  remove key heap.
+Definition dealloc (addr : nat) (heap : Heap) : Heap :=
+  remove addr heap.
    
-Definition read (key : nat) (heap : Heap) : option nat :=
-  heap [ key ].
+Definition read (addr : nat) (heap : Heap) : nat :=
+  match find addr heap with
+  | Some n => n
+  | None => 0
+  end.
  
-Definition write (key value : nat) (heap : Heap) : Heap :=
-  match find key heap with
-  | Some _ => heap [ key <- value ]
+Definition write (addr value : nat) (heap : Heap) : Heap :=
+  match find addr heap with
+  | Some _ => add addr value (remove addr heap)
   | None   => heap
   end.
 
@@ -86,5 +87,3 @@ Proof.
   intuition.
 Qed.
 *)
-
-End SLHeap.

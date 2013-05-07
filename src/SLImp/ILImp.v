@@ -1,5 +1,5 @@
 Require Import ILogic ILTac ILInsts.
-Require Import ImpDependencies.
+Require Export ImpDep.
 Require Import MapNotations MapInterface.
 Require Import BILogic SepAlgMap.
 
@@ -206,6 +206,13 @@ Next Obligation.
   assumption.
 Defined.
 
+Program Definition points_to_sub a X n v : Assertion :=
+  mk_asn (fun h st => Equiv.equiv h (add (aeval (update st X (aeval st n)) a) (aeval st v) (empty nat))) _.
+Next Obligation.
+  rewrite <- H.
+  assumption.
+Defined.
+
 (* Heap membership *)
 Program Definition points_to_weak a : Assertion :=
   Exists v, points_to_precise a v.
@@ -224,6 +231,8 @@ Notation "e '|->_'" :=
   (points_to_weak e) (at level 100).
 Notation "e '|~>' v" :=
   (in_heap e v) (at level 100).
+Notation " e '/' X '->' n '|->' v" :=
+  (points_to_sub e X n v) (at level 100).
 
 (* bassn *)
 Program Definition bassn b : Assertion :=
@@ -259,83 +268,10 @@ Qed.
 
 
 Require Import Orders.
-
+(**
 Definition FunctionBody := list id -> com -> aexp.
 
-(**
-Inductive id_eq : id -> id -> Prop :=
-  | id_eq_eq : forall id1 id2, true = beq_id id1 id2 -> id_eq id1 id2.
-
-Inductive id_lt : id -> id -> Prop :=
-  | id_lt_lt : forall id1 id2, true = blt_id id1 id2 -> id_lt id1 id2.
-
-Program Instance id_Equivalence `(Equivalence nat _eq) :
-  Equivalence (id_eq).
-Next Obligation.
-  simpl_relation.
-  apply id_eq_eq.
-  apply beq_id_refl.
-Qed.
-Next Obligation.
-  simpl_relation.
-  apply id_eq_eq.
-  apply beq_id_sym.
-  inversion H0.
-  assumption.
-Qed.
-Next Obligation.
-  simpl_relation.
-  inversion H0.
-  inversion H1.
-  apply id_eq_eq.
-  apply beq_id_eq in H2.
-  apply beq_id_eq in H5.
-  subst.
-  inversion H0.
-  assumption.
-Qed.  
-  
-Program Instance IdOrderedType : OrderedType.StrictOrder id_lt id_eq.
-Next Obligation.
-	simpl_relation.
-	inversion H.
-	inversion H0.
-	
-	
-	Admitted.
-Next Obligation.
-	
-  
-  Admitted.
-
-Program Instance id_UsualStrictOrder :
-  OrderedType.StrictOrder (@id_lt ) (@Logic.eq _).
-Next Obligation.
-  Admitted.
-  
-Fixpoint id_compare (x y : id) :=
-  match beq_id x y with
-    | true => Eq
-    | _ =>
-      match blt_id x y with
-        | true => Lt 
-        | _ => Gt
-      end
-  end.
-
-Check id_compare.
-
-Program Instance id_OrderedType: OrderedType (id) := 
-  {
-    _eq := id_eq;
-    _cmp := id_compare;
-    _lt := id_lt;
-    _cmp := id_compare;
-    OT_Equivalence := id_Equivalence _;
-    OT_StrictOrder := id_StrictOrder 
-  }.
- *)
-Definition Prog := Map [ id, FunctionBody ]. 
+Definition Prog := Map [ id, FunctionBody ].
 
 Definition ProgSpec := Prog -> nat -> Prop.
 
@@ -347,13 +283,13 @@ Definition mkspec (f: Prog -> nat -> Prop)
 						safe c st /\ forall st', c / st || Some st' ->
 						Q (cheap st') (cstack st')) : ProgSpec.
 	Admitted.			
-						
+*)						
 Definition substitution := (id * aexp)%type.
 
 Fixpoint substitute (ast: state) (ost: state) (subs: list substitution) : state :=
 	match subs with
 	| nil => ast
-	| sub :: subz => substitute (ImpDependencies.update ast (fst sub) (aeval ost (snd sub))) ost subz
+	| sub :: subz => substitute (ImpDep.update ast (fst sub) (aeval ost (snd sub))) ost subz
 	end.
 
 (* End function calls *) 
@@ -402,9 +338,9 @@ Proof.
 
 
 Program Definition assn_sub (X: id) a (Q : Assertion) : Assertion :=
-  mk_asn (fun h st => Q h (ImpDependencies.update st X (aeval st a))) _.
+  mk_asn (fun h st => Q h (ImpDep.update st X (aeval st a))) _.
 Next Obligation.
-  unfold ImpDependencies.update, aeval.
+  unfold ImpDep.update, aeval.
   (* rewrite <- H. *)
   
 Admitted.
@@ -457,7 +393,7 @@ Proof.
   split.
     unfold safe; unfold not; intros.
     inversion H.
-  intros.    
+  intros.
   remember (WHILE b DO c END) as wcom.
   induction H; try (inversion Heqwcom); subst.
   assert (st = st').
@@ -495,7 +431,9 @@ Proof.
 Qed.
 
 Lemma aeval_update_extend : forall (st : state) (e : aexp) (e' n : nat) (X : id),
-  st X = (ImpDependencies.update st X e') X -> aeval st e = aeval (ImpDependencies.update st X e') e.
+  aeval st e = n ->
+  aeval (ImpDep.update st X e') e = n -> 
+  aeval st e === aeval (ImpDep.update st X e') e.
 Proof.
   
   (**
@@ -518,17 +456,161 @@ Proof.
 
       
 Admitted.
+(**
+  {{fun st => Q st /\ st X = x}}
+    X ::= a
+  fun st => Q st' /\ st X = aeval st' a
+  (where st' = update st X x)
+*)
+(**
+e |-> 5 /\ 5 = 5   X <~ [ e ]  { e |-> 5 }
+*)
+
+Theorem hoare_read_LKNOL : forall e V v',
+  {{ e |-> v' }} V <~ [ e ] {{ aexp_eq (AId V) v' //\\ (e |-> (AId V)) }}.
+Proof.
+  intros e V v' st Pre.
+  split.
+    unfold safe; unfold not; intros.
+    inversion H; subst.
+    apply H4.
+    simpl in *.
+    rewrite Pre.
+    apply add_in_iff.
+    left. reflexivity.
+  
+    intros.
+    split.
+      inversion H; subst.
+      simpl.
+      rewrite update_eq.
+      simpl in *.
+      assert (MapsTo (aeval (cstack st) e) (aeval (cstack st) v') (cheap st)).
+        rewrite Pre.
+        intuition.
+      apply find_mapsto_iff in H0.
+      rewrite H5 in H0.
+      inversion H0.
+      simpl.
+      Admitted.
+  
+  
+
+Theorem hoare_read' : forall X e e',
+  {{ (e |-> e') }} X <~ [ e ] {{ (e |-> (AId X)) //\\ aexp_eq (AId X) e'}}.
+Proof.
+  intros X e e' st Pre.
+  simpl.
+  split.
+    unfold safe; unfold not; intros.
+    inversion H; subst.
+    simpl in *.
+    apply H4.
+    rewrite Pre.
+    apply add_in_iff.
+    left. reflexivity.
+  
+    intros.
+    split.
+    Case "e |-> X".
+      inversion H; subst.
+      simpl in *.
+      rewrite update_eq.
+      assert (MapsTo (aeval (cstack st) e) (aeval (cstack st) e') (cheap st)).
+        rewrite Pre.
+        intuition.
+      apply find_mapsto_iff in H0.
+      rewrite H5 in H0.
+      inversion H0.
+      rewrite Pre.
+      subst.
+      assert ((aeval (ImpDep.update (cstack st) X (aeval (cstack st) e')) e) = (aeval (cstack st) e)).
+        admit.
+      rewrite H1.
+      reflexivity.
+    Case "X = e'".  
+      inversion H; subst.
+      simpl in *.
+      rewrite update_eq.
+      assert (MapsTo (aeval (cstack st) e) (aeval (cstack st) e') (cheap st)).
+        rewrite Pre.
+        intuition. 
+      apply find_mapsto_iff in H0. 
+      rewrite H5 in H0. 
+      inversion H0.
+      assert ((aeval (ImpDep.update (cstack st) X (aeval (cstack st) e')) e') = (aeval (cstack st) e')).
+        admit. 
+      rewrite H1. 
+      reflexivity.      
+Qed.
+
+
+Theorem hoare_read'' : forall X e e',
+  {{ assn_sub X e' (e |-> e') }} X <~ [ e ] {{ (e |-> e') }}.
+Proof.
+  intros X e e' st H.
+  split.
+  Case "safe".
+    unfold safe; unfold not; intros.
+    inversion H0; subst.
+    apply H5.
+    simpl in *.
+    rewrite H.
+    apply add_in_iff.
+    left.
+    
+      admit.
+      
+  Case "postcondition".
+    intros.
+    inversion H0; subst.
+    simpl in *.
+    apply find_mapsto_iff in H6.
+    assert (MapsTo (aeval (cstack st) e) (aeval (cstack st) e') (cheap st)).
+      rewrite H.
+      apply add_mapsto_iff.
+      left. split.
+    apply find_mapsto_iff in H6.
+    (**
+    rewrite H6 in H1.
+    inversion H1.
+    assumption.
+    inversion H6.
+    
+    unfold Equiv.equiv, MapEquiv.
+    apply Equal_mapsto_iff.
+    split.
+      intros.
+      simpl in *.
+      rewrite H in H1.
+      apply find_mapsto_iff.
+      apply find_mapsto_iff in H1.
+      rewrite <- H in H1.
+      replace n with (aeval (cstack st) e').
+      assumption.
+      inversion H6.
+      apply find_mapsto_iff in H3.
+      admit.
+      
+      intros.
+      simpl in *.
+      rewrite H.
+      replace (aeval (cstack st) e') with n.
+      assumption.
+      admit.*)
+Admitted.
 
 
 Theorem hoare_read : forall X e e',
   {{ (e |-> e') //\\ aexp_eq (AId X) e' }} X <~ [ e ] {{ (e |-> e') }}.
 Proof.
   intros X e e' st H.
-  inversion H; subst.
+  simpl in H.
+  inversion H.
   split.
   Case "safe".
     unfold safe. unfold not. intros.
-    inversion H2. subst.
+    inversion H2; subst.
     simpl in H0.
     rewrite H0 in H7.
     unfold not in H7.
@@ -537,10 +619,47 @@ Proof.
     left. reflexivity.
   Case "postcondition".
     intros.
-    simpl in *.    
+    simpl in *.   
     inversion H2; subst.
     simpl.
-    assert ((cstack st) X = ImpDependencies.update (cstack st) X (aeval (cstack st) e') X).
+    rewrite H0.
+    assert ((cstack st) X = ImpDep.update (cstack st) X (aeval (cstack st) e') X).
+      rewrite update_same.
+      reflexivity.
+      assumption.
+    (**
+    assert (MapsTo (aeval (cstack st) e) (aeval (cstack st) e') (cheap st)).
+      apply test.
+      assumption.
+    apply find_mapsto_iff in H4.
+    rewrite H4 in H8.
+    inversion H8.
+    simpl.
+    rewrite H0.
+    inversion H2; subst.
+    repeat rewrite <- aeval_update_extend with (X:=X) (e':=aeval (cstack st) e').
+    reflexivity.
+    intuition.
+    admit.
+    admit.
+    admit.
+    *)
+  (**
+    unfold safe. unfold not. intros.
+    inversion H2; subst.
+    simpl in H0.
+    rewrite H0 in H7.
+    unfold not in H7.
+    apply H7.
+    apply add_in_iff.
+    left. reflexivity.
+  
+  Case "postcondition".
+    intros.
+    simpl in *.   
+    inversion H2; subst.
+    simpl.
+    assert ((cstack st) X = ImpDep.update (cstack st) X (aeval (cstack st) e') X).
       rewrite update_same.
       reflexivity.
       assumption.
@@ -559,16 +678,8 @@ Proof.
     intuition.
     admit.
     admit.
-    admit.
-Qed.
-
-Lemma or_commut : forall P Q : Prop,
-  P \/ Q -> Q \/ P.
-Proof.
-  intros P Q H.
-  inversion H as [HP | HQ].
-    Case "left". apply or_intror. apply HP.
-    Case "right". apply or_introl. apply HQ.  Qed.
+    admit. *)
+Admitted.
 
 Lemma remove_addedL : forall a (v : nat) (h : Heap),
  h === []%map -> Equiv.equiv (remove a (add a v h)) h.
@@ -626,7 +737,6 @@ Proof.
   Case "safe".
     unfold safe; unfold not; intros.
     inversion H. subst.
-    unfold not in H4.
     apply H4.
     simpl in Pre.
     inversion Pre.
@@ -689,12 +799,6 @@ Program Fixpoint alloc_cells (a n : nat) : Assertion :=
   | S n' => alloc_cell a ** alloc_cells (a+1) (n')
   end.
 
-Lemma heap_eq : forall (h h': Heap),
-  Equiv.equiv h h' = (h === h').
-Proof.
-  reflexivity.
-Qed.
-
 (**
 forall heaps exists n, not In n heap -> forall n' > n, not In n' heap
 *)
@@ -726,38 +830,6 @@ Proof.
   
   split; assumption.
 Qed.
-
-(**
-Theorem sep_hoare_consequence_pre : forall (P P' Q : Assertion) c,
-  {{ P' }} c {{ Q }} ->
-  (forall h st, P h st -> P' h st) ->
-  {{ P }} c {{ Q }}.
-Proof.
-  intros P P' Q c HP' Himpl st' HP.
-  unfold hoare_triple in HP'.
-  split.
-    generalize dependent Q.
-    induction c.
-    intros; unfold safe; unfold not; intros; inversion H.
-    intros; unfold safe; unfold not; intros; inversion H.
-    intros; unfold safe; unfold not; intros; inversion H.
-    intros; unfold safe; unfold not; intros; inversion H.
-    intros; unfold safe; unfold not; intros; inversion H.
-    intros; unfold safe; unfold not; intros; inversion H.
-    intros. unfold safe; unfold not; intros.
-    eapply hoare_deallocate in H.
-    inversion H.
-    
-    inversion H; subst.
-    unfold not in H2.	
-    apply H2.
-  
-  intros.
-  apply HP' with st'.
-  apply Himpl.
-  assumption.
-  assumption.
-*)
 
 Lemma find_in_smaller_heap : forall a k n m (h: Heap),
   find k (add a m h) = Some n ->
@@ -843,7 +915,7 @@ Proof.
       clear H.
       inversion Pre.
       simpl in *.  
-      generalize dependent (ImpDependencies.update (cstack st) X addr).
+      generalize dependent (ImpDep.update (cstack st) X addr).
       generalize dependent addr.
       induction n.
   
@@ -929,6 +1001,38 @@ Admitted.
 
 End Hoare_Rules.
 
+Section Examples.
+
+Require Export ImpDep.
+
+Definition X := Id 0.
+Definition Y := Id 1.
+Definition a := (ANum 0).
+Definition b := (ANum 1).
+Definition c := (ANum 2).
+Definition d := (ANum 3).
+
+Definition heap_swap :=
+  X <~ [ a ];
+  Y <~ [ b ];
+  [ a ] <~ (AId Y);
+  [ b ] <~ (AId X).
+  
+(* Make operators opaque, so separating conjunction does not unfold *)
+Local Opaque ILFun_Ops.
+Local Opaque ILPre_Ops.
+Local Opaque SABIOps.
+
+Example heap_swap_prog :
+  {{ (a |-> b) ** (c |-> d) }}
+  heap_swap
+  {{ (a |-> d) ** (c |-> b) }}.
+Proof.
+  unfold heap_swap.
+  apply hoare_read.
+
+End Examples.
+
 (* Function calls *)
 Module Functions.
 
@@ -939,7 +1043,7 @@ Definition substitution := (id * aexp)%type.
 Fixpoint substitute (ast: state) (ost: state) (subs: list substitution) : state :=
 	match subs with
 	| nil => ast
-	| sub :: subz => substitute (ImpDependencies.update ast (fst sub) (aeval ost (snd sub))) ost subz
+	| sub :: subz => substitute (ImpDep.update ast (fst sub) (aeval ost (snd sub))) ost subz
 	end.
 
 End Functions.

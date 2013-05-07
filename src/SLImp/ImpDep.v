@@ -1,6 +1,7 @@
 Require Export SfLib.
 
-Definition id := nat.
+Inductive id : Type := 
+  Id : nat -> id.
 
 Definition state := id -> nat.
 
@@ -9,7 +10,7 @@ Definition empty_state : state :=
   
 Definition beq_id X1 X2 :=
   match (X1, X2) with
-    (n1, n2) => beq_nat n1 n2
+    (Id n1, Id n2) => beq_nat n1 n2
   end.
   
 Definition blt_nat (n m : nat) : bool :=
@@ -26,15 +27,12 @@ Theorem beq_id_refl : forall X,
   true = beq_id X X.
 Proof.
   intros. destruct X.
-  apply beq_nat_refl. 
-  unfold beq_id.
-  apply beq_nat_refl.
-   Qed.
+  apply beq_nat_refl.  Qed.
  
 Definition update (st : state) (X:id) (n : nat) : state :=
   fun X' => if beq_id X X' then n else st X'.
-  
-Theorem update_eq : forall (n : nat) X st,
+
+Theorem update_eq : forall n X st,
   (update st X n) X = n.
 Proof.
   intros.
@@ -59,11 +57,7 @@ Proof.
   intros.
   destruct i1. destruct i2.
   apply beq_nat_eq in H.
-  reflexivity.
-  inversion H.
-  unfold beq_id in H.
-  apply beq_nat_eq.
-  assumption.
+  rewrite H. reflexivity.
 Qed.
 
 Theorem update_same : forall x1 k1 k2 (f : state),
@@ -99,7 +93,7 @@ Proof.
 Qed.
 
 Theorem update_shadow : forall x1 x2 k1 k2 (f : state),
-   (update  (update f k2 x1) k2 x2) k1 = (update f k2 x2) k1.
+   (update (update f k2 x1) k2 x2) k1 = (update f k2 x2) k1.
 Proof.
   intros.
   unfold update.
@@ -154,3 +148,11 @@ Fixpoint beval (st : state) (e : bexp) : bool :=
   | BAnd b1 b2  => andb (beval st b1) (beval st b2)
   end.
 (* /bexp *)
+
+Lemma or_commut : forall P Q : Prop,
+  P \/ Q -> Q \/ P.
+Proof.
+  intros P Q H.
+  inversion H as [HP | HQ].
+    Case "left". apply or_intror. apply HP.
+    Case "right". apply or_introl. apply HQ.  Qed.
