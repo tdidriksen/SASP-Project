@@ -208,8 +208,8 @@ Next Obligation.
   assumption.
 Defined.
 
-Program Definition points_to_sub a X n v : Assertion :=
-  mk_asn (fun h st => Equiv.equiv h (add (aeval (update st X (aeval st n)) a) (aeval st v) (empty nat))) _.
+Program Definition points_to_sub a v (X : id) n : Assertion :=
+  mk_asn (fun h st => Equiv.equiv h (add (aeval (update st X n) a) (aeval (update st X n) v) (empty nat))) _.
 Next Obligation.
   rewrite <- H.
   assumption.
@@ -233,7 +233,7 @@ Notation "e '|->_'" :=
   (points_to_weak e) (at level 100).
 Notation "e '|~>' v" :=
   (in_heap e v) (at level 100).
-Notation " e '/' X '->' n '|->' v" :=
+Notation "e '|->' [ v : X // n ]" :=
   (points_to_sub e X n v) (at level 100).
 
 (* bassn *)
@@ -244,6 +244,10 @@ Program Definition bassn b : Assertion :=
 (* aexp equality *)
 Program Definition aexp_eq (a1 a2 : aexp) : Assertion :=
   mk_asn (fun h st => aeval st a1 = aeval st a2) _.
+(* No Obligations *)
+
+Program Definition aexp_eq_sub (a1 : id) (a2 : aexp) (X : id) (n : nat) : Assertion :=
+  mk_asn (fun h st => aeval st (AId a1) = aeval (update st X n) a2) _.
 (* No Obligations *)
 
 Lemma bexp_eval_true : forall st b,
@@ -495,11 +499,75 @@ Proof.
       simpl.
       Admitted.
   
-  
+(**
+Q ** exists vs, r {vs/modifies c}
+                                 length vs = length modifies c
+                                 (exists s, r s /\ dom s / modifies c)
+                                 subst_fresh r vs
+                                 
+exists v, subst X/v e->e' //\\ subst X/v X=e'
+*)
+
+Require Export Coq.Logic.FunctionalExtensionality.
 
 Theorem hoare_read' : forall X e e',
-  {{ (e |-> e') }} X <~ [ e ] {{ (e |-> (AId X)) //\\ aexp_eq (AId X) e'}}.
+  {{ (e |-> e') }} X <~ [ e ] {{ Exists v, (points_to_sub e e' X v) //\\ (aexp_eq_sub X e' X v) }}.                            
 Proof.
+  intros X e e' st Pre.
+  simpl.
+  split.
+  Case "safe".
+    unfold safe; unfold not; intros.
+    inversion H; subst.
+    simpl in *.
+    apply H4.
+    rewrite Pre.
+    apply add_in_iff.
+    left. reflexivity.
+  Case "postcondition".
+    intros.
+    inversion H; subst.
+    simpl in *.
+    exists ((cstack st) X).
+    split.
+    SCase "e |-> e'".
+      rewrite Pre.
+      assert (Hup: ImpDep.update (ImpDep.update (cstack st) X n) X (cstack st X) = cstack st).
+        apply functional_extensionality.
+        intros.
+        rewrite update_shadow.
+        rewrite update_same.
+        reflexivity.
+        reflexivity.
+      rewrite Hup.
+      reflexivity.
+    SCase "X = e'".
+      rewrite update_eq.
+      assert (Hup: ImpDep.update (ImpDep.update (cstack st) X n) X (cstack st X) = cstack st).
+        apply functional_extensionality.
+        intros.
+        rewrite update_shadow.
+        rewrite update_same.
+        reflexivity.
+        reflexivity.
+      rewrite Hup.
+      assert (Hfind: find (aeval (cstack st) e) (cheap st) = Some (aeval (cstack st) e')). 
+        rewrite Pre.
+        intuition.
+      rewrite Hfind in H5.
+      inversion H5.
+      reflexivity.
+Qed.
+      
+       
+      
+      
+        
+    
+
+
+
+
   intros X e e' st Pre.
   simpl.
   split.
@@ -841,8 +909,7 @@ Definition does_not_modify (c : com) (x : Heap) : Prop := True.
 
 (* (H : forall x, free R x -> does_not_modify c x) *)
            
-Theorem frame_rule : forall P Q R c 
-  ,
+Theorem frame_rule : forall P Q R c ,
   {{ P }} c {{ Q }} |--
   {{ P ** R }} c {{ Q ** R }}. 
 Proof. 
@@ -853,7 +920,6 @@ Proof.
   intros.
   split.  
   Case "Safety".
-    destruct 
     admit. 
   Case "". 
     admit. 
@@ -1059,15 +1125,6 @@ Proof.
                 assumption.
 Qed.
 
-Theorem frame_rule : forall P Q R c,
-   {{ P }} c {{ Q }} ->
-   {{ P ** R }} c {{ Q ** R }}.
-Proof.
-  intros.
-  induction c.
-  
-Admitted.
-
 End Hoare_Rules.
 
 Section Examples.
@@ -1093,12 +1150,31 @@ Local Opaque ILPre_Ops.
 Local Opaque SABIOps.
 
 Example heap_swap_prog :
-  {{ (a |-> b) ** (c |-> d) }}
+  {{ (a |-> c) ** (b |-> d) }}
   heap_swap
-  {{ (a |-> d) ** (c |-> b) }}.
+  {{ (a |-> d) ** (b |-> c) }}.
 Proof.
   unfold heap_swap.
-  apply hoare_read.
+  eapply hoare_seq.
+  eapply hoare_seq.
+  eapply hoare_seq.
+  eapply sep_hoare_consequence_pre with (P':=(b |->_)).
+  eapply sep_hoare_consequence_post with (Q':=(b |-> c)).
+  unfold hoare_triple.
+  intros.
+  split.
+    unfold safe; unfold not; intros.
+    inversion H0; subst.
+    inversion H.
+    simpl in *.
+    rewrite H1 in H5.
+    apply H5.
+    intuition.
+    
+    intros.
+    inversion H0; subst.
+    simpl.
+  
 
 End Examples.
 
