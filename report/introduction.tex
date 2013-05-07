@@ -1,4 +1,8 @@
 %!TEX root = ./report.tex
 \section{Introduction}
+The Imp language is an imperative language that includes a few core features of full-fledged languages such as C, however, it does not have the concept of a heap. This means that Imp programs cannot dynamically allocate memory, and can only store memory on the stack. The goal of this project is to improve Imp to include a heap, and change the internal structure of Imp accordingly.
+
+Since Imp is reasoned about using Hoare triples these have to take an added heap into consideration. Hoare logic does not handle the notion of pointers and therefore can't reason about heaps. As such the logic used in Imp needs to be extended to 
+
 The need for separation logic.
 Done in an interactive theorem prover (Coq).

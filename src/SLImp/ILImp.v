@@ -198,6 +198,8 @@ Notation "{{ P }}  c  {{ Q }}" := (hoare_triple P c Q)
                                   : hoare_spec_scope.
 Open Scope hoare_spec_scope.
 
+    
+
 (* Points-to, i.e. e |-> v *)
 Program Definition points_to_precise a v : Assertion :=
   mk_asn (fun h st => Equiv.equiv h (add (aeval st a) (aeval st v) (empty nat))) _.
@@ -387,7 +389,7 @@ Proof.
   intros P Q R c1 c2 H1 H2 st HP.
   
   split.
-    unfold safe; unfold not; intros.
+    unfold safe; unfold not; intros.  
     inversion H; subst.
     
     intros.
@@ -678,6 +680,83 @@ Proof.
       trivial.
 Qed.
 
+Lemma heap_eq : forall (h h': Heap),
+  Equiv.equiv h h' = (h === h').
+Proof.
+  reflexivity.
+Qed.
+
+Theorem sep_hoare_consequence_pre : forall (P P' Q : Assertion) c,
+  {{ P' }} c {{ Q }} ->
+  P |-- P' ->
+  {{ P }} c {{ Q }}.
+Proof.
+  unfold hoare_triple.
+  intros.
+  split.
+  Case "safety".
+    intros.
+    apply H0 in H1.
+    specialize (H _ H1).
+    apply H.
+    intuition.
+  Case "".
+    apply H.
+    apply H0 in H1.
+    apply H1.
+    intuition.
+Qed.
+
+Theorem sep_hoare_consequence_post : forall (P Q Q' : Assertion) c,
+  {{ P }} c {{ Q' }} ->
+  Q' |-- Q ->
+  {{ P }} c {{ Q }}.
+Proof.
+  unfold hoare_triple.
+  intros.
+  specialize (H _ H1).
+  split.
+  Case "left".
+    apply H.
+  Case "right".
+    intros.
+    apply H0.
+    intuition.
+    apply H.
+    assumption.
+Qed. 
+
+Definition does_not_modify (c : com) (x : Heap) : Prop := True.
+
+(* (H : forall x, free R x -> does_not_modify c x) *)
+           
+Theorem frame_rule : forall P Q R c 
+  ,
+  {{ P }} c {{ Q }} |--
+  {{ P ** R }} c {{ Q ** R }}. 
+Proof. 
+  intros.
+  
+  
+  unfold hoare_triple.
+  intros.
+  split.  
+  Case "Safety".
+    destruct 
+    admit. 
+  Case "". 
+    admit. 
+Qed.
+    
+    	
+      
+    
+    
+    
+           
+    
+       
+
 Program Definition alloc_cell a : Assertion :=
   (ANum a) |-> (ANum 0).
  
@@ -687,11 +766,7 @@ Program Fixpoint alloc_cells (a n : nat) : Assertion :=
   | S n' => alloc_cell a ** alloc_cells (a+1) (n')
   end.
 
-Lemma heap_eq : forall (h h': Heap),
-  Equiv.equiv h h' = (h === h').
-Proof.
-  reflexivity.
-Qed.
+
 
 (**
 forall heaps exists n, not In n heap -> forall n' > n, not In n' heap
