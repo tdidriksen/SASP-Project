@@ -1,4 +1,4 @@
-Require Import ILogic ILTac ILInsts.
+Require Export ILogic ILTac ILInsts.
 Require Export ImpDep.
 Require Import MapNotations MapInterface.
 Require Import BILogic SepAlgMap.
@@ -897,9 +897,16 @@ Proof.
   eapply hoare_seq.
   eapply hoare_seq.
   eapply hoare_seq.
-  apply frame_rule.
+  
   apply sep_hoare_consequence_pre with (P':=(aexp_eq (AId X) c //\\ (b |-> d))).
-  apply sep_hoare_consequence_pre with (P':=(b |->_)). 
+  apply sep_hoare_consequence_pre with (P':=(b |->_)).
+  apply sep_hoare_consequence_post with (Q':=(b |-> (AId X))).
+  apply hoare_write.	
+  admit.
+  apply landAdj.
+  apply landR.
+  
+  firstorder.
 Admitted.
   
 
