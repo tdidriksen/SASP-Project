@@ -268,7 +268,7 @@ Proof.
     intros.
     apply not_true_iff_false.
     assumption.
-Qed.    
+Qed.
 
 (* Function calls *)
 
@@ -346,10 +346,12 @@ Proof.
 Program Definition assn_sub (X: id) a (Q : Assertion) : Assertion :=
   mk_asn (fun h st => Q h (ImpDep.update st X (aeval st a))) _.
 Next Obligation.
-  unfold ImpDep.update, aeval.
-  (* rewrite <- H. *)
-  
-Admitted.
+  assert (Q h |-- Q h').
+    apply ILPreFrm_closed.
+    apply H.
+  apply H1. 
+  assumption. 
+Defined.
   
 
 Theorem hoare_asgn : forall Q X a,
@@ -390,21 +392,21 @@ Proof.
 	      assumption.
 Qed.
 
-
 Theorem hoare_while : forall P b c,
   {{P //\\ bassn b}} c {{P}} ->
   {{P}} WHILE b DO c END {{P //\\ ~ (bassn b)}}.
 Proof.
   intros P b c H1 st HP.
+  unfold hoare_triple in H1.
   split.
     unfold safe; unfold not; intros.
     inversion H.
   intros.
   remember (WHILE b DO c END) as wcom.
+  remember (Some st') as st''.
   induction H; try (inversion Heqwcom); subst.
-  assert (st = st').
-    admit.
-  rewrite <- H0.
+  inversion Heqst''.
+  rewrite <- H2.
   split.
     assumption.
     simpl. intros. congruence.
@@ -416,51 +418,9 @@ Proof.
     assumption.
   assumption.
   reflexivity.
+  assumption.
 Qed.
 
-
-Lemma Some_eq : forall m (n : nat),
-  m = n <-> Some m = Some n.
-Proof.
-  intros.
-  split.
-    intros.
-    rewrite H.
-    reflexivity.
-    
-    intros.
-    destruct m. destruct n.
-    reflexivity.
-    inversion H.
-    inversion H.
-    reflexivity.
-Qed.
-
-Lemma aeval_update_extend : forall (st : state) (e : aexp) (e' n : nat) (X : id),
-  aeval st e = n ->
-  aeval (ImpDep.update st X e') e = n -> 
-  aeval st e === aeval (ImpDep.update st X e') e.
-Proof.
-  (**
-  rewrite <- update_same.
-  rewrite <- H.
-  apply update_.
-  generalize dependent e.
-  induction e.
-  simpl. intros. reflexivity.
-  simpl. intros. rewrite update_eq in H.
-  *)
-Admitted.
-
-
-
-Lemma test : forall a v (h : Heap) st,
-  Equiv.equiv h (add (aeval st a) (aeval st v) (empty nat)) -> MapsTo (aeval st a) (aeval st v) h.
-Proof.
-  intros.
-  rewrite find_mapsto_iff.  
- 
-Admitted.
 (**
   {{fun st => Q st /\ st X = x}}
     X ::= a
@@ -470,34 +430,6 @@ Admitted.
 (**
 e |-> 5 /\ 5 = 5   X <~ [ e ]  { e |-> 5 }
 *)
-
-Theorem hoare_read_LKNOL : forall e V v',
-  {{ e |-> v' }} V <~ [ e ] {{ aexp_eq (AId V) v' //\\ (e |-> (AId V)) }}.
-Proof.
-  intros e V v' st Pre.
-  split.
-    unfold safe; unfold not; intros.
-    inversion H; subst.
-    apply H4.
-    simpl in *.
-    rewrite Pre.
-    apply add_in_iff.
-    left. reflexivity.
-  
-    intros.
-    split.
-      inversion H; subst.
-      simpl.
-      rewrite update_eq.
-      simpl in *.
-      assert (MapsTo (aeval (cstack st) e) (aeval (cstack st) v') (cheap st)).
-        rewrite Pre.
-        intuition.
-      apply find_mapsto_iff in H0.
-      rewrite H5 in H0.
-      inversion H0.
-      simpl.
-      Admitted.
   
 (**
 Q ** exists vs, r {vs/modifies c}
@@ -510,7 +442,19 @@ exists v, subst X/v e->e' //\\ subst X/v X=e'
 
 Require Export Coq.Logic.FunctionalExtensionality.
 
-Theorem hoare_read' : forall X e e',
+Lemma update_stack_same : forall X st n,
+  ImpDep.update (ImpDep.update st X n) X (st X) = st.
+Proof.
+  intros.
+  apply functional_extensionality.
+  intros x.
+  rewrite update_shadow.
+  rewrite update_same.
+  reflexivity.
+  reflexivity.
+Qed.
+
+Theorem hoare_read : forall X e e',
   {{ (e |-> e') }} X <~ [ e ] {{ Exists v, (points_to_sub e e' X v) //\\ (aexp_eq_sub X e' X v) }}.                            
 Proof.
   intros X e e' st Pre.
@@ -532,223 +476,18 @@ Proof.
     split.
     SCase "e |-> e'".
       rewrite Pre.
-      assert (Hup: ImpDep.update (ImpDep.update (cstack st) X n) X (cstack st X) = cstack st).
-        apply functional_extensionality.
-        intros.
-        rewrite update_shadow.
-        rewrite update_same.
-        reflexivity.
-        reflexivity.
-      rewrite Hup.
+      rewrite update_stack_same.
       reflexivity.
     SCase "X = e'".
       rewrite update_eq.
-      assert (Hup: ImpDep.update (ImpDep.update (cstack st) X n) X (cstack st X) = cstack st).
-        apply functional_extensionality.
-        intros.
-        rewrite update_shadow.
-        rewrite update_same.
-        reflexivity.
-        reflexivity.
-      rewrite Hup.
-      assert (Hfind: find (aeval (cstack st) e) (cheap st) = Some (aeval (cstack st) e')). 
+      rewrite update_stack_same.
+      assert (Hfind: find (aeval (cstack st) e) (cheap st) = Some (aeval (cstack st) e')).
         rewrite Pre.
         intuition.
       rewrite Hfind in H5.
       inversion H5.
       reflexivity.
 Qed.
-      
-       
-      
-      
-        
-    
-
-
-
-
-  intros X e e' st Pre.
-  simpl.
-  split.
-    unfold safe; unfold not; intros.
-    inversion H; subst.
-    simpl in *.
-    apply H4.
-    rewrite Pre.
-    apply add_in_iff.
-    left. reflexivity.
-  
-    intros.
-    split.
-    Case "e |-> X".
-      inversion H; subst.
-      simpl in *.
-      rewrite update_eq.
-      assert (MapsTo (aeval (cstack st) e) (aeval (cstack st) e') (cheap st)).
-        rewrite Pre.
-        intuition.
-      apply find_mapsto_iff in H0.
-      rewrite H5 in H0.
-      inversion H0.
-      rewrite Pre.
-      subst.
-      assert ((aeval (ImpDep.update (cstack st) X (aeval (cstack st) e')) e) = (aeval (cstack st) e)).
-        admit.
-      rewrite H1.
-      reflexivity.
-    Case "X = e'".  
-      inversion H; subst.
-      simpl in *.
-      rewrite update_eq.
-      assert (MapsTo (aeval (cstack st) e) (aeval (cstack st) e') (cheap st)).
-        rewrite Pre.
-        intuition. 
-      apply find_mapsto_iff in H0. 
-      rewrite H5 in H0. 
-      inversion H0.
-      assert ((aeval (ImpDep.update (cstack st) X (aeval (cstack st) e')) e') = (aeval (cstack st) e')).
-        admit. 
-      rewrite H1. 
-      reflexivity.      
-Qed.
-
-
-Theorem hoare_read'' : forall X e e',
-  {{ assn_sub X e' (e |-> e') }} X <~ [ e ] {{ (e |-> e') }}.
-Proof.
-  intros X e e' st H.
-  split.
-  Case "safe".
-    unfold safe; unfold not; intros.
-    inversion H0; subst.
-    apply H5.
-    simpl in *.
-    rewrite H.
-    apply add_in_iff.
-    left.
-    
-      admit.
-      
-  Case "postcondition".
-    intros.
-    inversion H0; subst.
-    simpl in *.
-    apply find_mapsto_iff in H6.
-    assert (MapsTo (aeval (cstack st) e) (aeval (cstack st) e') (cheap st)).
-      rewrite H.
-      apply add_mapsto_iff.
-      left. split.
-    apply find_mapsto_iff in H6.
-    (**
-    rewrite H6 in H1.
-    inversion H1.
-    assumption.
-    inversion H6.
-    
-    unfold Equiv.equiv, MapEquiv.
-    apply Equal_mapsto_iff.
-    split.
-      intros.
-      simpl in *.
-      rewrite H in H1.
-      apply find_mapsto_iff.
-      apply find_mapsto_iff in H1.
-      rewrite <- H in H1.
-      replace n with (aeval (cstack st) e').
-      assumption.
-      inversion H6.
-      apply find_mapsto_iff in H3.
-      admit.
-      
-      intros.
-      simpl in *.
-      rewrite H.
-      replace (aeval (cstack st) e') with n.
-      assumption.
-      admit.*)
-Admitted.
-
-Theorem hoare_read : forall X e e',
-  {{ (e |-> e') //\\ aexp_eq (AId X) e' }} X <~ [ e ] {{ (e |-> e') }}.
-Proof.
-  intros X e e' st H.
-  simpl in H.
-  inversion H.
-  split.
-  Case "safe".
-    unfold safe. unfold not. intros.
-    inversion H2; subst.
-    simpl in H0.
-    rewrite H0 in H7.
-    unfold not in H7.
-    apply H7.
-    apply add_in_iff.
-    left. reflexivity.
-  Case "postcondition".
-    intros.
-    simpl in *.   
-    inversion H2; subst.
-    simpl.
-    rewrite H0.
-    assert ((cstack st) X = ImpDep.update (cstack st) X (aeval (cstack st) e') X).
-      rewrite update_same.
-      reflexivity.
-      assumption.
-    (**
-    assert (MapsTo (aeval (cstack st) e) (aeval (cstack st) e') (cheap st)).
-      apply test.
-      assumption.
-    apply find_mapsto_iff in H4.
-    rewrite H4 in H8.
-    inversion H8.
-    simpl.
-    rewrite H0.
-    inversion H2; subst.
-    
-    repeat rewrite <- aeval_update_extend with (X:=X) (e':=aeval (cstack st) e').
-    reflexivity.
-    intuition.
-    admit.
-    admit.
-    admit.
-    *)
-  (**
-    unfold safe. unfold not. intros.
-    inversion H2; subst.
-    simpl in H0.
-    rewrite H0 in H7.
-    unfold not in H7.
-    apply H7.
-    apply add_in_iff.
-    left. reflexivity.
-  
-  Case "postcondition".
-    intros.
-    simpl in *.   
-    inversion H2; subst.
-    simpl.
-    assert ((cstack st) X = ImpDep.update (cstack st) X (aeval (cstack st) e') X).
-      rewrite update_same.
-      reflexivity.
-      assumption.
-    
-    assert (MapsTo (aeval (cstack st) e) (aeval (cstack st) e') (cheap st)).
-      apply test.
-      assumption.
-    apply find_mapsto_iff in H4.
-    rewrite H4 in H8.
-    inversion H8.
-    simpl.
-    rewrite H0.
-    inversion H2; subst.
-    repeat rewrite <- aeval_update_extend with (X:=X) (e':=aeval (cstack st) e').
-    reflexivity.
-    intuition.
-    admit.
-    admit.
-    admit. *)
-Admitted.
 
 Lemma remove_addedL : forall a (v : nat) (h : Heap),
  h === []%map -> Equiv.equiv (remove a (add a v h)) h.
@@ -1137,7 +876,7 @@ Definition a := (ANum 0).
 Definition b := (ANum 1).
 Definition c := (ANum 2).
 Definition d := (ANum 3).
-
+	
 Definition heap_swap :=
   X <~ [ a ];
   Y <~ [ b ];
@@ -1152,28 +891,16 @@ Local Opaque SABIOps.
 Example heap_swap_prog :
   {{ (a |-> c) ** (b |-> d) }}
   heap_swap
-  {{ (a |-> d) ** (b |-> c) }}.
+  {{ (b |-> c) ** (a |-> d) }}.
 Proof.
   unfold heap_swap.
   eapply hoare_seq.
   eapply hoare_seq.
   eapply hoare_seq.
-  eapply sep_hoare_consequence_pre with (P':=(b |->_)).
-  eapply sep_hoare_consequence_post with (Q':=(b |-> c)).
-  unfold hoare_triple.
-  intros.
-  split.
-    unfold safe; unfold not; intros.
-    inversion H0; subst.
-    inversion H.
-    simpl in *.
-    rewrite H1 in H5.
-    apply H5.
-    intuition.
-    
-    intros.
-    inversion H0; subst.
-    simpl.
+  apply frame_rule.
+  apply sep_hoare_consequence_pre with (P':=(aexp_eq (AId X) c //\\ (b |-> d))).
+  apply sep_hoare_consequence_pre with (P':=(b |->_)). 
+Admitted.
   
 
 End Examples.
