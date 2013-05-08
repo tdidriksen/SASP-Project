@@ -6,3 +6,19 @@ Since Imp is reasoned about using Hoare triples these have to take an added heap
 
 The need for separation logic.
 Done in an interactive theorem prover (Coq).
+
+\paragraph{Problem.}
+We address the problem of adding shared mutable state to an imperative language, namely the Imp language, and reasoning about programs involving such states. The problem is complicated by the fact that the state is shared among data structures. As noted by Reynolds \todo{Add ref: An Introduction to Separation Logic by Reynolds}, the issue is that when we develop programs, we assume that data structures do not share memory, but when reasoning about the same programs logically, we assume that they do and have to prove otherwise. To overcome this difficulty we adopt the notion of separation logic, which allows us to reason locally about programs that mutate shared memory. In order to make use of this mutable state from within the Imp language, we also have to add the appropriate commands.
+
+Thus, the problem is twofold. It is 1) extending the intuitionistic Hoare logic, in which the Imp language is already defined, with a separation logic and 2) defining new language constructs to the Imp language for manipulating the shared mutable state, together with Hoare rules for these.
+
+\paragraph{Dependencies.}
+For the first part of the problem, we rely heavily on the work on constructing separation logics from separation algebra done by Jesper Bengtson et al. \todo{Insert correct reference to their work}, which will be introduced in Section \todo{Add reference to separation algebra section here}.
+
+\todo{Something about other dependencies, such as SfLib, here.}
+
+\paragraph{Contributions.}
+Our contribution is a solution for the second part of the problem. We define syntax and semantics for the four essential contructs enabling utilization of a mutable state: read, write, allocation, and deallocation. To be able to reason about and prove programs written in the Imp language involving these constructs, we define Hoare rules for each of them. The soundness of these rules have been proven with Coq, an interactive theorem prover. Furthermore, we define and prove the frame rule and rules of consequence for use in correctness proofs of Imp programs.
+
+\paragraph{Outline.}
+Report outline goes here
