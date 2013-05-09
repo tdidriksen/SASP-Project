@@ -292,7 +292,7 @@ Definition mkspec (f: Prog -> nat -> Prop)
 *)						
 Definition substitution := (id * aexp)%type.
 
-Fixpoint substitute (ast: state) (ost: state) (subs: list substitution) : state :=
+Fixpoint substitute (ast: state) (ost: state) (subs: list (id * aexp)) : state :=
 	match subs with
 	| nil => ast
 	| sub :: subz => substitute (ImpDep.update ast (fst sub) (aeval ost (snd sub))) ost subz
@@ -644,24 +644,55 @@ Proof.
     assumption.
 Qed. 
 
-Definition does_not_modify (c : com) (x : Heap) : Prop := True.
-
-(* (H : forall x, free R x -> does_not_modify c x) *)
-           
-Theorem frame_rule : forall P Q R c ,
+Fixpoint modified_by (c : com) (l : list id) : list id :=
+  match c with
+  | SKIP => l
+  | i ::= _ => i :: l
+  | c1; c2 =>  modified_by c2 l ++ modified_by c2 l ++ l 
+  | IFB _ THEN c1 ELSE c2 FI => modified_by c1 l ++ (modified_by c2 l ++ l)
+  | WHILE _ DO c END => modified_by c l ++ l
+  | i &= ALLOC _ => i :: l
+  | DEALLOC _ => l
+  | i <~ [ _ ] => i :: l
+  | [ _ ] <~ _ => l
+  end.
+  
+Fixpoint list_sub (vs : list id) (l : list id) (ost : state) (ast : state) : state :=
+  match vs with
+  | vsh :: vs =>
+    match l with
+      | lh :: l => list_sub vs l ost (substitute ast ost (cons (vsh, ANum(ost lh)) nil))
+      | _ => ast
+    end
+  | _ =>
+    match l with
+      | h :: t => ast
+      | _ => ast
+    end
+  end. 
+  
+Program Definition var_sub (R : Assertion) vs xs : Assertion :=
+  mk_asn (fun h st => R h (list_sub vs xs st st)) _.
+Next Obligation.
+  assert( R h |-- R h').
+    apply ILPreFrm_closed.
+    apply H.
+  apply H1.
+  apply H0.
+Qed.
+        
+Theorem frame_rule : forall P Q R c,
   {{ P }} c {{ Q }} |--
-  {{ P ** R }} c {{ Q ** R }}. 
+  {{ P ** R }} c {{ Q ** (Exists vs, var_sub R vs (modified_by c nil)) }}. 
 Proof. 
-  intros.
-  
-  
   unfold hoare_triple.
   intros.
-  split.  
-  Case "Safety".
-    admit. 
-  Case "". 
-    admit. 
+  split.
+    apply H.
+    
+    
+    
+  
 Qed.
 
 Program Definition alloc_cell a : Assertion :=
@@ -911,20 +942,5 @@ Admitted.
   
 
 End Examples.
-
-(* Function calls *)
-Module Functions.
-
-Definition prog := Map [ (id -> list id -> com), com ]. 
-
-Definition substitution := (id * aexp)%type.
-
-Fixpoint substitute (ast: state) (ost: state) (subs: list substitution) : state :=
-	match subs with
-	| nil => ast
-	| sub :: subz => substitute (ImpDep.update ast (fst sub) (aeval ost (snd sub))) ost subz
-	end.
-
-End Functions.
 
 End ILImp.
