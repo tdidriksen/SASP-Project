@@ -567,6 +567,56 @@ Proof.
     reflexivity.
 Qed.
 
+Theorem hoare_write'' : forall e e' X,
+  {{ (aexp_eq (AId X) e') //\\ (e |->_) }} [ e ] <~ (AId X) {{ (aexp_eq (AId X) e') //\\ (e |-> (AId X)) }}.
+Proof.
+  intros e e' X st Pre.
+  split.
+  Case "safe".
+    unfold safe; unfold not; intros.
+    inversion H. subst.
+    apply H4.
+    simpl in Pre.
+    inversion Pre.
+    inversion H1.
+    rewrite H2.
+    apply add_in_iff.
+    left.
+      reflexivity.
+  Case "postcondition".
+    simpl in *.
+    intros.
+    inversion H. subst. simpl.
+    split.
+      inversion Pre. assumption.
+  	unfold write.
+  	rewrite H6.
+  	inversion Pre.
+  	inversion H1.
+  	rewrite H2.
+  	assert ((remove (aeval (cstack st) e) ([]) [aeval (cstack st) e <- aeval (cstack st) x]) === []%map).
+        apply remove_addedL.
+        reflexivity.
+    rewrite H3.
+    rewrite H0.
+    reflexivity.
+Qed.
+
+Theorem frame_rule : forall P Q R (c : com),
+  {{ P }} c {{ Q }} ->
+  {{ P ** R }} c {{ Q ** R }}.
+Proof.
+Admitted.
+  
+
+Theorem hoare_write' : forall (P : Assertion) e e',
+  {{ (e |->_) ** P }} [ e ] <~ e' {{ (e |-> e') ** P }}.
+Proof.
+  intros.
+  apply frame_rule with (c:=[ e ] <~ e').
+  apply hoare_write.
+Qed.
+
 Theorem hoare_deallocate : forall e,
   {{ e |->_ }} DEALLOC e {{ empSP }}.
 Proof.
@@ -647,22 +697,6 @@ Qed.
 Definition does_not_modify (c : com) (x : Heap) : Prop := True.
 
 (* (H : forall x, free R x -> does_not_modify c x) *)
-           
-Theorem frame_rule : forall P Q R c ,
-  {{ P }} c {{ Q }} |--
-  {{ P ** R }} c {{ Q ** R }}. 
-Proof. 
-  intros.
-  
-  
-  unfold hoare_triple.
-  intros.
-  split.  
-  Case "Safety".
-    admit. 
-  Case "". 
-    admit. 
-Qed.
 
 Program Definition alloc_cell a : Assertion :=
   (ANum a) |-> (ANum 0).
@@ -884,9 +918,9 @@ Definition heap_swap :=
   [ b ] <~ (AId X).
   
 (* Make operators opaque, so separating conjunction does not unfold *)
-Local Opaque ILFun_Ops.
-Local Opaque ILPre_Ops.
-Local Opaque SABIOps.
+Local Transparent ILFun_Ops.
+Local Transparent ILPre_Ops.
+Local Transparent SABIOps.
 
 Example heap_swap_prog :
   {{ (a |-> c) ** (b |-> d) }}
@@ -897,10 +931,36 @@ Proof.
   eapply hoare_seq.
   eapply hoare_seq.
   eapply hoare_seq.
-  
+  apply frame_rule.
   apply sep_hoare_consequence_pre with (P':=(aexp_eq (AId X) c //\\ (b |-> d))).
-  apply sep_hoare_consequence_pre with (P':=(b |->_)).
-  apply sep_hoare_consequence_post with (Q':=(b |-> (AId X))).
+  apply sep_hoare_consequence_pre with (P':=(aexp_eq (AId X) c //\\ (b |->_))).
+  apply sep_hoare_consequence_post with (Q':=(aexp_eq (AId X) c //\\ (b |-> (AId X)))).
+  apply hoare_write''.
+  simpl.
+  intros.
+  inversion H0.
+  rewrite H1 in H2.
+  assumption.
+  
+  simpl.
+  intros.
+  split.
+    inversion H0.
+    assumption.
+    exists d.
+    simpl.
+    inversion H0.
+    assumption.
+  
+
+    
+  apply landL1.
+  apply hoare_write.
+  
+  
+  
+  apply hoare_write.
+  apply sep_hoare_consequence_post with (Q':=(aexp_eq (AId X) c) //\\ (b |-> (AId X))).
   apply hoare_write.	
   admit.
   apply landAdj.
