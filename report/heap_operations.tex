@@ -1,5 +1,6 @@
 %!TEX root = ./report.tex
 \subsection{Operations on the Heap}
+\label{sec:heap_operations}
 We now define syntax and operational semantics for the operations added to the Imp language for manipulating the heap. Four operations are needed: Read (or lookup), Write (or mutate), Allocate, and Deallocate (or dispose).
 \subsubsection{Syntax} \todo{Show the syntax for each of the commands here. Coqdoc might be of use.}
 \subsubsection{Semantics}
@@ -14,4 +15,5 @@ Lastly, it should be noted that we have no notion of void types and do not provi
 \todo{We allocate cells with 0! Write this somewhere}
 
 \subsubsection{Error Semantics}
+\label{sec:error_semantics}
 An interesting consequence of adding a an addressable state to a programming language is the possibility of writing programs that evaluate to a faulty state. Contrary to the basic version of the Imp language, an addressable state enables the user to write programs that type check but evaluate to an erroneous state: When reading, writing, or deallocating, the program might end up in a faulty state if attempting to access an inactive address on the heap. Note that because we assume that the address space of the heap is infinite, allocation cannot fail. \todo{Add some more juice to this section.}

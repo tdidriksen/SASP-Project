@@ -1,10 +1,24 @@
 %!TEX root = ./report.tex
 \section{Solution}
-\subsection{State: The Addition of a Heap}
-\subsection{The new Semantics}
-\subsection{Changes to the Hoare Triple}
-\subsection{Definition of hoare triples}
-\paragraph{Safety}
-\subsection{Error Semantics}
+\todo{mentioned only nats here, or maybe even earlier}
+\subsection{Programming with Mutable State}
+Originally the state in Imp is managed by a stack, which maps variables into values. We extend this state by adding a heap, which will provide us with a mapping between addresses and value. These values represent the mutable structures. As mentioned earlier our heap only handle natural numbers.
 
+\paragraph{}\textbf{Definition: }A heap is a mapping between an address, represented by a natural number (nat), and specific values on the heap (nat).
+
+\begin{center}
+\input{coq/heap}
+\end{center}
+
+Section \ref{sec:heap_operations}
+
+\subsection{Assertions with Heaps}
 \include{heap_operations}
+\subsection{Definition of Hoare Triple}
+\input{hoare_triple}
+\subsection{Hoare Rules}
+\paragraph{Read}
+\paragraph{Write}
+\paragraph{Allocate}
+\paragraph{Deallocate}
+\subsection{Frame rule and Rules of Consequence}
