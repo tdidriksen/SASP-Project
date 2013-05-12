@@ -1,1 +1,0 @@
-Definition Heap := Map [ nat, nat ].

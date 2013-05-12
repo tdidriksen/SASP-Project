@@ -5,11 +5,9 @@
 Originally the state in Imp is managed by a stack, which maps variables into values. We extend this state by adding a heap, which will provide us with a mapping between addresses and value. These values represent the mutable structures. As mentioned earlier our heap only handle natural numbers.
 
 \paragraph{}\textbf{Definition: }A heap is a mapping between an address, represented by a natural number (nat), and specific values on the heap (nat).
-
-\begin{center}
-\input{coq/heap}
-\end{center}
-
+\[
+Heap := Map(nat, nat)
+\]
 Section \ref{sec:heap_operations}
 
 \subsection{Assertions with Heaps}
@@ -22,3 +20,4 @@ Section \ref{sec:heap_operations}
 \paragraph{Allocate}
 \paragraph{Deallocate}
 \subsection{Frame rule and Rules of Consequence}
+\input{frame_rule}
