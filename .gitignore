@@ -6,7 +6,6 @@
 *.vo
 *.glob
 *.v.d
-*.sty
 
 # Tex 
 *.fdb_latexmk
