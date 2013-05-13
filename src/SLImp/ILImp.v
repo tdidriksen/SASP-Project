@@ -115,6 +115,7 @@ Inductive ceval : com -> cstate -> option cstate -> Prop :=
       (WHILE b1 DO c1 END) / st || Some st'' 
   | E_Alloc : forall st X addr cells,
   	  ~ In addr (cheap st) ->
+  	  (forall n, (n >= addr /\ n <= addr+cells) -> ~ In n (cheap st)) ->
   	  (X &= ALLOC cells) / st || Some (update (cstack st) X addr, alloc addr cells (cheap st))
   | E_Dealloc : forall st a1 addr,
   	  aeval (cstack st) a1 = addr ->
@@ -198,7 +199,15 @@ Notation "{{ P }}  c  {{ Q }}" := (hoare_triple P c Q)
                                   : hoare_spec_scope.
 Open Scope hoare_spec_scope.
 
-    
+Global Instance hoare_triple_lentails:
+  Proper (lentails --> eq ==> lentails --> impl) hoare_triple.
+Proof.
+Admitted.
+
+Global Instance hoare_triple_lequiv:
+  Proper (lequiv ==> eq ==> lequiv ==> iff) hoare_triple.
+Proof.
+Admitted.
 
 (* Points-to, i.e. e |-> v *)
 Program Definition points_to_precise a v : Assertion :=
@@ -228,13 +237,13 @@ Next Obligation.
 Defined.
 
 Notation "a '|->' v" :=
-  (points_to_precise a v) (at level 100).
+  (points_to_precise a v) (at level 74).
 Notation "e '|->_'" :=
-  (points_to_weak e) (at level 100).
+  (points_to_weak e) (at level 74).
 Notation "e '|~>' v" :=
   (in_heap e v) (at level 100).
-Notation "e '|->' [ v : X // n ]" :=
-  (points_to_sub e X n v) (at level 100).
+Notation "e '|->' [ v : n // X ]" :=
+  (points_to_sub e v X n) (at level 100).
 
 (* bassn *)
 Program Definition bassn b : Assertion :=
@@ -322,8 +331,8 @@ Proof.
 Qed.
 
 Theorem hoare_seq : forall P Q R c1 c2,
-     {{Q}} c2 {{R}} ->
      {{P}} c1 {{Q}} ->
+     {{Q}} c2 {{R}} ->
      {{P}} c1;c2 {{R}}.
 Proof. 
   intros P Q R c1 c2 H1 H2 st HP.
@@ -334,13 +343,13 @@ Proof.
     
     intros.
     inversion H.
-    subst.
+    subst.(**
     apply H1 with st'0.
     apply H2 with st.
     assumption.
     assumption.
-    assumption.
- Qed.
+    assumption.*)
+ Admitted.
 
 
 Program Definition assn_sub (X: id) a (Q : Assertion) : Assertion :=
@@ -489,6 +498,12 @@ Proof.
       reflexivity.
 Qed.
 
+Theorem hoare_read' : forall P Q X e e',
+  {{ P //\\  Q ** (e |-> e') }} X <~ [ e ] {{ Exists v, (assn_sub X (ANum v) (P //\\  Q ** (e |-> e'))) //\\ (aexp_eq_sub X e' X v) }}.                            
+Proof.
+
+Admitted.
+
 Lemma remove_addedL : forall a (v : nat) (h : Heap),
  h === []%map -> Equiv.equiv (remove a (add a v h)) h.
 Proof.
@@ -568,7 +583,7 @@ Proof.
 Qed.
 
 Theorem hoare_write'' : forall e e' X,
-  {{ (aexp_eq (AId X) e') //\\ (e |->_) }} [ e ] <~ (AId X) {{ (aexp_eq (AId X) e') //\\ (e |-> (AId X)) }}.
+  {{ (aexp_eq X e') //\\ (e |->_) }} [ e ] <~ X {{ (aexp_eq X e') //\\ (e |-> X) }}.
 Proof.
   intros e e' X st Pre.
   split.
@@ -602,18 +617,32 @@ Proof.
     reflexivity.
 Qed.
 
-Theorem frame_rule : forall P Q R (c : com),
+Theorem frame_rule' : forall P Q R (c : com),
   {{ P }} c {{ Q }} ->
   {{ P ** R }} c {{ Q ** R }}.
 Proof.
 Admitted.
+
+Theorem frame_rule'' : forall P Q R (c : com),
+  {{ P }} c {{ Q }} ->
+  {{ R ** P }} c {{ R ** Q }}.
+Proof.
+Admitted.
+
+Theorem hoare_write''' : forall e X v' R,
+  {{ (aexp_eq X v' //\\ (e |->_)) ** R }} [ e ] <~ X {{ (aexp_eq X v' //\\ (e |-> X)) ** R }}.
+Proof.
+  intros.
+  apply frame_rule'.
+  apply hoare_write''.
+Qed.
   
 
 Theorem hoare_write' : forall (P : Assertion) e e',
   {{ (e |->_) ** P }} [ e ] <~ e' {{ (e |-> e') ** P }}.
 Proof.
   intros.
-  apply frame_rule with (c:=[ e ] <~ e').
+  apply frame_rule' with (c:=[ e ] <~ e').
   apply hoare_write.
 Qed.
 
@@ -655,10 +684,11 @@ Proof.
 Qed.
 
 Theorem sep_hoare_consequence_pre : forall (P P' Q : Assertion) c,
-  {{ P' }} c {{ Q }} ->
   P |-- P' ->
+  {{ P' }} c {{ Q }} ->
   {{ P }} c {{ Q }}.
 Proof.
+(**
   unfold hoare_triple.
   intros.
   split.
@@ -672,8 +702,8 @@ Proof.
     apply H.
     apply H0 in H1.
     apply H1.
-    intuition.
-Qed.
+    intuition.*)
+Admitted.
 
 Theorem sep_hoare_consequence_post : forall (P Q Q' : Assertion) c,
   {{ P }} c {{ Q' }} ->
@@ -743,7 +773,7 @@ Proof.
     
     
   
-Qed.
+Admitted.
 
 Program Definition alloc_cell a : Assertion :=
   (ANum a) |-> (ANum 0).
@@ -888,14 +918,14 @@ Proof.
           reflexivity.
         SSSCase "alloc (addr+1) n (cheap st)".
           apply IHn with (addr:=addr+1).
-          assert (Hnotin: forall a, a > addr -> not (In a (cheap st))).
-            intros.
-            rewrite <- x.
-            unfold not; intros.
-            inversion H1.
-            inversion H2.
-          apply Hnotin.
+          apply H5.
           omega.
+          intros.
+          unfold not; intros.
+          apply H4.
+          rewrite <- x in H1.
+          inversion H1.
+          inversion H2.
         SSSCase "sa_mul (heap composition)".
           simpl.
           intros.
@@ -965,20 +995,151 @@ Definition heap_swap :=
   [ b ] <~ (AId X).
   
 (* Make operators opaque, so separating conjunction does not unfold *)
-Local Transparent ILFun_Ops.
-Local Transparent ILPre_Ops.
-Local Transparent SABIOps.
+Local Opaque ILFun_Ops.
+Local Opaque ILPre_Ops.
+Local Opaque SABIOps.
+
+Lemma aexp_permute : forall X Y v v' P Q,
+  ((aexp_eq X v //\\ P) ** (aexp_eq Y v' //\\ Q)) -|-
+  aexp_eq X v //\\ aexp_eq Y v' //\\ (P ** Q).
+Proof.
+Admitted.
 
 Example heap_swap_prog :
-  {{ (a |-> c) ** (b |-> d) }}
+  {{ a |-> c ** b |-> d }}
   heap_swap
-  {{ (b |-> c) ** (a |-> d) }}.
+  {{ a |-> d ** b |-> c }}.
 Proof.
   unfold heap_swap.
   eapply hoare_seq.
+  apply frame_rule'.	
+  apply hoare_read.
+  rewrite sepSPC.
+  rewrite bilexistsscR.
+  eapply sep_hoare_consequence_pre.
+  lexistsL.
+  intros.
+  rewrite sepSPC.
+  reflexivity.
+  eapply hoare_seq.
+  apply frame_rule'.
+  apply hoare_read.
   eapply hoare_seq.
   eapply hoare_seq.
-  apply frame_rule.
+  apply frame_rule''.
+  apply hoare_write.
+  apply sep_hoare_consequence_post with (Q':= (aexp_eq (AId X) c //\\ b |-> (AId X))).
+  apply hoare_write''.
+  Case "X = c /\ (b |-> X) |-- (b |-> c)".
+    simpl.
+    intros.
+    inversion H0.
+    rewrite H1 in H2.
+    assumption.
+  apply frame_rule'.
+  apply sep_hoare_consequence_post with (Q':=aexp_eq (AId Y) d //\\ a |-> (AId Y)).
+  apply hoare_write''.
+  Case "Y = d /\ (a |-> Y) |-- (a |-> d)". 
+    simpl.
+    intros.
+    inversion H0.
+    rewrite H1 in H2.
+    assumption.
+  apply sep_hoare_consequence_post with (Q':=(Exists v, points_to_sub b d Y v //\\ aexp_eq_sub Y d Y v)).
+  apply hoare_read.
+  lexistsL.
+  intros.
+  apply landR.
+  simpl.
+    intros.
+    inversion H0.
+    assumption.
+    simpl.
+    intros.
+    exists d.
+    simpl.
+    inversion H0.
+    assumption.
+  firstorder.
+  admit.
+  simpl.
+  intros.
+  exists d.
+  simpl.
+  inversion H0.
+  inversion H1.
+  assumption.
+  eapply sep_hoare_consequence_pre.
+  apply sep_hoare_consequence_post with (Q':=(Exists v, points_to_sub a c X v //\\ aexp_eq_sub X c X v)).
+  apply hoare_read.
+  apply lexistsL.
+  intros.
+  apply landR.
+  admit.
+  
+    
+  replace ((aexp_eq (AId X) c //\\ b |->_) ** aexp_eq (AId Y) d //\\ a |->_) with (aexp_eq (AId X) c //\\ b |->_ ** aexp_eq (AId Y) d //\\ a |->_).
+
+  
+  
+  apply landR.
+  simpl.
+  intros.
+  split.
+  instantiate (1:=c).
+  simpl.
+  intros.
+  inversion H0.
+  rewrite H1 in H2.
+  assumption.
+  (**
+  eapply sep_hoare_consequence_post with (Q':=(aexp_eq (AId X) c //\\ (b |->_)) ** (Exists vs, var_sub (a |-> d) vs (modified_by ([a]<~ AId Y) nil))).
+  *)
+  apply frame_rule''.
+  eapply sep_hoare_consequence_post.
+  apply hoare_write''.
+  instantiate (1:=d).
+  simpl.
+  intros.
+  inversion H0.
+  rewrite H1 in H2.
+  assumption.
+  eapply sep_hoare_consequence_post with (Q':=aexp_eq (AId X) c //\\ aexp_eq (AId Y) d //\\ (b |->_) ** (a |->_)).
+  eapply sep_hoare_consequence_post.
+  apply hoare_read.
+  apply lexistsL.
+  intros.
+  instantiate (1:=d).
+  simpl.
+    intros.
+    split.
+    inversion H0.
+    assumption.
+    exists d.
+    simpl.
+    inversion H0.
+    assumption.
+  
+  simpl.
+    
+    
+  apply landL2.
+  apply landR.
+  simpl.
+  intros.
+  assumption.
+
+    
+  
+  simpl.
+  intros.
+  
+  
+  apply H.
+  apply frame_rule'.
+  eapply sep_hoare_consequence_post. 
+  apply hoare_write''.
+  
   apply sep_hoare_consequence_pre with (P':=(aexp_eq (AId X) c //\\ (b |-> d))).
   apply sep_hoare_consequence_pre with (P':=(aexp_eq (AId X) c //\\ (b |->_))).
   apply sep_hoare_consequence_post with (Q':=(aexp_eq (AId X) c //\\ (b |-> (AId X)))).

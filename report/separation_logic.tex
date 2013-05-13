@@ -1,0 +1,50 @@
+%!TEX root = ./report.tex
+\subsection{Separation Logic}
+Separation logic is an extension of Floyd-Hoare logic that enables local reasoning about shared resources. While its original purpose was to provide assertions for reasoning about shared mutable data structures, such as heaps, it has now been applied to a broader range of subject areas, such as shared-variable concurrency\todo{Add reference to Reynolds here}. Throughout this paper, we work exclusively on heaps (for the definition of the heap, see Section \todo{Insert reference to 'Programming with mutable state' section here}).
+
+\subsubsection{The Connectives}
+For separation logic, three new connectives are added to those already known from Hoare logic. 
+\paragraph{The separating conjunction.}
+The most characteristic connective of separation logic is the {\it separating conjunction}, denoted by {\it $\ast$}. A separating conjunction {\it p $\ast$ q} on a heap {\it h} is a spatial connective, which states that {\it h} can be split into two separate (or disjoint) parts, one for which {\it p} holds and one for which {\it q} holds. Note that {\it p $\ast$ q} holds for the entirety of {\it h}, meaning that there is no third part of {\it h} for which a third predicate {\it r} would hold.
+
+\paragraph{{\it emp}.}
+{\it emp} is the unit of the separating conjunction, and only holds for the empty heap. Consequently, since {\it emp} only holds for the empty heap, {\it p $\ast$ emp} is logically equivalent to {\it p}.
+
+\paragraph{The magic wand.}
+Despite its name, there is nothing magic about the magic wand. Also known as the {\it separating implication}, {\it p --$\ast$ q} says that if a heap is extended with a separate part for which p holds, then q holds for that extended heap.
+
+\paragraph{The points-to relation.}
+Aside from the new connectives, separation logic introduces the {\it points-to} relation. Denoted by {\it e} $\mapsto$ {\it e'}, it states that {\it e} points to {\it e'} on the heap, and nothing else is on the heap. As such, the points-to relation both says something about the contents and the size of the heap. Given {\it x} $\mapsto$ {\it x'} $\ast$ {\it y} $\mapsto$ {\it y'}, we know that in one part of the heap, {\it x} points to {\it x'}, and in another part of the heap, {\it y} points to {\it y'}, and nothing else is on the heap.
+
+\subsubsection{Local Reasoning and the Frame Rule}
+One of the key points of separation logic is the ability to reason locally about a shared mutable resource, which in our case is a heap. Local reasoning is achieved by specifying a program in terms of the heap cells  it accesses, and then using the frame rule to abstract away the rest of the heap. The frame rule is specified as follows:
+
+\begin{prooftree}
+\AxiomC{\{P\} C \{Q\}}
+\UnaryInfC{\{P $\ast$ R\} C \{Q $\ast$ R\}}
+\end{prooftree}
+
+If we have a program {\it C} with the precondition {\it P} and the postcondition {\it Q}, we can abstract away the rest of the heap {\it R}, as we know that {\it c} does not modify any part of {\it R}.
+
+\subsubsection{Partial Correctness}
+In this paper, we only consider partial correctness specifications of separation logic. This means that we do not provide proofs of termination for any of the programs that we examine, only proofs of correctness.
+
+
+\subsubsection{Separation Algebra}
+A separation algebra is a cancellative, partial, commutative monoid ($\Sigma$, $\circ$, {\it u}) where $\Sigma$ is the carrier type, $\circ$ is the binary operator, and {\it u} is the unit element\,\cite{Calcagno07:LCS}.
+
+We can define heaps in terms of a separation algebra by taking $\Sigma$ to be a type of heaps, $\circ$ to be a composition operator for two disjoint heaps, and {\it u} to be {\it emp}, the unit of the separating conjunction \cite{BirkedalL:veroop-conf}.
+
+\subsubsection{Building the Separation Logic}
+As presented in the problem statement, we need to extend the intuitionistic logic in which the Imp language is already defined with a separation logic, in order to be able to reason about the heap. This section describes how we have used the work done by Jesper Bengtson et al. \todo{Insert correct reference here} to build such a logic.
+
+\paragraph{Purpose.}
+The purpose of building the separation logic is to be able to create assertions {\it heap} $\rightharpoonup$ {\it state} $\rightharpoonup$ {\it Prop} for use in program specifications that need to describe both a stack (or state) and a heap.
+
+\paragraph{Procedure.} The basis of our separation logic is {\it Prop}, the sort for propositions in Coq\,\cite{CoqIntro}. Having defined a type class in Coq describing the axioms of an intuitionistic logic, we establish that {\it Prop} is an intuitionistic logic.
+
+Since we can create an intuitionistic logic from a function space {\it A} $\rightharpoonup$ {\it B}\todo{Add source?}, where {\it B} is the carrier of an intuitionistic logic and {\it A} is any type, we can easily extend the logic of {\it Prop}. We take {\it Prop} to be the carrier, and then extend the logic with {\it state}, such that we now have {\it state} $\rightharpoonup$ {\it Prop}. However, this is still just an intuitionistic logic, and not a separation logic.
+
+To create a separation logic, we take advantage of the fact that our heap can be described by a separation algebra. \todo{Remember that we need the assertions to be closed on heaps}
+
+\todo{We define our heap to be a partial function on natural numbers mapping addresses (locations) to values}
