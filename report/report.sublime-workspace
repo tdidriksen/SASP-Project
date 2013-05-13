@@ -7,14 +7,6 @@
 	},
 	"buffers":
 	[
-		{
-			"file": "solution.tex",
-			"settings":
-			{
-				"buffer_size": 248,
-				"line_ending": "Unix"
-			}
-		}
 	],
 	"build_system": "",
 	"command_palette":
@@ -48,15 +40,16 @@
 	},
 	"file_history":
 	[
-		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/report.sublime-workspace",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/report.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/solution.tex",
 		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/background.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/report.sublime-workspace",
 		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/introduction.tex",
 		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/report.sublime-project",
 		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/Solution.tex",
 		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/problem.tex",
 		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/related_work.tex",
 		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/abstract.tex",
-		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/report.tex",
 		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/discussion.tex",
 		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/example.tex",
 		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/bacground.tex",
@@ -89,6 +82,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"heap",
 			"'",
 			"    \n",
 			"<",
@@ -110,35 +104,8 @@
 	"groups":
 	[
 		{
-			"selected": 0,
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"file": "solution.tex",
-					"settings":
-					{
-						"buffer_size": 248,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								211,
-								211
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				}
 			]
 		}
 	],

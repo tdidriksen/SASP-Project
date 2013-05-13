@@ -1,0 +1,205 @@
+% General Latex useful stuff
+\newcommand{\impl}{\Rightarrow}
+\newcommand{\sub}[1]{{}_{\text{#1}}}
+\newcommand{\fa}[1]{\forall #1 .\;}
+\newcommand{\ex}[1]{\exists #1 .\;}
+\newcommand{\lam}[1]{\lambda #1 .\;}
+\newcommand{\Prod}[1]{\mathrm{\Pi} #1 .\;}
+\newcommand{\Sum}[1]{\mathrm{\Sigma} #1 .\;}
+\newcommand{\Let}[1]{\textsf{let }#1\textsf{ in }}
+\newcommand{\lbl}[1]{\;\textsc{#1}}
+\newcommand{\zw}[1]{\makebox[0pt][l]{#1}}
+\newcommand{\zlbl}[1]{\zw{\lbl{#1}}}
+% Math identifiers with names longer than one character
+\newcommand{\id}[1]{\ensuremath{\mathit{#1}}}
+% Strings, referring to concrete program parts in examples
+\newcommand{\str}[1]{\ensuremath{\textsf{#1}}\xspace}
+\newcommand{\sem}[1]{[\![ #1 ]\!]}
+\newcommand{\partto}{\rightharpoonup}
+\newcommand{\finto}{\mathrel{
+  \makebox[0pt][l]{\raisebox{-0.6ex}{\hspace{0.4ex}\ensuremath{
+    {\scriptscriptstyle\mathsf{fin}}}
+  }}{\rightharpoonup}
+}}
+\newcommand{\Pdown}{\mathcal{P}_\downarrow}
+\newcommand{\Pup}{\mathcal{P}_\uparrow}
+\newcommand{\pow}{\mathcal{P}}
+\newcommand{\finpow}{\pow_{\textsf{fin}}}
+% defining equality
+\newcommand{\eqdef}{\mathrel{\triangleq}}
+\newenvironment{arrayl}{\begin{array}{@{}l@{}}}{\end{array}}
+
+% Dot-space, to use after quantifiers
+%\newcommand{\ds}{.\ }
+
+% pre-defined uses of \id
+\newcommand{\asnH}{\id{asn}\ \id{heap}}
+\newcommand{\var}{\id{var}}
+\newcommand{\expr}{\id{expr}}
+%\newcommand{\nul}{\id{null}}
+
+\newcommand{\lift}[1]{\dot{#1}}
+\newcommand{\liftbin}[1]{\mathbin{\dot{#1}}}
+\newcommand{\liftrel}[1]{\mathrel{\dot{#1}}}
+\newcommand{\liftid}[1]{\lift{\id{#1}}}
+\newcommand{\mspecraw}[5]{
+  #1{::}#2(#3) \mapsto #4 \_ #5
+}
+\newcommand{\mspec}[5]{
+  \mspecraw{#1}{#2}{#3}{\{#4\}}{\{#5\}}
+}
+\newcommand{\pointsto}[3]{{#1}.{#2}{\mapsto} {#3}}
+\newcommand{\lpointsto}[3]{{#1}.{#2}{\lift\mapsto} {#3}}
+% substitution
+\newcommand{\csubst}[3]{\ensuremath{{#1}[{#2}/{#3}]}}
+\newcommand{\subst}[2]{\{{}^{#1}\!/\!{}_{#2}\}}
+
+\newcommand{\tcmd}{\ensuremath{\id{cmd}}}
+\newcommand{\texpr}{\ensuremath{\id{expr}}}
+\newcommand{\tclass}{\ensuremath{\id{class}}}
+\newcommand{\tname}{\ensuremath{\id{name}}}
+\newcommand{\tmethod}{\ensuremath{\id{method}}}
+\newcommand{\tprog}{\ensuremath{\id{program}}}
+\newcommand{\csharp}{\ensuremath{\id{C}\sharp}\xspace}
+% Programming language keywords
+\newcommand{\kw}[1]{\textbf{#1}}
+% Dot-space, to use after quantifiers
+\newcommand{\ds}{.\ }
+
+\newcommand{\etal}{et al.\xspace}
+\newcommand{\ie}{i.e.\xspace}
+\newcommand{\eg}{e.g.\xspace}
+
+\newcommand{\nat}{{\ensuremath{\mathbb{N}}}\xspace}
+\newcommand{\mdef}{\mathrel{\triangleq}}
+
+\newcommand{\sskipop}{\ensuremath{\mathbf{id}}\xspace}
+\newcommand{\sseqop}{\ensuremath{\mathbf{seq}}\xspace}
+\newcommand{\snondetop}{\ensuremath{+}\xspace}
+\newcommand{\skleeneop}{\ensuremath{{}^*}\xspace}
+\newcommand{\sassumeop}{\ensuremath{\mathbf{assume}}\xspace}
+\newcommand{\sassertop}{\ensuremath{\mathbf{check}}\xspace}
+
+\newcommand{\sskip}{\sskipop}
+\newcommand{\sseq}[2]{\sseqop\ {#1}\ {#2}}
+\newcommand{\snondet}[2]{\ensuremath{{#1}\snondetop{#2}}}
+\newcommand{\skleene}[1]{\ensuremath{{#1}{\skleeneop}}}
+\newcommand{\sassume}[1]{\ensuremath{\sassumeop\ {#1}}}
+\newcommand{\sassert}[1]{\ensuremath{\sassertop\ {#1}}}
+\newcommand{\sassign}[2]{\ensuremath{\mathbf{assign}\ {#1}\ {#2}}}
+\newcommand{\salloc}[2]{\ensuremath{\mathbf{alloc}\ {#1}\ {#2}}}
+\newcommand{\sread}[3]{\ensuremath{\mathbf{read}\ {#1}\ {#2}.{#3}}}
+\newcommand{\swrite}[3]{\ensuremath{\mathbf{write}\ {#1}.{#2}\ {#3}}}
+\newcommand{\scall}[6]{\ensuremath{\mathbf{call}\ {#1}\ {#2}{::}{#3}(#4)
+    \ \mathbf{with}\ #5\ #6}}
+
+\newcommand{\cwhileop}{\ensuremath{\mathbf{while}}\xspace}
+\newcommand{\cifop}{\ensuremath{\mathbf{if}}\xspace}
+\newcommand{\cthenop}{\ensuremath{\mathbf{then}}\xspace}
+\newcommand{\celseop}{\ensuremath{\mathbf{else}}\xspace}
+\newcommand{\cseqop}{\ensuremath{;}\xspace}
+
+\newcommand{\creturn}[1]{\ensuremath{\mathbf{return}\ {#1}}}
+\newcommand{\fields}[1]{\ensuremath{\id{fields}(#1)}}
+\newcommand{\cwhile}[2]{\ensuremath{\mathbf{\cwhileop}\ {#1}\ \mathbf{do}\ {#2}}}
+\newcommand{\cnull}{\id{null}}
+\newcommand{\calloc}[2]{\ensuremath{{#1}:=~\mathbf{alloc}\ {#2}}}
+\newcommand{\cseq}[2]{\ensuremath{{#1}\cseqop\; {#2}}}
+\newcommand{\cassert}[1]{\ensuremath{\mathbf{assert}\ {#1}}}
+\newcommand{\cskip}{\ensuremath{\mathbf{skip}}}
+\newcommand{\cifte}[3]{\ensuremath{\cifop\ {#1}\ \mathbf{then}\ {#2}\ \mathbf{else}\ {#3}}}
+\newcommand{\cassign}[2]{\ensuremath{{#1}:={#2}}}
+\newcommand{\cread}[3]{\ensuremath{{#1}:={#2}.{#3}}}
+\newcommand{\cwrite}[3]{\ensuremath{{#1}.{#2}:={#3}}}
+\newcommand{\cscall}[4]{\ensuremath{{#1}:={#2}{::}{#3}(#4)}}
+\newcommand{\cdcall}[4]{\ensuremath{{#1}:={#2}.{#3}({#4})}}
+\newcommand{\sep}{\mathrel{|}}
+\newcommand{\agreeon}[1]{\mathrel{\simeq_{#1}}}
+\newcommand{\triple}[3]{\ensuremath{\{{#1}\}{#2}\{{#3}\}}\xspace}
+\newcommand{\wtriple}[3]{\triple{#1}{\;#2\;}{#3}}
+\newcommand{\setcomp}[2]{{\ensuremath{\{{#1} \mathrel |} {#2}\}}\xspace}
+\newcommand{\fault}{\ensuremath{\mathbf{err}}\xspace}
+\newcommand{\safe}[4]{{\ensuremath{\id{safe}_{#3}({#1},{#2},{#4})}}\xspace}
+\newcommand{\trans}[6]{{\ensuremath{({#1},{#2},{#3})\leadsto^{#4}({#5},{#6})}}\xspace}
+\newcommand{\ntrans}[5]{{\ensuremath{(#1,#2,#3)\not\leadsto^{#4}{#5}}\xspace}}
+\newcommand{\transfault}[4]{{\ensuremath{(#1,#2,#3)\leadsto^{#4}\fault}\xspace}}
+\newcommand{\this}{\id{this}}
+\newcommand{\nul}{\id{null}}
+\newcommand{\cmspec}[6]{ #1{::}#2(#3) {\mapsto} \{#4\}\_\{#5,#6\} }
+\newcommand{\xmspec}[6]{ #1.#2(#3) {\mapsto} \{#4\}\_\{#5,#6\} }
+\newcommand{\fin}{\mathrel{
+  \makebox[0pt][l]{\raisebox{-0.6ex}{\hspace{0.4ex}\ensuremath{
+    {\scriptscriptstyle\mathsf{fin}}}
+  }}{\rightharpoonup}
+}}
+
+\newcommand{\val}{\ensuremath{\id{val}}\xspace}
+\newcommand{\Ptr}{\ensuremath{\id{ptr}}\xspace}
+\newcommand{\Field}{\ensuremath{\id{field}}\xspace}
+\newcommand{\stack}{\ensuremath{\id{stack}}\xspace}
+\newcommand{\heap}{\ensuremath{\id{heap}}\xspace}
+\newcommand{\emp}{\ensuremath{\id{emp}}\xspace}
+\newcommand{\precmd}{\ensuremath{\id{precmd}}\xspace}
+\newcommand{\cmd}{\ensuremath{\id{cmd}}\xspace}
+\newcommand{\semcmd}{\ensuremath{\id{semcmd}}\xspace}
+\newcommand{\spec}{\ensuremath{\id{spec}}\xspace}
+\newcommand{\asn}{\ensuremath{\id{asn}}\xspace}
+
+\newcommand{\heapsepop}{{\#}}
+\newcommand{\heapsep}[2]{\ensuremath{{#1}\mathbin{\heapsepop}{#2}}}
+
+\newcommand{\heapsubop}{{\sqsubseteq}}
+\newcommand{\heapsub}[2]{\ensuremath{{#1}\mathbin{\heapsubop}{#2}}}
+
+\newcommand{\idicell}{\ensuremath{\id{ICell}}\xspace}
+\newcommand{\idrecell}{\ensuremath{\id{Recell}}\xspace}
+
+\newcommand{\strcell}{\ensuremath{\str{Cell}}\xspace}
+\newcommand{\strrecell}{\ensuremath{\str{Recell}}\xspace}
+
+\newcommand{\Rcell}{\ensuremath{R\sub{Cell}}}
+\newcommand{\Rrecell}{\ensuremath{R\sub{Recell}}}
+
+% Stuff specific to BST example
+\newcommand{\tcontains}{\id{t\_contains}}
+\newcommand{\contains}{\id{contains}}
+\newcommand{\inorder}{\id{inorder}}
+
+\newcommand{\semsm}{\ensuremath{\mathrel{\thicksim}_\mathsf{sem}}}
+\newcommand{\powerset}[1]{{\ensuremath{\mathcal{P}({#1})}\xspace}}
+\newcommand{\heapcompop}{{\circ}}
+\newcommand{\heapcomp}[2]{{\ensuremath{{{#1}\mathbin{\heapcompop}{#2}}}\xspace}}
+\newcommand{\inasn}[4]{{\ensuremath{({#1}, {#2})\in{#3}\;{#4}}}\xspace}
+\renewcommand{\land}{\ensuremath{\mathrel{\wedge}}}
+\renewcommand{\lor}{\ensuremath{\mathrel{\vee}}}
+\newcommand{\later}{\ensuremath{\triangleright}\xspace}
+\newcommand{\entails}{\models}
+\newcommand{\fv}[1]{\id{fv}\;#1}
+\newcommand{\sm}[1]{\id{sm}\;#1}
+\newcommand{\false}{\id{false}}
+\newcommand{\true}{\id{true}}
+\newcommand{\Inter}[2]{\bigcap_{#1} {#2}}
+\newcommand{\Union}[2]{\bigcup_{#1} {#2}}
+\newcommand{\sepunit}{\ensuremath{\mathbf{1}}}
+\newcommand{\sepall}{\ensuremath{\forall^*}}
+
+\newcommand{\upred}[1]{\ensuremath{\id{UPred(#1)}}}
+\newcommand{\upredH}{\upred{\id{heap}}} % deprecated
+\newcommand{\dcsn}{\spec} % deprecated
+
+\newcommand{\dom}[1]{\ensuremath{\mathrm{dom}\ #1}}
+\newcommand{\Emb}{\ensuremath{\id{I}}\xspace}
+\newcommand{\Ex}{\ensuremath{\id{L}}\xspace}
+\newcommand{\All}{\ensuremath{\id{R}}\xspace}
+\newcommand{\Hup}{\ensuremath{\id{H}}\xspace}
+\newcommand{\bool}{\ensuremath{\id{bool}}\xspace}
+\newcommand{\pure}{\ensuremath{\id{pure}}\xspace}
+\newcommand{\wandop}{\mathrel-\joinrel\mathrel{\!*}}
+\newcommand{\wand}{\mathrel{\wandop}}
+
+\newcommand\liftr[1]{\mathrel{\lift{#1}}}
+
+\newcommand{\infrule}[3][]{
+  \AXD{#2}\RightLabel{\textsc{#1}}\UID{#3}\DisplayProof
+}
+

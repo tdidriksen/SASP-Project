@@ -16,6 +16,40 @@
 %\usepackage[margin=1.5in]{geometry}
 \usepackage{url}
 \usepackage[multiple]{footmisc} % DOUBLE FOOTNOTES ACROSS THE SKY
+\usepackage{todonotes}
+
+\usepackage[]{inputenc}
+\usepackage[T1]{fontenc}
+
+
+\usepackage{amsmath,amssymb}
+
+\usepackage{xspace}
+\usepackage{listings}
+\setcounter{tocdepth}{3}
+\usepackage{graphicx}
+\usepackage{mathpartir}
+\usepackage{xspace}
+\usepackage{hyperref}
+\usepackage{stmaryrd}
+
+\usepackage{esvect}
+  % Something changes \vec from arrow to boldface. Change it back.
+  \renewcommand{\vec}{\vv}
+
+\usepackage{bussproofs}
+  % Macros to get display-style math in proof trees.
+  \newcommand{\AXD}[1]{\AxiomC{\ensuremath{\displaystyle #1}}}
+  \newcommand{\UID}[1]{\UnaryInfC{\ensuremath{\displaystyle #1}}}
+  \newcommand{\BID}[1]{\BinaryInfC{\ensuremath{\displaystyle #1}}}
+  \newcommand{\TID}[1]{\TrinaryInfC{\ensuremath{\displaystyle #1}}}
+  \newcommand{\QID}[1]{\QuaternaryInfC{\ensuremath{\displaystyle #1}}}
+
+\newcommand{\keywords}[1]{\par\addvspace\baselineskip
+\noindent\keywordname\enspace\ignorespaces#1}
+\input{macros}
+
+
 \renewcommand{\footnotemargin}{3.99pt}
 
 % %% to make urls look better in bibliography

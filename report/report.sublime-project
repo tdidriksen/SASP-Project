@@ -10,7 +10,8 @@
 									  "*.pdf",
 									  "*.fdb_latexmk",
 									  "*.fls",
-									  "*.gz"]
+									  "*.gz",
+									  "*.out"]
 		}
 	]
 }
