@@ -688,22 +688,20 @@ Theorem sep_hoare_consequence_pre : forall (P P' Q : Assertion) c,
   {{ P' }} c {{ Q }} ->
   {{ P }} c {{ Q }}.
 Proof.
-(**
   unfold hoare_triple.
   intros.
   split.
   Case "safety".
-    intros.
-    apply H0 in H1.
-    specialize (H _ H1).
-    apply H.
+    apply H in H1.
+    specialize (H0 _ H1).
+    apply H0.
     intuition.
   Case "".
-    apply H.
-    apply H0 in H1.
+    apply H0.
+    apply H in H1.
     apply H1.
-    intuition.*)
-Admitted.
+    intuition.
+Qed.
 
 Theorem sep_hoare_consequence_post : forall (P Q Q' : Assertion) c,
   {{ P }} c {{ Q' }} ->

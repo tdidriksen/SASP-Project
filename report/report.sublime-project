@@ -11,7 +11,10 @@
 									  "*.fdb_latexmk",
 									  "*.fls",
 									  "*.gz",
-									  "*.out"]
+									  "*.out",
+									  "*.sty",
+									  "*.blg",
+									  "*.bbl"]
 		}
 	]
 }
