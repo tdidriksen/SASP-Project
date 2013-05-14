@@ -2,13 +2,13 @@
 \section{Solution}
 \todo{mentioned only nats here, or maybe even earlier}
 \subsection{Programming with Mutable State}
-Originally the state in Imp is managed by a stack, which maps variables into values. We extend this state by adding a heap, which will provide us with a mapping between addresses and value. These values represent the mutable structures. As mentioned earlier our heap only handle natural numbers.
+For our example mentioned in the introduction to be implementable in Imp, we need to introduce the idea of a mutable state. Originally the state in Imp is managed by a stack, which is a function from variables to values. We extend this state by adding a heap, which will provide us with a mapping between addresses and value. These values represent the mutable structures. As mentioned earlier our heap only handles natural numbers. We define heaps as a partially applied function from keys ($nat$) to values ($nat$):
 
-\paragraph{}\textbf{Definition: }A heap is a mapping between an address, represented by a natural number (nat), and specific values on the heap (nat).
 \[
-Heap := Map(nat, nat)
-\]
-Section \ref{sec:heap_operations}
+\heap = k\rightharpoonup v
+\] 
+
+A heap alone, however, does not allow our example to be implemented. In section \ref{sec:heap_operations} we will discuss the implementation of operations on this heap and their integration into Imp.
 
 \input{heap_operations}
 \input{assertions_heaps}
