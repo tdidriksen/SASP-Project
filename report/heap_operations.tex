@@ -2,10 +2,54 @@
 \subsection{Operations on the Heap}
 \label{sec:heap_operations}
 We now define syntax and operational semantics for the operations added to the Imp language for manipulating the heap. Four operations are needed: Read (or lookup), Write (or mutate), Allocate, and Deallocate (or dispose).
-\subsubsection{Syntax} \todo{Show the syntax for each of the commands here. Coqdoc might be of use.}
+\paragraph{Syntax.}
+The Imp syntax for each of the operations is shown in Figure \ref{fig:heap_semantics} as the first part of the \textless \textgreater -notation.
+\paragraph{Functions manipulating the heap.}
+The following heap-manipulating functions underlying the implementation of the heap operations in Imp are used in the semantics presented in Figure \ref{fig:heap_semantics}. The definitions of {\it a} and {\it v} are as presented in Section \todo{Add reference to 'Programming with mutable state' here}.
+\begin{itemize}
+\item {\it write} $\eqdef$ {\it a} $\rightharpoonup$ {\it v} $\rightharpoonup$ {\it heap}
+\item {\it dealloc} $\eqdef$ {\it a} $\rightharpoonup$ {\it heap}
+\item {\it alloc} $\eqdef$ {\it a} $\rightharpoonup$ {\it n} $\rightharpoonup$ {\it heap}
+\end{itemize}
+The second parameter of the {\it alloc} function, {\it n}, is a natural number specifying the number of cells to allocate.
+
 \subsubsection{Semantics}
-\todo{A figure here with the semantics for read, write, allocate, and deallocate in sexy logic notation.}
-There are a few interesting points to note here. Firstly, the semantics of allocation and deallocation are asymmetric. This asymmetry becomes evident when the input to the two operations are examined: allocation accepts a (natural) number of cells to allocate, while deallocation accepts a single address. Therefore, it is possible to encapsulate the allocation of an arbitrary number of memory cells in a single allocation operation, while deallocating {\it n} cells from the heap has to be done in {\it n} individual deallocation operations. This limitation makes deallocation easier to reason about, but places a heavier burden of memory management on the user of the language.
+\begin{figure}
+\[
+    \infrule[Read]{
+       heap(a) = n
+    }{
+       < (X\;\leftarrow\; [ a ]),\;Some(s,\;h) > \; \Downarrow Some\;([s\;|\;X:n],\;h)
+    }
+\]
+\\
+\[
+    \infrule[Write]{
+       \exists e. heap(a) = e
+    }{
+       < ([ a ]\;\leftarrow\; b),\;Some(s,\;h) > \; \Downarrow Some\;([s\;|\;X:a],\;write\;a\;b\;h)
+    }
+\]
+\\
+\[
+    \infrule[Deallocate]{
+       \exists e. heap(a) = e
+    }{
+       < (DEALLOC\;a),\;Some(s,\;h) > \; \Downarrow Some\;(s,\;dealloc\;a\;h)
+    }
+\]
+\\
+\[
+    \infrule[Allocate]{
+       \neg \exists e. heap(a) = e \;\;\;\;\;\;\;\;\; \forall n.\; (n > a \wedge n \leq a+n) \implies \neg \exists e'. heap(n) = e'
+    }{
+       < (X=ALLOC\;n),\;Some(s,\;h) > \; \Downarrow Some\;([s\;|\;X:a],\;alloc\;a\;n\;h)
+    }
+\]
+\caption{Semantics for the heap operations}
+\label{fig:heap_semantics}
+\end{figure}
+The semantics for the heap operations are given in Figure \ref{fig:heap_semantics}. There are a few interesting points to note here. Firstly, the semantics of allocation and deallocation are asymmetric. This asymmetry becomes evident when the input to the two underlying functions are examined: {\it alloc} accepts a number {\it n} of cells to allocate, while {\it dealloc} accepts a single address to deallocate. Therefore, it is possible to encapsulate the allocation of an arbitrary number of memory cells in a single allocation operation, while deallocating {\it n} cells from the heap has to be done in {\it n} individual deallocation operations. This limitation makes deallocation easier to reason about, but places a heavier burden of memory management on the user of the language.
 
 Secondly, locating free addresses in the address space for the allocation operation is not a part of the allocation semantics, although the semantics do state that these addresses must be consecutive not already allocated. \todo{Perhaps this point belongs in a different section} Here, we simply assume that such consecutive and free addresses exist in the heap, and leave it up to the soundness proof of the corresponding Hoare rule (see Section \todo{Add reference to Hoare rules section here}) to prove this fact.
 
@@ -16,4 +60,31 @@ Lastly, it should be noted that we have no notion of void types and do not provi
 
 \subsubsection{Error Semantics}
 \label{sec:error_semantics}
-An interesting consequence of adding a an addressable state to a programming language is the possibility of writing programs that evaluate to a faulty state. Contrary to the basic version of the Imp language, an addressable state enables the user to write programs that type check but evaluate to an erroneous state: When reading, writing, or deallocating, the program might end up in a faulty state if attempting to access an inactive address on the heap. Note that because we assume that the address space of the heap is infinite, allocation cannot fail. \todo{Add some more juice to this section.}
+An interesting consequence of adding an addressable state to a programming language is the possibility of writing programs that evaluate to a faulty state. Contrary to the basic version of the Imp language, an addressable state enables the user to write programs that type check but evaluate to an erroneous state: When reading, writing, or deallocating, the program might end up in a faulty state if attempting to access an inactive address on the heap. Note that because we assume that the address space of the heap is infinite, allocation cannot fail. We present the error semantics in Figure \ref{fig:heap_error_semantics}.
+\begin{figure}
+\[
+    \infrule[ReadError]{
+       \neg \exists e. heap(a) = e
+    }{
+       < (X\;\leftarrow\; [ a ]),\;Some(s,\;h) > \; \Downarrow None
+    }
+\]
+\\
+\[
+    \infrule[WriteError]{
+       \neg \exists e. heap(a) = e
+    }{
+       < ([ a ]\;\leftarrow\; b),\;Some(s,\;h) > \; \Downarrow None
+    }
+\]
+\\
+\[
+    \infrule[DeallocateError]{
+       \neg \exists e. heap(a) = e
+    }{
+       < (DEALLOC\;a),\;Some(s,\;h) > \; \Downarrow None
+    }
+\]
+\caption{Error semantics for the Read, Write, and Deallocate operations}
+\label{fig:heap_error_semantics}
+\end{figure}
