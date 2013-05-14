@@ -724,29 +724,29 @@ Proof.
     assumption.
 Qed. 
 
-Fixpoint modified_by (c : com) : list id :=
+Fixpoint modified_by (c : com) (l : list id) : list id :=
   match c with
-  | SKIP => nil
-  | i ::= _ => i :: nil
-  | c1; c2 =>  modified_by c1 ++ modified_by c2
-  | IFB _ THEN c1 ELSE c2 FI => modified_by c1 ++ modified_by c2
-  | WHILE _ DO c END => modified_by c
-  | i &= ALLOC _ => i :: nil
-  | DEALLOC _ => nil
-  | i <~ [ _ ] => i :: nil
-  | [ _ ] <~ _ => nil
+  | SKIP => l
+  | i ::= _ => i :: l
+  | c1; c2 =>  modified_by c2 l ++ modified_by c2 l ++ l 
+  | IFB _ THEN c1 ELSE c2 FI => modified_by c1 l ++ (modified_by c2 l ++ l)
+  | WHILE _ DO c END => modified_by c l ++ l
+  | i &= ALLOC _ => i :: l
+  | DEALLOC _ => l
+  | i <~ [ _ ] => i :: l
+  | [ _ ] <~ _ => l
   end.
   
-Fixpoint list_sub (vs : list nat) (l : list id) (ost : state) (ast : state) : state :=
+Fixpoint list_sub (vs : list id) (l : list id) (ost : state) (ast : state) : state :=
   match vs with
   | vsh :: vs =>
     match l with
-      | lh :: l => list_sub vs l ost (substitute ast ost (cons (lh, ANum(vsh)) nil))
-      | _ => ast (* Lists don't match, should fail instead *)
+      | lh :: l => list_sub vs l ost (substitute ast ost (cons (vsh, ANum(ost lh)) nil))
+      | _ => ast
     end
   | _ =>
     match l with
-      | h :: t => ast (* Lists don't match, should fail instead *)
+      | h :: t => ast
       | _ => ast
     end
   end. 
@@ -761,59 +761,19 @@ Next Obligation.
   apply H0.
 Qed.
         
-Lemma conj_comp : forall (P Q : Assertion) (a b c : Heap) s,
-  P a s ->
-  Q b s ->
-  sa_mul a b c ->
-  (P ** Q) c s.
-Proof.
-  intros.
-  simpl.
-  exists a.
-  exists b.
-  simpl in H1.
-  split.
-    intros k.
-    specialize (H1 k).
-    destruct (find k c).
-    assumption.
-    
-    assumption.
-  
-  split; assumption.
-Qed.
-     
 Theorem frame_rule : forall P Q R c,
-  {{ P }} c {{ Q }} ->
-  {{ P ** R }} c {{ Q ** (Exists vs, var_sub R vs (modified_by c)) }}. 
+  {{ P }} c {{ Q }} |--
+  {{ P ** R }} c {{ Q ** (Exists vs, var_sub R vs (modified_by c nil)) }}. 
 Proof. 
   unfold hoare_triple.
   intros.
   split.
-  Case "safety".
-    
-    
-    
-    
     apply H.
-    inversion H0.
-    inversion H1.
-    inversion H2.
-    simpl in H3.
-    inversion H3.
-      
     
     
-    unfold safe, not.
-    intros.
-    inversion H1; subst.
-    apply H3.
     
-    
-
   
 Admitted.
-
 
 Program Definition alloc_cell a : Assertion :=
   (ANum a) |-> (ANum 0).
@@ -1040,7 +1000,7 @@ Local Opaque ILPre_Ops.
 Local Opaque SABIOps.
 
 Lemma aexp_permute : forall X Y v v' P Q,
-  ((aexp_eq X v //\\ P) ** (aexp_eq Y v' //\\ Q)) -|-
+  ((P //\\ aexp_eq X v) ** (Q //\\ aexp_eq Y v')) -|-
   aexp_eq X v //\\ aexp_eq Y v' //\\ (P ** Q).
 Proof.
 Admitted.
@@ -1055,12 +1015,44 @@ Proof.
   apply frame_rule'.	
   apply hoare_read.
   rewrite sepSPC.
-  rewrite bilexistsscR.
-  eapply sep_hoare_consequence_pre.
-  lexistsL.
-  intros.
+  eapply hoare_seq.
+  apply frame_rule'.
+  apply hoare_read.
+  
+  rewrite sepSPC.
+  eapply hoare_seq.
+  replace (AId Y) with (d).
+  apply frame_rule'.
+  apply sep_hoare_consequence_pre with (P':= a|->_).
+  admit.
+  eapply hoare_write.
+  admit.
+  replace (AId X) with (c).
+  rewrite sepSPC.
+  eapply sep_hoare_consequence_post.
+  apply frame_rule'.
+  apply sep_hoare_consequence_pre with (P':= b|->_).
+  admit.
+  apply hoare_write.
   rewrite sepSPC.
   reflexivity.
+  admit.
+
+  rewrite H.
+  apply hoare_write.
+  
+  admit.
+  apply hoare_write.
+  rewrite sepSPC.
+  eapply sep_hoare_consequence_post.
+  apply frame_rule'.
+  apply sep_hoare_consequence_pre with (P':= b|->_).
+  lexistsL; intros.
+  apply landL1.
+  admit.
+  apply hoare_write.
+  
+  
   eapply hoare_seq.
   apply frame_rule'.
   apply hoare_read.
