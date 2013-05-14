@@ -9,13 +9,38 @@ We address the problem of adding shared mutable state to an imperative language,
 
 Thus, the problem is twofold. It is 1) extending the intuitionistic Hoare logic, in which the Imp language is already defined, with a separation logic and 2) defining new language constructs to the Imp language for manipulating the shared mutable state, together with Hoare rules for these.
 
+
+\paragraph{Contributions.}
+Our contribution is a solution for the second part of the problem. We define syntax and semantics for the four essential contructs enabling utilization of a mutable state: read, write, allocation, and deallocation. To be able to reason about and prove programs written in the Imp language involving these constructs, we define Hoare rules for each of them. The soundness of these rules have been proven with Coq, an interactive theorem prover. Furthermore, we define and prove the frame rule and rules of consequence for use in correctness proofs of Imp programs.
+
 \paragraph{Dependencies.}
 For the first part of the problem, we rely heavily on the work on constructing separation logics from separation algebra done by Jesper Bengtson et al. \todo{Insert correct reference to their work}, which will be introduced in Section \todo{Add reference to separation algebra section here}.
 
 \todo{Something about other dependencies, such as SfLib, here.}
 
-\paragraph{Contributions.}
-Our contribution is a solution for the second part of the problem. We define syntax and semantics for the four essential contructs enabling utilization of a mutable state: read, write, allocation, and deallocation. To be able to reason about and prove programs written in the Imp language involving these constructs, we define Hoare rules for each of them. The soundness of these rules have been proven with Coq, an interactive theorem prover. Furthermore, we define and prove the frame rule and rules of consequence for use in correctness proofs of Imp programs.
+\paragraph{A motivating example: List reversal.}
+Consider the classic example of in-place list reversal. While it may seem simple, it is a good example of a program that is not easily implemented in an imperative programming language without a mutable state. It involves non-trivial elements such as encoding the notion of a list, doing pointer arithmetics, and handling destructive updates to memory. To implement it requires a mutable state, a heap in our case, and to reason about it requires exact definitions of the behaviour of the heap. An Imp implementation is shown in Figure \ref{fig:list_reversal}.
 
-\paragraph{Outline.}
-Report outline goes here
+Proving the correctness of programs involving a heap requires a rigorous formal system. In Section \ref{sec:background} we present such a system, separation logic, along with the basic Imp language on which we base our work. Section \ref{sec:programming_with_mutable_state} gives a definition of a heap. The exact definitions of the behaviour of the heap is provided in Section \ref{sec:heap_operations}, where syntax and semantics for the heap-manipulating operations are defined. Inference rules for proving the correctness of programs involving these operations are defined in Section \ref{sec:hoare_rules}, and auxiliary rules are provided in Section \ref{sec:frame_rule}. We reflect upon related work in Section \ref{sec:related_work} and conclude on our findings in Section \ref{sec:conclusion}.
+
+
+\begin{figure}
+\begin{coqdoccode}
+\coqdocindent{7.00em}
+\coqdocvar{Y} ::= (\coqdocvar{ANum} 0);\coqdoceol
+\coqdocindent{7.00em}
+\coqdocvar{WHILE} \coqdocvar{BNot} (\coqdocvar{BEq} (\coqdocvar{AId} \coqdocvar{X}) (\coqdocvar{ANum} 0)) \coqdocvar{DO}\coqdoceol
+\coqdocindent{10.00em}
+\coqdocvar{Z} <$\sim$ [ \coqdocvar{APlus} (\coqdocvar{AId} \coqdocvar{X}) (\coqdocvar{ANum} 1) ];\coqdoceol
+\coqdocindent{10.00em}
+[ \coqdocvar{APlus} (\coqdocvar{AId} \coqdocvar{X}) (\coqdocvar{ANum} 1) ] <$\sim$ (\coqdocvar{AId} \coqdocvar{Y});\coqdoceol
+\coqdocindent{10.00em}
+\coqdocvar{Y} ::= (\coqdocvar{AId} \coqdocvar{X});\coqdoceol
+\coqdocindent{10.00em}
+\coqdocvar{X} ::= (\coqdocvar{AId} \coqdocvar{Z})\coqdoceol
+\coqdocindent{7.00em}
+\coqdocvar{END}.\coqdoceol
+\end{coqdoccode}
+\caption{An implementation of list reversal in the extended Imp language.}
+\label{fig:list_reversal}
+\end{figure}

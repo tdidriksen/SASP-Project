@@ -5,6 +5,7 @@ We now define syntax and operational semantics for the operations added to the I
 \paragraph{Syntax.}
 The Imp syntax for each of the operations is shown in Figure \ref{fig:heap_semantics} as the first part of the \textless \textgreater -notation.
 \paragraph{Functions manipulating the heap.}
+\todo{Consider moving this section into 'Programming with mutable state'}
 The following heap-manipulating functions underlying the implementation of the heap operations in Imp are used in the semantics presented in Figure \ref{fig:heap_semantics}. The definitions of {\it a} and {\it v} are as presented in Section \todo{Add reference to 'Programming with mutable state' here}.
 \begin{itemize}
 \item {\it write} $\eqdef$ {\it a} $\rightharpoonup$ {\it v} $\rightharpoonup$ {\it heap}
@@ -19,7 +20,7 @@ The second parameter of the {\it alloc} function, {\it n}, is a natural number s
     \infrule[Read]{
        heap(a) = n
     }{
-       < (X\;\leftarrow\; [ a ]),\;Some(s,\;h) > \; \Downarrow Some\;([s\;|\;X:n],\;h)
+       < (X\;<\sim\; [ a ]),\;Some(s,\;h) > \; \Downarrow Some\;([s\;|\;X:n],\;h)
     }
 \]
 \\
@@ -27,7 +28,7 @@ The second parameter of the {\it alloc} function, {\it n}, is a natural number s
     \infrule[Write]{
        \exists e. heap(a) = e
     }{
-       < ([ a ]\;\leftarrow\; b),\;Some(s,\;h) > \; \Downarrow Some\;([s\;|\;X:a],\;write\;a\;b\;h)
+       < ([ a ]\;<\sim\; b),\;Some(s,\;h) > \; \Downarrow Some\;([s\;|\;X:a],\;write\;a\;b\;h)
     }
 \]
 \\
@@ -66,7 +67,7 @@ An interesting consequence of adding an addressable state to a programming langu
     \infrule[ReadError]{
        \neg \exists e. heap(a) = e
     }{
-       < (X\;\leftarrow\; [ a ]),\;Some(s,\;h) > \; \Downarrow None
+       < (X\;<\sim\; [ a ]),\;Some(s,\;h) > \; \Downarrow None
     }
 \]
 \\
@@ -74,7 +75,7 @@ An interesting consequence of adding an addressable state to a programming langu
     \infrule[WriteError]{
        \neg \exists e. heap(a) = e
     }{
-       < ([ a ]\;\leftarrow\; b),\;Some(s,\;h) > \; \Downarrow None
+       < ([ a ]\;<\sim\; b),\;Some(s,\;h) > \; \Downarrow None
     }
 \]
 \\

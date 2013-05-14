@@ -2,6 +2,7 @@
 \section{Solution}
 \todo{mentioned only nats here, or maybe even earlier}
 \subsection{Programming with Mutable State}
+\label{sec:programming_with_mutable_state}
 For our example mentioned in the introduction to be implementable in Imp, we need to introduce the idea of a mutable state. Originally the state in Imp is managed by a stack, which is a function from variables to values. We extend this state by adding a heap, which will provide us with a mapping between addresses and value. These values represent the mutable structures. As mentioned earlier our heap only handles natural numbers. We define heaps as a partially applied function from keys ($nat$) to values ($nat$):
 
 \[
@@ -15,6 +16,7 @@ A heap alone, however, does not allow our example to be implemented. In section 
 \subsection{Definition of Hoare Triple}
 \input{hoare_triple}
 \subsection{Hoare Rules}
+\label{sec:hoare_rules}
 \paragraph{Read}
 \paragraph{Write}
 \paragraph{Allocate}
