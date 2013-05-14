@@ -11,7 +11,7 @@ The most characteristic connective of separation logic is the {\it separating co
 {\it emp} is the unit of the separating conjunction, and only holds for the empty heap. Consequently, since {\it emp} only holds for the empty heap, {\it p $\ast$ emp} is logically equivalent to {\it p}.
 
 \paragraph{The magic wand.}
-Despite its name, there is nothing magic about the magic wand. Also known as the {\it separating implication}, {\it p --$\ast$ q} says that if a heap is extended with a separate part for which p holds, then q holds for that extended heap.
+Despite its name, there is nothing magic about the magic wand. Also known as the {\it separating implication}, {\it p $\wand$ q} says that if a heap is extended with a separate part for which p holds, then q holds for that extended heap.
 
 \paragraph{The points-to relation.}
 Aside from the new connectives, separation logic introduces the {\it points-to} relation. Denoted by {\it e} $\mapsto$ {\it e'}, it states that {\it e} points to {\it e'} on the heap, and nothing else is on the heap. As such, the points-to relation both says something about the contents and the size of the heap. Given {\it x} $\mapsto$ {\it x'} $\ast$ {\it y} $\mapsto$ {\it y'}, we know that in one part of the heap, {\it x} points to {\it x'}, and in another part of the heap, {\it y} points to {\it y'}, and nothing else is on the heap.
