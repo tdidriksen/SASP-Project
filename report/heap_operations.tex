@@ -6,7 +6,7 @@ We now define syntax and operational semantics for the operations added to the I
 The Imp syntax for each of the operations is shown in Figure \ref{fig:heap_semantics} as the first part of the \textless \textgreater -notation.
 \paragraph{Functions manipulating the heap.}
 \todo{Consider moving this section into 'Programming with mutable state'}
-The following heap-manipulating functions underlying the implementation of the heap operations in Imp are used in the semantics presented in Figure \ref{fig:heap_semantics}. The definitions of {\it a} and {\it v} are as presented in Section \todo{Add reference to 'Programming with mutable state' here}.
+The following heap-manipulating functions underlying the implementation of the heap operations in Imp are used in the semantics presented in Figure \ref{fig:heap_semantics}. The definitions of {\it a} and {\it v} are as presented in Section \ref{sec:programming_with_mutable_state}.
 \begin{itemize}
 \item {\it write} $\eqdef$ {\it a} $\rightharpoonup$ {\it v} $\rightharpoonup$ {\it heap}
 \item {\it dealloc} $\eqdef$ {\it a} $\rightharpoonup$ {\it heap}
@@ -53,7 +53,7 @@ The second parameter of the {\it alloc} function, {\it n}, is a natural number s
 \end{figure}
 The semantics for the heap operations are given in Figure \ref{fig:heap_semantics}. There are a few interesting points to note here. Firstly, the semantics of allocation and deallocation are asymmetric. This asymmetry becomes evident when the input to the two underlying functions are examined: {\it alloc} accepts a number {\it n} of cells to allocate, while {\it dealloc} accepts a single address to deallocate. Therefore, it is possible to encapsulate the allocation of an arbitrary number of memory cells in a single allocation operation, while deallocating {\it n} cells from the heap has to be done in {\it n} individual deallocation operations. This limitation makes deallocation easier to reason about, but places a heavier burden of memory management on the user of the language.
 
-Secondly, locating free addresses in the address space for the allocation operation is not a part of the allocation semantics, although the semantics do state that these addresses must be consecutive not already allocated. \todo{Perhaps this point belongs in a different section} Here, we simply assume that such consecutive and free addresses exist in the heap, and leave it up to the soundness proof of the corresponding Hoare rule (see Section \todo{Add reference to Hoare rules section here}) to prove this fact.
+Secondly, locating free addresses in the address space for the allocation operation is not a part of the allocation semantics, although the semantics do state that these addresses must be consecutive not already allocated. \todo{Perhaps this point belongs in a different section} Here, we simply assume that such consecutive and free addresses exist in the heap, and leave it up to the soundness proof of the corresponding Hoare rule (see Section \ref{sec:hoare_rules}) to prove this fact.
 
 Lastly, it should be noted that we have no notion of void types and do not provide any measures for ignoring evaluated values. Consequently, providing a variable in which to store the result of a read or allocation operation is required. For allocation, this also has the benefit of safeguarding against allocating unreachable memory, which would be unfortunate in an environment without garbage collection.
 
