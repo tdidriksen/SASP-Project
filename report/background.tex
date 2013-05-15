@@ -20,8 +20,8 @@ At the core of the language is arithmetics and boolean expressions, which can be
     \infrule[Skip]{}{
       	\triple
       		{P} 
-      		{\; skip \;}
-	  		{Q}
+      		{\; \mathbf{SKIP} \;}
+	  		{P}
     }
 \]
 
@@ -51,7 +51,7 @@ At the core of the language is arithmetics and boolean expressions, which can be
     }{
       	\triple
       		{P} 
-      		{\; \cwhile{b}{c} \;}
+      		{\; \mathbf{WHILE}\;{b}\;\mathbf{DO}\;{c}\;\mathbf{END} \;}
 	  		{P \land \neg b}
     }
 \]
@@ -69,12 +69,12 @@ At the core of the language is arithmetics and boolean expressions, which can be
     }{
       	\triple
       		{P} 
-      		{\; \cifte{b}{c1}{c2}\;}
+      		{\;\mathbf{IF}\;{b}\;\mathbf{THEN}\;{c1}\;\mathbf{ELSE}\;{c2}\;\mathbf{FI} \;}
 	  		{Q}
     }
 \]
 
-As with the rest of the project, Imp deals with partial correctness. It is important to note that the Imp languages worked on in this project is the one defined up to the Hoare Logic chapter\footnote{http://www.itu.dk/courses/SASP/F2013/Hoare.html}, thus things like the type checker is not included.
+As with the rest of the project, Imp deals with partial correctness. It is important to note that the Imp languages worked on in this project is the one defined up to the Hoare Logic chapter\footnote{http://www.itu.dk/courses/SASP/F2013/Hoare.html}, thus things like the type checker is not included. 
 
 
  \input{separation_logic}

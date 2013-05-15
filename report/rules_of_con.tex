@@ -1,0 +1,11 @@
+%!TEX root = ./report.tex
+\paragraph{Rules of Consequence}
+The hoare rules might at times might differ from the ones needed when proving a program. While they might be logically equivalent, their differences prevents us from unifying them with what we are trying to prove\todo{Ref about rules of consequence}. Hoare logic uses the rules of consequence to get around this by proving that an assertion that is stronger than another assertion can substitute it as postcondition, and an assertion that is weaker than another assertion can substitute it as precondition:
+
+\[
+	\infrule{P\entails P' \;\; \triple{P'}{\;c\;}{Q}} {\triple{P}{\;c\;}{Q}} 
+	\;\;\;\;\;\; 
+	\infrule{Q'\entails Q \;\; \triple{P}{\;c\;}{Q'}} {\triple{P}{\;c\;}{Q}}
+\]
+
+While these rules have not been changed by our changes to states in Imp, the change to assertions have changed how these rules are proven.

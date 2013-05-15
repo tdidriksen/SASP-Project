@@ -1,5 +1,6 @@
 %!TEX root = ./report.tex
 \label{sec:frame_rule}
+\subsubsection{The Frame Rule}
 The hoare triples for the new commands reason about the behaviour on in a local scope. Since we would like to be able to reason about more complex programs we need to be able to use these rules in a global perspective. As such we need to prove that the behaviour of our commands is the same in a local and global scope. For this we will use the frame rule:
 
 \[
@@ -20,6 +21,8 @@ The hoare triples for the new commands reason about the behaviour on in a local 
 \textit{where no variable occurring free in R is modified by c.}
 \end{center}
 
+To prove this rule, we need to formalize the side condition. For this we define a function $modified\_by$ of type $com \rightharpoonup list\;id$, where $list\;id$ is a list of variables modified by the command. In order to prove that no free variable occurring free in R is modified by c \todo{Formulate this}. To do this we claim that there exists a list of values which when substituted with the values of the variables modified by $c$, will recreated the original state. This gives us:
+
 \[
 	\infrule{
 		\triple
@@ -31,15 +34,10 @@ The hoare triples for the new commands reason about the behaviour on in a local 
 		\triple
 			{P\;*\;R}
 			{\;c\;}
-			{Q\;*\;(\exists vs.\;R\subst{vs}{modified\;by\;c})}
+			{Q\;*\;(\exists vs.\;R\subst{vs}{modified\_by\;c})}
 		}
 \]
-\begin{center}
-\textit{where modified by c is the list of variables modified by the command c}
-\end{center}
 
-
-\todo{How to do side condition.}
-\subsubsection{Safety Monotonicity}
+\paragraph{Safety Monotonicity}
 In section \ref{sec:hoare_triple} we introduced safety to our hoare triples, as a way of ensuring that no commands that would result in a erroneous state could satisfy the triple. Thus far we have only reasoned about safety in a local scope, but with the globalization of our hoare triples we need to ensure safety monotonicity. This means that if executing a command c in a state with $\heap \; h'$  is safe, and $h'\;\heapsubop\;h$ then c must also be safe in a with $\heap \; h$.
 \todo{How do we actually do this?}
