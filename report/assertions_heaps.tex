@@ -1,3 +1,41 @@
 %!TEX root = ./report.tex
-\subsection{Reasoning about Heap-manipulating Programs}
+\subsection{Creating Assertions}
+\label{sec:assertions_heaps}
+We can create specifications from the assertion logic presented in Section \ref{sec:separation_logic} for Imp programs involving heaps. Following our definition of the logic, we must prove that any assertion used in a specification is closed under the equivalence of heaps. Consequently, and contrary to the basic version of Imp, we cannot simply state our assertions as functions on a state, such as shown in Figure \ref{fig:assertions_basic_imp}.
+
+\begin{figure}
+\[
+	\infrule{}
+		{
+		\triple
+			{\;fun\;st => st\;X = aeval\;st\;(ANum\;0)\;}
+			{\;SKIP\;}
+			{\;fun\;st => st\;X = aeval\;st\;(ANum\;0)\;}
+		}
+\]
+\caption{An example of a specification in the basic version of Imp.}
+\label{fig:assertions_basic_imp}
+\end{figure}
+
+However, because of the implementation of the logic, we do not want to model our assertions as explicit functions inside the specifications. Firstly, the explicit function definition constitutes unnecessary clutter in our specifications. Secondly, exactly because our connectives are pointwise liftings, the state and the heap need not be mentioned in the specifications at all. Instead, we define and prove assertions in terms of the heap and the state. An example analogous to the one in Figure \ref{fig:assertions_basic_imp} is shown in Figure \ref{fig:assertions_extended_imp}.
+
+\begin{figure}
+\[
+	\infrule{}
+		{
+		\triple
+			{\;aexp\_eq\;(AId X)\;(ANum\;0)\;}
+			{\;SKIP\;}
+			{\;aexp\_eq\;(AId X)\;(ANum\;0)\;}
+		}
+\]
+\caption{An example of a specification in the extended version of Imp.}
+\label{fig:assertions_extended_imp}
+\end{figure}
+
+The assertion {\it aexp\_eq} in Figure \ref{fig:assertions_extended_imp} is defined as a function \heap $\rightharpoonup$ {\it state} $\rightharpoonup$ {\it Prop} closed under the equivalence of heaps. All expressions shown inside preconditions and postconditions in the following sections are modeled in this manner, including the points-to predicate.
+
+Naturally, as all the hoare rules from the basic version of Imp presented in Section \ref{sec:background_imp} were not implemented in our assertion logic, these have been reimplemented in this logic.
+
+%operators are pointwise liftings
 \todo{Add something about the implications of changing the assertion logic for the existing Imp.}

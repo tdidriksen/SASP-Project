@@ -13,7 +13,7 @@ This section describes Hoare rules for each of the four operations presented in 
 			{\exists v.\;(e\;\mapsto\;e')\subst{v}{X}\;\land\;(X=e')\subst{v}{X}}
 		}
 \]
-
+The Read rule reads the value at address {\it e}, {\it e'}, onto the stack. Consequently, all previous occurrences of {\it X} must be substituted with the old value of {\it X}, here denoted by the existential variable {\it v}, to avoid corrupting previous definitions.
 
 \subsubsection{Write}
 \[
@@ -25,7 +25,8 @@ This section describes Hoare rules for each of the four operations presented in 
 			{e\mapsto e'}
 		}
 \]
-
+The Write rule destructively updates an address on the heap. Importantly, the precondition requires the updated address to be active, i.e. it must exist on the heap beforehand. If one wishes to write to a non-active address, the address must be allocated first.
+\todo{Write somewhere that all addresses are evaluated on the stack.}
 
 \subsubsection{Allocate}
 \[
@@ -37,7 +38,7 @@ This section describes Hoare rules for each of the four operations presented in 
 			{\exists a. X=a\;\land\;\odot _{i=a}^{a+n-1} i\mapsto0}
 		}
 \]
-The allocation rule allocates {\it n} memory cells as specified by the parameter to {\it ALLOC}, and lets the variable {\it X} point to the first of these cells. As it is the case in other programming languages, such as Java\,\cite{JavaDataTypes}, we allocate memory cells with a default value of zero. We do not have a separate notion of a {\it null} pointer, so pointing to zero is equivalent to pointing to {\it null}. Interpreting a value of zero as either a concrete `0' or a null pointer is up to the program.
+The Allocate rule allocates {\it n} memory cells as specified by the parameter to {\it ALLOC}, and lets the variable {\it X} point to the first of these cells. As it is the case in other programming languages, such as Java\,\cite{JavaDataTypes}, we allocate memory cells with a default value of zero. We do not have a separate notion of a {\it null} pointer, so pointing to zero is equivalent to pointing to {\it null}. Interpreting a value of zero as either a concrete `0' or a {\it null} pointer is up to the program.
 % We allocate with 0
 % We can always find an address
 
@@ -51,3 +52,4 @@ The allocation rule allocates {\it n} memory cells as specified by the parameter
 			{emp}
 		}
 \]
+The Deallocate rule removes an active address from the heap. As reflected in the semantics presented in Section \ref{sec:heap_operations}, deallocation is asymmetric with respect to allocation.

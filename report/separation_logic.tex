@@ -1,5 +1,6 @@
 %!TEX root = ./report.tex
 \subsection{Separation Logic}
+\label{sec:separation_logic}
 Separation logic is an extension of Floyd-Hoare logic that enables local reasoning about shared resources. While its original purpose was to provide assertions for reasoning about shared mutable data structures, such as heaps, it has now been applied to a broader range of subject areas, such as shared-variable concurrency\todo{Add reference to Reynolds here}. Throughout this paper, we work exclusively on heaps (for the definition of the heap, see Section \todo{Insert reference to 'Programming with mutable state' section here}).
 
 \subsubsection{The Connectives}
@@ -36,15 +37,20 @@ A separation algebra is a cancellative, partial, commutative monoid ($\Sigma$, $
 We can define heaps in terms of a separation algebra by taking $\Sigma$ to be a type of heaps, $\circ$ to be a composition operator for two disjoint heaps, and {\it u} to be {\it emp}, the unit of the separating conjunction \cite{BirkedalL:veroop-conf}.
 
 \subsubsection{Building the Separation Logic}
-As presented in the problem statement, we need to extend the intuitionistic logic in which the Imp language is already defined with a separation logic, in order to be able to reason about the heap. This section describes how we have used the work done by Jesper Bengtson et al. \todo{Insert correct reference here} to build such a logic.
+\todo{Maybe add a reference to low-level separation logic-paper}
+As presented in the problem statement, we need to extend the intuitionistic logic in which the Imp language is already defined with a separation logic, in order to be able to reason about programs involving a heap. This section describes how we have used prior work by Jesper Bengtson et al.\,\cite{BirkedalL:veroop-conf} to build such a logic. Our utilization of this logic will be clarified in Section \ref{sec:assertions_heaps}.
 
 \paragraph{Purpose.}
 The purpose of building the separation logic is to be able to create assertions {\it heap} $\rightharpoonup$ {\it state} $\rightharpoonup$ {\it Prop} for use in program specifications that need to describe both a stack (or state) and a heap.
 
-\paragraph{Procedure.} The basis of our separation logic is {\it Prop}, the sort for propositions in Coq\,\cite{CoqIntro}. Having defined a type class in Coq describing the axioms of an intuitionistic logic, we establish that {\it Prop} is an intuitionistic logic.
+\paragraph{Procedure.} The basis of our separation logic is {\it Prop}, the sort for propositions in Coq\,\cite{CoqIntro}. 	It is established that Prop is an intuitionistic logic by proving that it satisfies all the axioms of an intuitionistic logic. To further develop the intuitionistic logic of {\it Prop}, we exploit the following properties of intuitionistic logic:
 
-Since we can create an intuitionistic logic from a function space {\it A} $\rightharpoonup$ {\it B}\todo{Add source?}, where {\it B} is the carrier of an intuitionistic logic and {\it A} is any type, we can easily extend the logic of {\it Prop}. We take {\it Prop} to be the carrier, and then extend the logic with {\it state}, such that we now have {\it state} $\rightharpoonup$ {\it Prop}. However, this is still just an intuitionistic logic, and not a separation logic.
+\begin{enumerate}[label=\arabic*)]
+\item We can to create an intuitionstic logic from a function space {\it A} $\rightharpoonup$ {\it B}, where {\it B} is the carrier of an intuitionistic logic and {\it A} is any type.
+\item We can create a separation logic from a function space {\it A} $\rightharpoonup$ {\it B}, where {\it A} is the carrier of a separation algebra and {\it B} is the carrier of an intuitionistic logic.\,\cite{JBSlides}
+\end{enumerate}
 
-To create a separation logic, we take advantage of the fact that our heap can be described by a separation algebra. \todo{Remember that we need the assertions to be closed on heaps}
+By 1), we can extend the intuitionistic logic of {\it Prop} with a state (or stack), to achieve an intermediate logic {\it state} $\rightharpoonup$ {\it Prop}. This will allow us to create assertions about programs using a stack. Note that all of the connectives defined for the logic of {\it Prop} now work on assertions of {\it state} $\rightharpoonup$ {\it Prop}, as these are just pointwise liftings.
 
+As we have already established that we can define heaps in terms of a separation algebra, we extend {\it state} $\rightharpoonup$ {\it Prop} with a type of heaps by 2). Thus we achieve a separation logic \heap $\rightharpoonup$ {\it state} $\rightharpoonup$ {\it Prop}, with which we can create assertions about programs involving both a stack {\it and} a heap. Furthermore, since we create the separation logic from an equivalence relation on heaps, we can create assertions that are closed under the equivalence of heaps. This means that any assertion that holds for a given heap {\it h} will also hold for any equivalent heap {\it h'}. Analogously to the intermediate logic, the connectives now work on assertions of \heap $\rightharpoonup$ {\it state} $\rightharpoonup$ {\it Prop}.
 \todo{We define our heap to be a partial function on natural numbers mapping addresses (locations) to values}

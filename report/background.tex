@@ -6,6 +6,7 @@
 Coq is a interactive theorem prover for managing formal proofs. It is a language that implements the program specification language Gallina. Due to Gallinas base in CiC (Calculus of Inductive Constructions)\todo{Insert ref to CiC}, Coq implements both higher-order logics and a richly-typed functional programming language.
 
 \subsection{Imp}
+\label{sec:background_imp}
 As previously mentioned, Imp is a simple imperative programming language studied in the electronic book ``Software Foundations'' \footnote{Not to be confused with Irons IMP language or the Edinburgh IMP language.} implemented in Coq. The language includes some core features of widely used programming languages such as C, and certain properties about the language as a whole have been proven. This helps verification of programs written in Imp, as the precise definition of Imp can be used to formally prove that a certain program satisfies particular specifications of their behavior. 
 
 At the core of the language is arithmetics and boolean expressions, which can be assigned to variables. The value of these variables at a point of execution is represented by a state, which is a partially applied function $id \rightharpoonup value$. The language has a command for assignment of variables. It furthermore has control flow statements for conditioning, looping, and sequencing. To be able to reason about these commands, assertions are used to make claims about a particular state of a program during execution. These assertions are expressed as $state \rightharpoonup Prop$, and are used in hoare triples to reason about the commands.
@@ -69,7 +70,7 @@ At the core of the language is arithmetics and boolean expressions, which can be
     }{
       	\triple
       		{P} 
-      		{\;\mathbf{IF}\;{b}\;\mathbf{THEN}\;{c1}\;\mathbf{ELSE}\;{c2}\;\mathbf{FI} \;}
+      		{\;\mathbf{IFB}\;{b}\;\mathbf{THEN}\;{c1}\;\mathbf{ELSE}\;{c2}\;\mathbf{FI} \;}
 	  		{Q}
     }
 \]
