@@ -26,7 +26,7 @@ Definition read (addr : nat) (heap : Heap) : nat :=
 Definition write (addr value : nat) (heap : Heap) : Heap :=
   match find addr heap with
   | Some _ => add addr value (remove addr heap)
-  | None   => heap
+  | None   => add addr value heap
   end.
 
 (* com *)
@@ -166,8 +166,7 @@ Local Existing Instance SABILogic.
 (* Assertions are an intuitionistic logic *)
 
 Definition Assertion := ILPreFrm (@Equiv.equiv Heap _) (state -> Prop).
-Check ILPreFrm.
-
+Check mkILPreFrm.
 Instance AssertionILogic : BILogic Assertion := _.
 
 Local Transparent ILFun_Ops.
@@ -983,6 +982,7 @@ Require Export ImpDep.
 
 Definition X := Id 0.
 Definition Y := Id 1.
+Definition Z := Id 2.
 Definition a := (ANum 0).
 Definition b := (ANum 1).
 Definition c := (ANum 2).
@@ -1019,6 +1019,20 @@ Proof.
   apply frame_rule'.
   apply hoare_read.
   
+  eapply hoare_seq.
+  rewrite sepSPC.
+  apply frame_rule'.
+  apply sep_hoare_consequence_pre with (P':= a |->_).
+  admit.
+  apply hoare_write.
+  rewrite sepSPC.
+  eapply sep_hoare_consequence_post.
+  apply frame_rule'.
+  apply sep_hoare_consequence_pre with (P':= b |->_).
+  admit.
+  apply hoare_write.
+
+(**  
   rewrite sepSPC.
   eapply hoare_seq.
   replace (AId Y) with (d).
@@ -1036,178 +1050,37 @@ Proof.
   apply hoare_write.
   rewrite sepSPC.
   reflexivity.
-  admit.
-
-  rewrite H.
-  apply hoare_write.
-  
-  admit.
-  apply hoare_write.
-  rewrite sepSPC.
-  eapply sep_hoare_consequence_post.
-  apply frame_rule'.
-  apply sep_hoare_consequence_pre with (P':= b|->_).
-  lexistsL; intros.
-  apply landL1.
-  admit.
-  apply hoare_write.
-  
-  
-  eapply hoare_seq.
-  apply frame_rule'.
-  apply hoare_read.
-  eapply hoare_seq.
-  eapply hoare_seq.
-  apply frame_rule''.
-  apply hoare_write.
-  apply sep_hoare_consequence_post with (Q':= (aexp_eq (AId X) c //\\ b |-> (AId X))).
-  apply hoare_write''.
-  Case "X = c /\ (b |-> X) |-- (b |-> c)".
-    simpl.
-    intros.
-    inversion H0.
-    rewrite H1 in H2.
-    assumption.
-  apply frame_rule'.
-  apply sep_hoare_consequence_post with (Q':=aexp_eq (AId Y) d //\\ a |-> (AId Y)).
-  apply hoare_write''.
-  Case "Y = d /\ (a |-> Y) |-- (a |-> d)". 
-    simpl.
-    intros.
-    inversion H0.
-    rewrite H1 in H2.
-    assumption.
-  apply sep_hoare_consequence_post with (Q':=(Exists v, points_to_sub b d Y v //\\ aexp_eq_sub Y d Y v)).
-  apply hoare_read.
-  lexistsL.
-  intros.
-  apply landR.
-  simpl.
-    intros.
-    inversion H0.
-    assumption.
-    simpl.
-    intros.
-    exists d.
-    simpl.
-    inversion H0.
-    assumption.
-  firstorder.
-  admit.
-  simpl.
-  intros.
-  exists d.
-  simpl.
-  inversion H0.
-  inversion H1.
-  assumption.
-  eapply sep_hoare_consequence_pre.
-  apply sep_hoare_consequence_post with (Q':=(Exists v, points_to_sub a c X v //\\ aexp_eq_sub X c X v)).
-  apply hoare_read.
-  apply lexistsL.
-  intros.
-  apply landR.
-  admit.
-  
-    
-  replace ((aexp_eq (AId X) c //\\ b |->_) ** aexp_eq (AId Y) d //\\ a |->_) with (aexp_eq (AId X) c //\\ b |->_ ** aexp_eq (AId Y) d //\\ a |->_).
-
-  
-  
-  apply landR.
-  simpl.
-  intros.
-  split.
-  instantiate (1:=c).
-  simpl.
-  intros.
-  inversion H0.
-  rewrite H1 in H2.
-  assumption.
-  (**
-  eapply sep_hoare_consequence_post with (Q':=(aexp_eq (AId X) c //\\ (b |->_)) ** (Exists vs, var_sub (a |-> d) vs (modified_by ([a]<~ AId Y) nil))).
-  *)
-  apply frame_rule''.
-  eapply sep_hoare_consequence_post.
-  apply hoare_write''.
-  instantiate (1:=d).
-  simpl.
-  intros.
-  inversion H0.
-  rewrite H1 in H2.
-  assumption.
-  eapply sep_hoare_consequence_post with (Q':=aexp_eq (AId X) c //\\ aexp_eq (AId Y) d //\\ (b |->_) ** (a |->_)).
-  eapply sep_hoare_consequence_post.
-  apply hoare_read.
-  apply lexistsL.
-  intros.
-  instantiate (1:=d).
-  simpl.
-    intros.
-    split.
-    inversion H0.
-    assumption.
-    exists d.
-    simpl.
-    inversion H0.
-    assumption.
-  
-  simpl.
-    
-    
-  apply landL2.
-  apply landR.
-  simpl.
-  intros.
-  assumption.
-
-    
-  
-  simpl.
-  intros.
-  
-  
-  apply H.
-  apply frame_rule'.
-  eapply sep_hoare_consequence_post. 
-  apply hoare_write''.
-  
-  apply sep_hoare_consequence_pre with (P':=(aexp_eq (AId X) c //\\ (b |-> d))).
-  apply sep_hoare_consequence_pre with (P':=(aexp_eq (AId X) c //\\ (b |->_))).
-  apply sep_hoare_consequence_post with (Q':=(aexp_eq (AId X) c //\\ (b |-> (AId X)))).
-  apply hoare_write''.
-  simpl.
-  intros.
-  inversion H0.
-  rewrite H1 in H2.
-  assumption.
-  
-  simpl.
-  intros.
-  split.
-    inversion H0.
-    assumption.
-    exists d.
-    simpl.
-    inversion H0.
-    assumption.
-  
-
-    
-  apply landL1.
-  apply hoare_write.
-  
-  
-  
-  apply hoare_write.
-  apply sep_hoare_consequence_post with (Q':=(aexp_eq (AId X) c) //\\ (b |-> (AId X))).
-  apply hoare_write.	
-  admit.
-  apply landAdj.
-  apply landR.
-  
-  firstorder.
+  admit.*)
 Admitted.
+
+Definition list_reversal :=
+  X &= ALLOC 8;
+  [ (AId X) ] <~ (ANum 1);
+  [ APlus (AId X) (ANum 1) ] <~ APlus (AId X) (ANum 2);
+  [ APlus (AId X) (ANum 2) ] <~ (ANum 2);
+  [ APlus (AId X) (ANum 3) ] <~ APlus (AId X) (ANum 4);
+  [ APlus (AId X) (ANum 4) ] <~ (ANum 3);
+  [ APlus (AId X) (ANum 5) ] <~ APlus (AId X) (ANum 6);
+  [ APlus (AId X) (ANum 6) ] <~ (ANum 4);
+  [ APlus (AId X) (ANum 7) ] <~ (ANum 0);
+  Y ::= (ANum 0);
+  WHILE BNot (BEq (AId X) (ANum 0)) DO
+  	Z <~ [ APlus (AId X) (ANum 1) ];
+  	[ APlus (AId X) (ANum 1) ] <~ (AId Y);
+  	Y ::= (AId X);
+  	X ::= (AId Z)
+  END.
+
+Example list_reversal_proof :
+  {{ empSP }}
+  list_reversal
+  {{ ltrue }}.
+Proof.
+  unfold list_reversal.
+  eapply hoare_seq.
+  apply hoare_allocate.
+  eapply hoare_seq.
+  simpl.
   
 
 End Examples.
