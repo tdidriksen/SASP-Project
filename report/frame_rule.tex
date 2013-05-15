@@ -1,8 +1,9 @@
 %!TEX root = ./report.tex
 \label{sec:frame_rule}
 \paragraph{Frame Rule}
-The hoare triples for the new commands only describe the effects the command has on the part of the mutable store it explicitly mentions. To make claims about more complex programs with effects outside just a local scope, we need to widen our perspective. We need to prove that the behaviour of our commands is the same regardless of the heap that we do not explicitly mention. For this we will use the frame rule as described by Yang and O'Hearn\,\cite{Yang02asemantic}.
+The Hoare rules for the heap operations are defined as local rules for the sake of simplicity. To make claims about more complex programs with effects outside just a local scope, we need to widen our perspective. We need to prove that the behaviour of a given command is not changed by the fact that there might be an additional part of the heap which the it does not access. For this type of local reasoning, we adopt the frame rule as described by Yang and O'Hearn\,\cite{Yang02asemantic}.
 
+\begin{figure}
 \[
 	\infrule{
 		\triple
@@ -20,9 +21,13 @@ The hoare triples for the new commands only describe the effects the command has
 \begin{center}
 \textit{where no variable occurring free in R is modified by c.}
 \end{center}
+\caption{The standard definition of the frame rule.}
+\label{fig:frame_rule}
+\end{figure}
 
-As stated above this rule only holds in the event that c does not modify $R$. This means that any time this rule is used to prove a property of a program, it would have to be proven that the command does not modify $R$. To avoid this, we alter the frame rule slightly, to accommodate for this. If c does not modify $R$, then the same values are in $R$ before and after the execution of c. Therefore, in the case that c does modify $R$, there must exist a list of values that when substituted with the variables that have been modified by a given command, will recreate the original state. We can use this to construct a postcondition for the frame rule that will guarantee the side condition form the original frame rule. We formalize it as follows:
+As stated in the side condition in Figure \ref{fig:frame_rule}, the frame rule only holds in the event that $c$ does not modify $R$. This means that whenever this rule is used to prove a property of a program, it would have to be proven that the command does not modify $R$. To avoid this, we alter the frame rule slightly: If $c$ does not modify $R$, then $R$ is unchanged by the execution of $c$. In the case that $c$ does modify $R$, there must exist a list of values that when substituted with the variables that have been modified by $c$, will restore the original state of $R$ before $c$ was executed. We can use this to construct a postcondition for the frame rule that will preserve the side condition from the standard frame rule. We formalize the modified frame rule in Figure \ref{fig:modified_frame_rule}.
 
+\begin{figure}
 \[
 	\infrule{
 		\triple
@@ -37,7 +42,10 @@ As stated above this rule only holds in the event that c does not modify $R$. Th
 			{Q\;*\;(\exists vs.\;R\subst{vs}{modified\_by\;c})}
 		}
 \]
+\caption{The modified definition of the frame rule.}
+\label{fig:modified_frame_rule}
+\end{figure}
 
 \paragraph{Safety Monotonicity}
-In section \ref{sec:hoare_triple} we introduced safety to our hoare triples, as a way of ensuring that no commands that would result in a erroneous state could satisfy the triple. Thus far we have only reasoned about safety in a local scope, but with the globalization of our hoare triples we assume safety monotonicity. This means that if executing a command c in a state with $\heap \; h'$  is safe, and $h'\;\heapsubop\;h$ then c must also be safe in a with $\heap \; h$. This property follows from the frame rule.
+In Section \ref{sec:hoare_triple} we introduced the notion of safety to our Hoare triple, as a way of ensuring that no commands that evaluate to an erroneous state can satisfy the triple. Thus far we have only reasoned about safety in a local scope, but when using the local Hoare rules to prove programs involving arbitrary heaps, we assume safety monotonicity. This means that if executing a command c is safe in a state involving a heap $h'$ , and $h'\;\heapsubop\;h$, then c must also be safe in a state involving $h$. This property follows from the frame rule.
 \todo{Is this section accurate?}

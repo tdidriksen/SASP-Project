@@ -3,13 +3,13 @@
 \label{sec:background}
 \subsection{Coq}
 \todo{Revise this section}
-Coq is a interactive theorem prover for managing formal proofs. It is a language that implements the program specification language Gallina. Due to Gallinas base in CiC (Calculus of Inductive Constructions)\todo{Insert ref to CiC}, Coq implements both higher-order logics and a richly-typed functional programming language.
+Coq is an interactive theorem prover for managing formal proofs. It is a language that implements the program specification language Gallina. Due to Gallinas base in CiC (Calculus of Inductive Constructions)\todo{Insert ref to CiC}, Coq implements both higher-order logics and a richly-typed functional programming language.
 
 \subsection{Imp}
 \label{sec:background_imp}
-As previously mentioned, Imp is a simple imperative programming language studied in the electronic book ``Software Foundations'' \footnote{Not to be confused with Irons IMP language or the Edinburgh IMP language.} implemented in Coq. The language includes some core features of widely used programming languages such as C, and certain properties about the language as a whole have been proven. This helps verification of programs written in Imp, as the precise definition of Imp can be used to formally prove that a certain program satisfies particular specifications of their behavior. 
+As previously mentioned, Imp\footnote{Not to be confused with Irons IMP language or the Edinburgh IMP language.} is a simple imperative programming language studied in the electronic book ``Software Foundations'' and implemented in Coq. The language includes a selection of core features of widely used imperative programming languages such as C and Java, and certain properties about the language as a whole have been proven. This helps verification of programs written in Imp, as the precise definition of Imp can be used to formally prove that a certain program satisfies a particular specification. 
 
-At the core of the language is arithmetics and boolean expressions, which can be assigned to variables. The value of these variables at a point of execution is represented by a state, which is a partially applied function $id \rightharpoonup value$. The language has a command for assignment of variables. It furthermore has control flow statements for conditioning, looping, and sequencing. To be able to reason about these commands, assertions are used to make claims about a particular state of a program during execution. These assertions are defined as $state \rightharpoonup Prop$, and are used in hoare triples to reason about the commands.
+At its core, the language consists of arithmetic and boolean expressions, which can be assigned to variables. The value of these variables at a point of execution is represented by a state, which is a partially applied function $id \rightharpoonup value$\todo{Give a definition of id?}. The language has a command for assignment of variables, along with control-flow statements for conditionals, loops, and sequencing of commands. To be able to reason about these commands, assertions are used to make claims about a particular state of a program during execution. These assertions are defined as $state \rightharpoonup Prop$. Each of the command is specified by a Hoare rule. These are shown in Figure \ref{fig:hoare_rules_imp}.
 
 \begin{figure}
 \[
@@ -76,9 +76,10 @@ At the core of the language is arithmetics and boolean expressions, which can be
 	  		{Q}
     }
 \]
-\caption{Hoare triples in Imp.}
+\caption{Hoare rules of the Imp language.}
+\label{fig:hoare_rules_imp}
 \end{figure}
-As with the rest of the project, Imp deals with partial correctness. It is important to note that the Imp languages worked on in this project is the one defined up to the Hoare Logic chapter\footnote{http://www.itu.dk/courses/SASP/F2013/Hoare.html}, thus things like the type checker is not included. 
+It is important to note that the Imp language investigated in this project is the one defined prior and up to the Hoare Logic chapter in ``Software Foundations''\footnote{http://www.itu.dk/courses/SASP/F2013/Hoare.html}, so extensions to this such as the type checker is not included. 
 
 
  \input{separation_logic}

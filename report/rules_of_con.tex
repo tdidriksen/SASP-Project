@@ -1,11 +1,15 @@
 %!TEX root = ./report.tex
 \paragraph{Rules of Consequence}
-The Hoare rules might at times might differ from the ones needed when proving a program. While they might be logically equivalent, their differences prevents us from unifying them with what we are trying to prove. Hoare logic uses the rules of consequence\,\cite{Hoare69anaxiomatic}\,to get around this by proving that an assertion that is stronger than another assertion can substitute it as postcondition, and an assertion that is weaker than another assertion can substitute it as precondition:
+The precondition or postcondition of a Hoare rule might at times differ from the ones needed when proving a program. While the condition in our goal might be logically equivalent to one in a given rule, their differences prevents them from being unified. To accommodate this difference, Hoare logic introduces the rules of consequence\,\cite{Hoare69anaxiomatic}. They state that any precondition $P$ can be substituted for a weaker precondition $P'$, provided that $P$ entails $P'$, while any postcondition $Q$ can be substituted for a stronger postcondition $Q'$, provided that $Q'$ entails $Q$. These rules are shown in Figure \ref{fig:rules_of_consequence}.
 
+\begin{figure}
 \[
 	\infrule{P\entails P' \;\; \triple{P'}{\;c\;}{Q}} {\triple{P}{\;c\;}{Q}} 
 	\;\;\;\;\;\; 
 	\infrule{Q'\entails Q \;\; \triple{P}{\;c\;}{Q'}} {\triple{P}{\;c\;}{Q}}
 \]
+\caption{The rules of consequence.}
+\label{fig:rules_of_consequence}
+\end{figure}
 
 While these rules have not been changed by our changes to states in Imp, the change to assertions have changed how these rules are proven.

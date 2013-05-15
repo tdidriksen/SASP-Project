@@ -1,25 +1,24 @@
 %!TEX root = ./report.tex
-\subsection{Definition of Hoare Triple}
+\subsection{Definition of the Hoare Triple}
 \label{sec:hoare_triple}
-As previously mentioned Imp uses a hoare triples to reason about the behaviour of commands. Due to the change to assertions to now also make claims about heaps, a change to the definition of this hoare triple is needed. Initially the hoare triples way to express claims about commands was as follows:
+As previously mentioned, specifications of Imp programs are given using Hoare triples. Due to the new assertion type presented in Section \ref{sec:assertions_heaps}, a change of the definition of this hoare triple is needed accordingly. The basic Hoare triple is defined as follows:
 \\
 \\
-\textit{If a command c is started in a state satisfying an assertion P, then the resulting state will satisfy an assertion Q, if c terminates.}
+\textit{If a command c is started in a state satisfying an assertion P, then the resulting state will satisfy an assertion Q, if c terminates.}\todo{Add reference to definition.}
 \\
 \\
-While this essentially still holds there are certain parameters added that the above no longer reasons about. As discussed in the secion \ref{sec:error_semantics}, some of the added commands can fail, which will result in an faulty state. This is an issue, since the hoare triple claims that resulting state is guaranteed to satisfy the post-condition, which it cannot do if it is faulty. As such we need our hoare triple to also express that the command c does not result in an error state.
+While this essentially still holds for the extended Imp specifications, this definition is insufficient. As discussed in Section \ref{sec:error_semantics}, some of the heap-manipulating operations can evaluate to a faulty state. This is an issue, since the Hoare triple claims that the resulting state is guaranteed to satisfy the post-condition. With the above definition, this can no longer be guaranteed if the resulting state is faulty. As such, we need our Hoare triple to  express that the command c does not result in an error state.
 \\
 \\
 \textit{If a command c is started in a state st satisfying an assertion P, and c does not fail in st, then the resulting state will satisfy an assertion Q, if c terminates.}
 \\
 \\
+To express the idea of a command not failing in a state, we introduce the notion of safety. A command is safe in a state {\it st} if the command, starting in {\it st}, does not evaluate to None. We therefore define safety as follows:
 
-To express the idea of a command not failing in a state we introduce the notion of safety. A command is safe in a state if the command does not evaluate to None. We therefore define safety as follows:
+\[safe\;c\;st\;: \;\neg \;(<c,\;st>\;\Downarrow None)\]
 
-\[safe\;c\;st\;: \;\neg \;(c \;\textbackslash{}\;st\;\Downarrow None)\]
-
-With this we can formulate a new definition of our hoare triples. As stated above the resulting state of c satisfies Q if c is safe in st. Since the case where c is not safe in st never can evaluate to true, this is expressed with conjunction rather than implication\todo{Maybe omit}. This gives us the following definition for hoare triples:
+Having formalized the a safety predicate, we can now formulate a new definition of our Hoare triple. This gives us the following definition of a Hoare triple:
 
 \[
-\forall st.\; P\;st \impl safe\;c\;st \land \forall st'. \;c\;\textbackslash{}\;st\;\Downarrow Some\; st' \impl Q\;st'
+\forall st.\; P\;st \impl safe\;c\;st \land \forall st'. <c,\;st>\;\Downarrow Some\; st' \impl Q\;st'
 \]	

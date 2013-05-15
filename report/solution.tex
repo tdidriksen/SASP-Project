@@ -3,7 +3,7 @@
 \todo{mentioned only nats here, or maybe even earlier}
 \subsection{Programming with Mutable State}
 \label{sec:programming_with_mutable_state}
-For our example mentioned in the introduction to be implementable in Imp, we need to introduce the idea of a mutable state. Originally the state in Imp is managed by a stack, which is a function from variables to values. We extend this state by adding a heap, which will provide us with a mapping between addresses and value. These values represent the mutable structures. As mentioned earlier our heap only handles natural numbers, and for the sake of simplicity, we will consider heaps to be infinite. We define heaps as a partially applied function from addresses ($nat$) to values ($nat$):
+To be able to implement such programs as list reversal in Imp, we need to introduce the idea of a mutable state. Originally, the state in Imp is managed by a stack, which is a function from variables to values. We extend this state by adding a heap, which will provide us with a mapping from addresses to values. For the sake of simplicity, we will consider the address space of the heap to be infinite, which means that a program cannot run out of memory. We define heaps as a partial function from addresses ($nat$) to values ($nat$):
 
 \[
 \heap \eqdef a\rightharpoonup v, \; where\; a, \;v \in \mathbb{N}
