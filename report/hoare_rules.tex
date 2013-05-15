@@ -1,0 +1,53 @@
+%!TEX root = ./report.tex
+\subsection{Hoare Rules}
+\label{sec:hoare_rules}
+% All the rules have been proven sound in Coq.
+This section describes Hoare rules for each of the four operations presented in Section \ref{sec:heap_operations}. All of the rules have been proven sound in Coq. Note that these rules are local\,\cite{Reynolds02}, and thus rely on the frame rule (see Section \ref{sec:frame_rule}) for reasoning about non-local specifications.
+\subsubsection{Read}
+\[
+	\infrule[Read]{}
+		{
+		\triple
+			{e\mapsto e'}
+			{\;X<\sim\lbrack\;e\;\rbrack\;}
+			{\exists v.\;(e\;\mapsto\;e')\subst{v}{X}\;\land\;(X=e')\subst{v}{X}}
+		}
+\]
+
+
+\subsubsection{Write}
+\[
+	\infrule[Write]{}
+		{
+		\triple
+			{e\mapsto-}
+			{\;\lbrack\;e\;\rbrack\;<\sim\;e'\;}
+			{e\mapsto e'}
+		}
+\]
+
+
+\subsubsection{Allocate}
+\[
+	\infrule[Allocate]{}
+		{
+		\triple
+			{\;emp\;}
+			{\;X\;\&=ALLOC\;n\;}
+			{\exists a. X=a\;\land\;\odot _{i=a}^{a+n-1} i\mapsto0}
+		}
+\]
+The allocation rule allocates {\it n} memory cells as specified by the parameter to {\it ALLOC}, and lets the variable {\it X} point to the first of these cells. As it is the case in other programming languages, such as Java\,\cite{JavaDataTypes}, we allocate memory cells with a default value of zero. We do not have a separate notion of a {\it null} pointer, so pointing to zero is equivalent to pointing to {\it null}. Interpreting a value of zero as either a concrete `0' or a null pointer is up to the program.
+% We allocate with 0
+% We can always find an address
+
+\subsubsection{Deallocate}
+\[
+	\infrule[Deallocate]{}
+		{
+		\triple
+			{e\mapsto-}
+			{\;DEALLOC\;e\;}
+			{emp}
+		}
+\]
