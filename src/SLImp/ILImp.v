@@ -342,6 +342,7 @@ Proof.
     
     intros.
     inversion H.
+    
     subst.(**
     apply H1 with st'0.
     apply H2 with st.
@@ -721,24 +722,24 @@ Proof.
     assumption.
 Qed. 
 
-Fixpoint modified_by (c : com) (l : list id) : list id :=
+Fixpoint modified_by (c : com) : list id :=
   match c with
-  | SKIP => l
-  | i ::= _ => i :: l
-  | c1; c2 =>  modified_by c2 l ++ modified_by c2 l ++ l 
-  | IFB _ THEN c1 ELSE c2 FI => modified_by c1 l ++ (modified_by c2 l ++ l)
-  | WHILE _ DO c END => modified_by c l ++ l
-  | i &= ALLOC _ => i :: l
-  | DEALLOC _ => l
-  | i <~ [ _ ] => i :: l
-  | [ _ ] <~ _ => l
+  | SKIP => nil
+  | i ::= _ => i :: nil
+  | c1; c2 =>  modified_by c1 ++ modified_by c2
+  | IFB _ THEN c1 ELSE c2 FI => modified_by c1 ++ modified_by c2
+  | WHILE _ DO c END => modified_by c
+  | i &= ALLOC _ => i :: nil
+  | DEALLOC _ => nil
+  | i <~ [ _ ] => i :: nil
+  | [ _ ] <~ _ => nil
   end.
   
-Fixpoint list_sub (vs : list id) (l : list id) (ost : state) (ast : state) : state :=
+Fixpoint list_sub (vs : list nat) (l : list id) (ost : state) (ast : state) : state :=
   match vs with
   | vsh :: vs =>
     match l with
-      | lh :: l => list_sub vs l ost (substitute ast ost (cons (vsh, ANum(ost lh)) nil))
+      | lh :: l => list_sub vs l ost (substitute ast ost (cons (lh, ANum(vsh)) nil))
       | _ => ast
     end
   | _ =>
@@ -757,21 +758,351 @@ Next Obligation.
   apply H1.
   apply H0.
 Qed.
-        
-Theorem frame_rule : forall P Q R c,
-  {{ P }} c {{ Q }} |--
-  {{ P ** R }} c {{ Q ** (Exists vs, var_sub R vs (modified_by c nil)) }}. 
-Proof. 
-  unfold hoare_triple.
-  intros.
-  split.
-    apply H.
-    
-    
-    
-  
-Admitted.
 
+Definition empty_heap : Heap := []%map.
+      
+Local Opaque ILFun_Ops.
+Local Opaque ILPre_Ops.
+(**
+Local Opaque SABIOps.
+   *)
+Local Opaque MapSepAlgOps.     
+Theorem frame_rule : forall P Q R c,
+  {{ P }} c {{ Q }} ->
+  {{ P ** R }} c {{ Q ** (Exists vs, var_sub R vs (modified_by c )) }}. 
+Proof. 
+  induction c; unfold hoare_triple; intros; (do 4 destruct H0).
+  Case "Skip".
+    split.
+    SCase "Safety".
+      unfold safe, not. 
+      intros. 
+      inversion H2.
+    SCase "Post condition".
+      intros.
+      simpl.
+      exists x, x0.
+      specialize (H ((cstack st'), x)).
+      split.
+      SSCase "left".
+        inversion H2; subst.
+      	assumption.
+      SSCase "right".
+      	split.
+      	SSSCase "left".	
+      	  simpl in *.
+      	  inversion H2; subst.
+      	  specialize (H H0).
+      	  destruct H.
+      	  specialize (H3 ((cstack st'), x)).
+      	  simpl in *.
+      	  apply H3.
+      	  apply E_Skip.
+      	SSSCase "right".
+          exists nil.
+          simpl.
+          inversion H2; subst.
+          assumption.
+  Case "assignment".
+    split.
+    SCase "Safety".
+      unfold safe, not. 
+      intros. 
+      inversion H2.
+    SCase "Post condition".
+      intros.
+      simpl in *.
+      inversion H2; subst.
+      exists x, x0.
+      split.
+      SSCase "left".
+        inversion H2.
+        subst.
+        assumption.
+      SSCase "right".
+        split.
+        SSSCase "left".
+          specialize (H ((cstack st), x)).
+          simpl in *.
+          specialize (H H0).
+          destruct H.
+          specialize (H3 ((ImpDep.update (cstack st) i (aeval (cstack st) a)), x)).
+          apply H3.
+          simpl in *.
+          apply E_Ass with (st := (cstack st, x)).
+          reflexivity.
+        SSCase "right".
+      	  exists [((cstack st) i)].
+      	  simpl.
+      	  rewrite update_stack_same with (X := i) (n := aeval (cstack st) a).
+      	  assumption.
+  Case "Sequencing".
+    split.
+    SCase "Safety".
+      unfold safe, not. 
+      intros. 
+      inversion H2.
+    SCase "Post condition".
+      intros.
+      simpl in H0.
+      simpl.
+      exists x, x0.
+      split.
+      SSCase "left".
+        admit.
+      SSCase "right".
+        split.
+        SSSCase "left".
+      	  admit.
+      	SSSCase "right". 
+          admit. 
+  Case "IFB".
+    intros.
+    unfold hoare_triple.
+    intros.
+    split.
+    SCase "Safety".
+      unfold safe, not. intros. inversion H2.
+    SCase "postcondition".
+      intros.
+      simpl.
+      simpl in H0.
+      exists x, x0.
+      split.
+      SSCase "left".
+        admit.
+      SSCase "right".
+        split.
+        SSSCase "left".
+          admit.
+        SSSCase "right".
+          admit.
+  Case "WHILE".
+    intros.
+    unfold hoare_triple.
+    intros.
+    split.
+    SCase "Safety".
+      unfold safe, not. intros. inversion H2.
+    SCase "postcondition".
+      intros.
+      simpl in H0.
+      simpl.
+      exists x, x0.
+      split.
+      SSCase "left".      
+        admit.
+      SSCase "right".
+        split.
+        SSSCase "left".
+          admit.
+        SSSCase "right".
+          admit.
+  Case "ALLOC".
+    intros.
+    unfold hoare_triple.
+    intros.
+    split.
+    SCase "Safety".
+      unfold safe, not. intros. inversion H2.
+    SCase "postcondition".
+      intros.
+      simpl in *.
+      inversion H2; subst.
+      exists (alloc addr n x), x0.
+      split.
+      SSCase "left".
+        simpl.
+        Local Transparent MapSepAlgOps.
+        simpl in *.
+        admit.
+      SSCase "right".
+        split.
+        SSSCase "left".
+          specialize (H ((cstack st), x)).
+          simpl in *.
+          specialize (H H0).
+          destruct H.
+          specialize (H3 ((ImpDep.update (cstack st) i addr), (alloc addr n x))).
+          simpl in *.
+          apply H3.
+		  apply E_Alloc with (st := (cstack st, x)). 
+		  SSSSCase "".
+		    simpl. 
+		    Local Transparent MapSepAlgOps.
+		    simpl in x1.
+		    specialize (x1 addr).
+		    apply not_find_in_iff in H7.
+		    rewrite H7 in x1.
+		    apply x1.
+		  SSSSCase "".
+		    simpl.
+		    intros.
+		    specialize (H8 n0).
+		    simpl in x1.
+		    specialize (x1 n0).
+		    apply not_find_in_iff in H8.
+		    rewrite H8 in x1.
+		    apply x1.
+		    assumption.
+        SSSCase "right".
+          exists [((cstack st) i)].
+          inversion H2; subst.
+      	  simpl.
+          rewrite update_stack_same.
+          assumption.
+  Local Opaque MapSepAlgOps.
+  Case "DEALLOC".
+    intros.
+    unfold hoare_triple.
+    intros.
+    split.
+    SCase "Safety".
+      specialize (H ((cstack st), x)).
+      simpl in *.
+      specialize (H H0).
+      destruct H.
+      unfold safe in H.
+      destruct st.
+      simpl in *.
+      Local Transparent MapSepAlgOps.
+      simpl in x1.
+      admit.
+    SCase "postcondition".
+      Local Opaque MapSepAlgOps.
+      intros.
+      simpl in H0.
+      simpl.
+      inversion H2; subst.
+      simpl.
+      exists (dealloc (aeval (cstack st) a) x), x0.
+      split.
+        admit.
+      split. 
+        specialize (H ((cstack st), x)).
+        simpl in *.
+        specialize (H H0).
+        destruct H.
+        specialize (H3 ((cstack st), (dealloc (aeval (cstack st) a) x))).
+        simpl in *.
+        apply H3.
+        apply E_Dealloc with (st := (cstack st, x)).
+          reflexivity.
+          simpl.
+          Local Transparent MapSepAlgOps.
+          simpl.
+		  simpl in x1.
+		  specialize (x1 (aeval (cstack st) a)).
+		  unfold In in H7.
+		  destruct H7.
+		  apply find_mapsto_iff in H4.
+		  rewrite H4 in x1.
+		  destruct x1.
+		  unfold In.
+		  exists x2.
+		  apply H5.
+		  unfold safe in H.
+		  apply ex_falso_quodlibet.
+		  apply H.
+		  apply E_DeallocError with (addr := aeval (cstack st) a). 
+		  reflexivity.
+		  simpl.
+		  apply H5.
+      exists nil.
+      simpl.
+      assumption.
+  Local Opaque MapSepAlgOps.
+  Case "read".
+    split. 
+    SCase "Safety".
+      admit.
+    SCase "postcondition".
+      intros.
+      simpl.
+      exists x, x0.
+      split.
+      inversion H2; subst.
+      simpl.
+      intuition.
+      split.
+        specialize (H ((cstack st), x)).
+        simpl in H.
+        specialize (H H0).
+        destruct H.
+        inversion H2; subst.
+        specialize (H3 ((ImpDep.update (cstack st) i n), x)).
+        simpl in *.
+        apply H3.
+        apply E_Read with (st := (cstack st, x)) (addr := (aeval (cstack st) a)).
+        simpl.
+        reflexivity.
+        simpl.
+        Local Transparent MapSepAlgOps.
+        simpl in x1.
+        specialize (x1 (aeval (cstack st) a)).
+        rewrite H9 in x1.
+        inversion x1.
+        inversion H4.
+        apply find_mapsto_iff.
+        assumption.
+        unfold safe in H.
+      	apply ex_falso_quodlibet.
+      	apply H.
+      	apply E_ReadError with (addr := (aeval (cstack st) a)).
+      	reflexivity.
+      	simpl.
+      	apply H4.
+      exists [((cstack st) i)].
+      simpl.
+      inversion H2; subst.
+	  simpl.
+	  rewrite update_stack_same.
+	  assumption.
+  Local Opaque MapSepAlgOps.
+  Case "write".
+    split.
+    SCase "Safety".
+      admit.
+    SCase "postcondition".
+      intros.
+      simpl in *.
+      exists (write (aeval (cstack st) a) (aeval (cstack st) a0) x), x0.
+      split.
+      	admit.
+      split.
+        specialize (H ((cstack st), x)).
+        specialize (H H0).
+        destruct H.
+        specialize (H3 ((cstack st'), (write (aeval (cstack st) a) (aeval (cstack st) a0) x))).
+        apply H3.
+        inversion H2; subst.
+        simpl in *.
+        apply E_Write with (st := (cstack st, x)) (n := n).
+        reflexivity.
+        reflexivity.
+        simpl.
+        Local Transparent MapSepAlgOps.
+        simpl in x1.
+        specialize (x1 (aeval (cstack st) a)).
+        rewrite H10 in x1.
+        inversion x1.
+        inversion H4.
+        apply find_mapsto_iff.
+        assumption.
+        unfold safe in H.
+      	apply ex_falso_quodlibet.
+      	apply H.
+      	apply E_WriteError with (addr := (aeval (cstack st) a)).
+      	reflexivity.
+      	simpl.
+      	apply H4.
+	    exists nil.
+      	simpl.
+      	inversion H2; subst; simpl.
+      	intuition.
+Qed.
+
+([ a1 ] <~ a2) / st || Some (cstack st, write addr value (cheap st))
 Program Definition alloc_cell a : Assertion :=
   (ANum a) |-> (ANum 0).
  
