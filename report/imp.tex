@@ -1,0 +1,108 @@
+%!TEX root = ./report.tex
+\section{The Imp Language}
+\label{sec:background_imp}
+As previously mentioned, Imp\footnote{Not to be confused with Irons IMP language or the Edinburgh IMP language.} is a simple imperative programming language studied in the electronic book ``Software Foundations'' and implemented in Coq. The language includes a selection of core features of widely used imperative programming languages such as C and Java, and certain properties about the language as a whole have been proven. This helps verification of programs written in Imp, as the precise definition of Imp can be used to formally prove that a certain program satisfies a particular specification. 
+
+At its core, the language consists of arithmetic and boolean expressions, which can be assigned to variables. The value of these variables at a point of execution is represented by a state, which is a partially applied function $id \rightharpoonup value$\todo{Give a definition of id?}. The language has a command for assignment of variables, along with control-flow statements for conditionals, loops, and sequencing of commands. To be able to reason about these commands, assertions are used to make claims about a particular state of a program during execution. These assertions are defined as $state \rightharpoonup Prop$. Each of the command is specified by a Hoare rule. These are shown in Figure \ref{fig:hoare_rules_imp}.
+
+\subsection{Grammar}
+\subsection{The Program State}
+To be able to implement such programs as list reversal in Imp, we need to introduce the idea of a mutable state. Originally, the state in Imp is managed by a stack, which is a function from variables to values. We extend this state by adding a heap, which will provide us with a mapping from addresses to values. For the sake of simplicity, we will consider the address space of the heap to be infinite, which means that a program cannot run out of memory. We define heaps as a partial function from addresses ($nat$) to values ($nat$):
+
+\[
+\heap \eqdef a\rightharpoonup v, \; where\; a, \;v \in \mathbb{N}
+\] 
+
+A heap alone, however, does not allow our example to be implemented. In section \ref{sec:heap_operations} we will discuss the implementation of operations on this heap and their integration into Imp.
+
+\todo{Introduce 'old state', write about heap}
+\subsection{Semantics}
+We now define syntax and operational semantics for the operations added to the Imp language for manipulating the heap. Four operations are needed: Read (or lookup), Write (or mutate), Allocate, and Deallocate (or dispose).
+\paragraph{Syntax.}
+The Imp syntax for each of the operations is shown in Figure \ref{fig:heap_semantics} as the first part of the \textless \textgreater -notation.
+\paragraph{Functions manipulating the heap.}
+\todo{Consider moving this section into 'Programming with mutable state'}
+The following heap-manipulating functions underlying the implementation of the heap operations in Imp are used in the semantics presented in Figure \ref{fig:heap_semantics}. The definitions of {\it a} and {\it v} are as presented in Section \ref{sec:programming_with_mutable_state}.
+\begin{itemize}
+\item {\it write} $\eqdef$ {\it a} $\rightharpoonup$ {\it v} $\rightharpoonup$ {\it heap}
+\item {\it dealloc} $\eqdef$ {\it a} $\rightharpoonup$ {\it heap}
+\item {\it alloc} $\eqdef$ {\it a} $\rightharpoonup$ {\it n} $\rightharpoonup$ {\it heap}
+\end{itemize}
+The second parameter of the {\it alloc} function, {\it n}, is a natural number specifying the number of cells to allocate.
+
+\subsubsection{Semantics}
+\todo{Should we explain the notation for the semantics?}
+\begin{figure}
+\[
+    \infrule[Read]{
+       heap(a) = n
+    }{
+       < (X\;<\sim\; [ a ]),\;Some(s,\;h) > \; \Downarrow Some\;([s\;|\;X:n],\;h)
+    }
+\]
+\\
+\[
+    \infrule[Write]{
+       \exists e. heap(a) = e
+    }{
+       < ([ a ]\;<\sim\; b),\;Some(s,\;h) > \; \Downarrow Some\;([s\;|\;X:a],\;write\;a\;b\;h)
+    }
+\]
+\\
+\[
+    \infrule[Deallocate]{
+       \exists e. heap(a) = e
+    }{
+       < (DEALLOC\;a),\;Some(s,\;h) > \; \Downarrow Some\;(s,\;dealloc\;a\;h)
+    }
+\]
+\\
+\[
+    \infrule[Allocate]{
+       \neg \exists e. heap(a) = e \;\;\;\;\;\;\;\;\; \forall n.\; (n > a \wedge n \leq a+n) \implies \neg \exists e'. heap(n) = e'
+    }{
+       < (X=ALLOC\;n),\;Some(s,\;h) > \; \Downarrow Some\;([s\;|\;X:a],\;alloc\;a\;n\;h)
+    }
+\]
+\caption{Semantics for the heap operations}
+\label{fig:heap_semantics}
+\end{figure}
+The semantics for the heap operations are given in Figure \ref{fig:heap_semantics}. There are a few interesting points to note here. Firstly, the semantics of allocation and deallocation are asymmetric. This asymmetry becomes evident when the input to the two underlying functions are examined: {\it alloc} accepts a number {\it n} of cells to allocate, while {\it dealloc} accepts a single address to deallocate. Therefore, it is possible to encapsulate the allocation of an arbitrary number of memory cells in a single allocation operation, while deallocating {\it n} cells from the heap has to be done in {\it n} individual deallocation operations. This limitation makes deallocation easier to reason about, but places a heavier burden of memory management on the user of the language.
+
+Secondly, locating free addresses in the address space for the allocation operation is not a part of the allocation semantics, although the semantics do state that these addresses must be consecutive not already allocated. \todo{Perhaps this point belongs in a different section} Here, we simply assume that such consecutive and free addresses exist in the heap, and leave it up to the soundness proof of the corresponding Hoare rule (see Section \ref{sec:hoare_rules}) to prove this fact.
+
+Lastly, it should be noted that we have no notion of void types and do not provide any measures for ignoring evaluated values. Consequently, providing a variable in which to store the result of a read or allocation operation is required. For allocation, this also has the benefit of safeguarding against allocating unreachable memory, which would be unfortunate in an environment without garbage collection.
+
+\todo{The address space of the heap is infinite! Write this somewhere}
+\todo{We allocate cells with 0! Write this somewhere}
+
+\subsubsection{Error Semantics}
+\label{sec:error_semantics}
+An interesting consequence of adding an addressable state to a programming language is the possibility of writing programs that evaluate to a faulty state. Contrary to the basic version of the Imp language, an addressable state enables the user to write programs that type check but evaluate to an erroneous state: When reading, writing, or deallocating, the program might end up in a faulty state if attempting to access an inactive address on the heap. Note that because we assume that the address space of the heap is infinite, allocation cannot fail. We present the error semantics in Figure \ref{fig:heap_error_semantics}.
+\begin{figure}
+\[
+    \infrule[ReadError]{
+       \neg \exists e. heap(a) = e
+    }{
+       < (X\;<\sim\; [ a ]),\;Some(s,\;h) > \; \Downarrow None
+    }
+\]
+\\
+\[
+    \infrule[WriteError]{
+       \neg \exists e. heap(a) = e
+    }{
+       < ([ a ]\;<\sim\; b),\;Some(s,\;h) > \; \Downarrow None
+    }
+\]
+\\
+\[
+    \infrule[DeallocateError]{
+       \neg \exists e. heap(a) = e
+    }{
+       < (DEALLOC\;a),\;Some(s,\;h) > \; \Downarrow None
+    }
+\]
+\caption{Error semantics for the Read, Write, and Deallocate operations}
+\label{fig:heap_error_semantics}
+\end{figure}

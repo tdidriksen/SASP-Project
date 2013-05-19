@@ -11,7 +11,7 @@
 			"file": "report.tex",
 			"settings":
 			{
-				"buffer_size": 2652,
+				"buffer_size": 2639,
 				"line_ending": "Unix"
 			}
 		},
@@ -19,7 +19,7 @@
 			"file": "bibliography.bib",
 			"settings":
 			{
-				"buffer_size": 1098,
+				"buffer_size": 3029,
 				"line_ending": "Unix"
 			}
 		},
@@ -27,7 +27,7 @@
 			"file": "introduction.tex",
 			"settings":
 			{
-				"buffer_size": 2817,
+				"buffer_size": 4997,
 				"line_ending": "Unix"
 			}
 		},
@@ -35,7 +35,7 @@
 			"file": "heap_operations.tex",
 			"settings":
 			{
-				"buffer_size": 2885,
+				"buffer_size": 5263,
 				"line_ending": "Unix"
 			}
 		},
@@ -43,7 +43,15 @@
 			"file": "solution.tex",
 			"settings":
 			{
-				"buffer_size": 275,
+				"buffer_size": 1163,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "hoare_rules.tex",
+			"settings":
+			{
+				"buffer_size": 2456,
 				"line_ending": "Unix"
 			}
 		},
@@ -51,7 +59,7 @@
 			"file": "separation_logic.tex",
 			"settings":
 			{
-				"buffer_size": 5473,
+				"buffer_size": 6809,
 				"line_ending": "Unix"
 			}
 		},
@@ -59,7 +67,7 @@
 			"file": "background.tex",
 			"settings":
 			{
-				"buffer_size": 2066,
+				"buffer_size": 3214,
 				"line_ending": "Unix"
 			}
 		},
@@ -67,7 +75,55 @@
 			"file": "assertions_heaps.tex",
 			"settings":
 			{
-				"buffer_size": 60,
+				"buffer_size": 2349,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "frame_rule.tex",
+			"settings":
+			{
+				"buffer_size": 2590,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "related_work.tex",
+			"settings":
+			{
+				"buffer_size": 73,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "conclusion.tex",
+			"settings":
+			{
+				"buffer_size": 69,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "hoare_triple.tex",
+			"settings":
+			{
+				"buffer_size": 1856,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "abstract.tex",
+			"settings":
+			{
+				"buffer_size": 618,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "rules_of_con.tex",
+			"settings":
+			{
+				"buffer_size": 1127,
 				"line_ending": "Unix"
 			}
 		}
@@ -104,6 +160,7 @@
 	},
 	"file_history":
 	[
+		"/Users/thomas/Documents/ITU/2. semester/Cloud Computing/CC2013-2/Final Project/tex/report/report.sublime-project",
 		"/Users/thomas/Documents/ITU/2. semester/SASP/SASP-Project/report/assertions_heaps.tex",
 		"/Users/thomas/Documents/ITU/2. semester/SASP/SASP-Project/report/separation_logic.tec",
 		"/Users/thomas/Documents/ITU/2. semester/Cloud Computing/CC2013-2/Final Project/source/agent2/agent.py",
@@ -151,6 +208,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"\\~{}",
 			"'",
 			"    \n",
 			"<",
@@ -162,6 +220,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"$\\sim$"
 		],
 		"reverse": false,
 		"show_context": true,
@@ -172,7 +231,7 @@
 	"groups":
 	[
 		{
-			"selected": 5,
+			"selected": 2,
 			"sheets":
 			[
 				{
@@ -180,15 +239,15 @@
 					"file": "report.tex",
 					"settings":
 					{
-						"buffer_size": 2652,
+						"buffer_size": 2639,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								247,
-								247
+								2635,
+								2635
 							]
 						],
 						"settings":
@@ -196,7 +255,7 @@
 							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 104.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -206,15 +265,15 @@
 					"file": "bibliography.bib",
 					"settings":
 					{
-						"buffer_size": 1098,
+						"buffer_size": 3029,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								600,
-								579
+								826,
+								805
 							]
 						],
 						"settings":
@@ -224,7 +283,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 223.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -234,7 +293,114 @@
 					"file": "introduction.tex",
 					"settings":
 					{
-						"buffer_size": 2817,
+						"buffer_size": 4997,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2693,
+								2693
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 56.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "heap_operations.tex",
+					"settings":
+					{
+						"buffer_size": 5263,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1381,
+								1381
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/LaTeX/LaTeX.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 244.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "solution.tex",
+					"settings":
+					{
+						"buffer_size": 1163,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								642,
+								642
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "hoare_rules.tex",
+					"settings":
+					{
+						"buffer_size": 2456,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								73,
+								73
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/LaTeX/LaTeX.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "separation_logic.tex",
+					"settings":
+					{
+						"buffer_size": 6809,
 						"regions":
 						{
 						},
@@ -250,129 +416,211 @@
 							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 34.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "heap_operations.tex",
-					"settings":
-					{
-						"buffer_size": 2885,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								61,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "solution.tex",
-					"settings":
-					{
-						"buffer_size": 275,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								25,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "separation_logic.tex",
-					"settings":
-					{
-						"buffer_size": 5473,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1639,
-								1639
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 365.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "background.tex",
-					"settings":
-					{
-						"buffer_size": 2066,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2036,
-								2036
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 4.0,
+						"translation.y": 796.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 7,
-					"file": "assertions_heaps.tex",
+					"file": "background.tex",
 					"settings":
 					{
-						"buffer_size": 60,
+						"buffer_size": 3214,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								60,
-								60
+								3175,
+								3183
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/LaTeX/LaTeX.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 826.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "assertions_heaps.tex",
+					"settings":
+					{
+						"buffer_size": 2349,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								999,
+								999
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/LaTeX/LaTeX.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 109.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "frame_rule.tex",
+					"settings":
+					{
+						"buffer_size": 2590,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2312,
+								2312
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/LaTeX/LaTeX.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 331.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "related_work.tex",
+					"settings":
+					{
+						"buffer_size": 73,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								73,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "conclusion.tex",
+					"settings":
+					{
+						"buffer_size": 69,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								69,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 12,
+					"file": "hoare_triple.tex",
+					"settings":
+					{
+						"buffer_size": 1856,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1745,
+								1745
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 13,
+					"file": "abstract.tex",
+					"settings":
+					{
+						"buffer_size": 618,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								54,
+								37
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 14,
+					"file": "rules_of_con.tex",
+					"settings":
+					{
+						"buffer_size": 1127,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								719,
+								719
 							]
 						],
 						"settings":

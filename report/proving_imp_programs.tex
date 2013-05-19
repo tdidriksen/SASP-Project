@@ -1,0 +1,317 @@
+%!TEX root = ./report.tex
+\section{Proving Imp Programs}
+\subsection{Hoare Logic}
+\subsubsection{The Hoare Triple}
+As previously mentioned, specifications of Imp programs are given using Hoare triples. Due to the new assertion type presented in Section \ref{sec:assertions_heaps}, a change of the definition of this hoare triple is needed accordingly. The basic Hoare triple is defined as follows:
+\\
+\\
+\textit{If a command c is started in a state satisfying an assertion P, then the resulting state will satisfy an assertion Q, if c terminates.}\todo{Add reference to definition.}
+\\
+\\
+While this essentially still holds for the extended Imp specifications, this definition is insufficient. As discussed in Section \ref{sec:error_semantics}, some of the heap-manipulating operations can evaluate to a faulty state. This is an issue, since the Hoare triple claims that the resulting state is guaranteed to satisfy the post-condition. With the above definition, this can no longer be guaranteed if the resulting state is faulty. As such, we need our Hoare triple to  express that the command c does not result in an error state.
+\\
+\\
+\textit{If a command c is started in a state st satisfying an assertion P, and c does not fail in st, then the resulting state will satisfy an assertion Q, if c terminates.}
+\\
+\\
+To express the idea of a command not failing in a state, we introduce the notion of safety. A command is safe in a state {\it st} if the command, starting in {\it st}, does not evaluate to None. We therefore define safety as follows:
+
+\[safe\;c\;st\;: \;\neg \;(<c,\;st>\;\Downarrow None)\]
+
+Having formalized the a safety predicate, we can now formulate a new definition of our Hoare triple. This gives us the following definition of a Hoare triple:
+
+\[
+\forall st.\; P\;st \impl safe\;c\;st \land \forall st'. <c,\;st>\;\Downarrow Some\; st' \impl Q\;st'
+\]
+\subsubsection{Hoare Rules --- Part 1}
+\begin{figure}
+\[
+    \infrule[Assignment]{}{
+      	\triple
+      		{Q\subst a X} 
+      		{\;\cassign {X} {a}\;}
+	  		{Q}
+    }
+    \;\;\;\;\;\;\;\;
+    \infrule[Skip]{}{
+      	\triple
+      		{P} 
+      		{\; \mathbf{SKIP} \;}
+	  		{P}
+    }
+\]
+
+\[
+    \infrule[Sequence]{
+    	\triple
+      		{P} 
+      		{\;c1\;}
+	  		{Q}
+	  		\;\;
+	  	\triple
+      		{Q} 
+      		{\;c2\;}
+	  		{R}
+    }{
+      	\triple
+      		{P} 
+      		{\;c1;c2\;}
+	  		{R}
+    }
+    \;\;\;\;\;\;\;\;
+    \infrule[While]{
+    	\triple
+      		{P \land b} 
+      		{\; c \;}
+	  		{P}
+    }{
+      	\triple
+      		{P} 
+      		{\; \mathbf{WHILE}\;{b}\;\mathbf{DO}\;{c}\;\mathbf{END} \;}
+	  		{P \land \neg b}
+    }
+\]
+\[
+    \infrule[If]{
+    	\triple
+      		{P \land b} 
+      		{\; c1 \;}
+	  		{Q}
+	  	\;\;
+	  	\triple
+      		{P \land \neg b} 
+      		{\; c2 \;}
+	  		{Q}
+    }{
+      	\triple
+      		{P} 
+      		{\;\mathbf{IFB}\;{b}\;\mathbf{THEN}\;{c1}\;\mathbf{ELSE}\;{c2}\;\mathbf{FI} \;}
+	  		{Q}
+    }
+\]
+\caption{Hoare rules of the Imp language.}
+\label{fig:hoare_rules_imp}
+\end{figure}
+\todo{Revise title of section}
+\todo{Mention partial correctness here.}
+
+\subsection{Separation Logic}
+\label{sec:separation_logic}
+Separation logic is an extension of Floyd-Hoare logic that enables local reasoning about shared resources. While its original purpose was to provide assertions for reasoning about shared mutable data structures, such as heaps, it has now been applied to a broader range of subject areas, such as shared-variable concurrency\,\cite{reynolds2008AnIntroductionTo}\todo{Add page number?}. Throughout this paper, we work exclusively on heaps (for the definition of the heap, see Section \ref{sec:programming_with_mutable_state}).
+
+\subsubsection{The Connectives}
+For separation logic, three new connectives are added to those already known from Hoare logic. 
+\paragraph{The separating conjunction.}
+The most characteristic connective of separation logic is the {\it separating conjunction}, denoted by {\it $\ast$}. A separating conjunction {\it p $\ast$ q} on a heap {\it h} is a spatial connective, which states that {\it h} can be split into two separate (or disjoint) parts, one for which {\it p} holds and one for which {\it q} holds. Note that {\it p $\ast$ q} holds for the entirety of {\it h}, meaning that there is no third part of {\it h} for which a third predicate {\it r} would hold.
+
+\paragraph{{\it emp}.}
+{\it emp} is the unit of the separating conjunction, and only holds for the empty heap. Consequently, since {\it emp} only holds for the empty heap, {\it p $\ast$ emp} is logically equivalent to {\it p}.
+
+\paragraph{The magic wand.}
+Despite its name, there is nothing magic about the magic wand. Also known as the {\it separating implication}, {\it p $\wand$ q} says that if a heap is extended with a separate part for which p holds, then q holds for that extended heap.
+
+\paragraph{The points-to relation.}
+Aside from the new connectives, separation logic introduces the {\it points-to} relation. Denoted by {\it e} $\mapsto$ {\it e'}, it states that {\it e} points to {\it e'} on the heap, and nothing else is on the heap. As such, the points-to relation both says something about the contents and the size of the heap. Given {\it x} $\mapsto$ {\it x'} $\ast$ {\it y} $\mapsto$ {\it y'}, we know that in one part of the heap, {\it x} points to {\it x'}, and in another part of the heap, {\it y} points to {\it y'}, and nothing else is on the heap.
+
+\subsubsection{Local Reasoning and the Frame Rule}
+One of the key points of separation logic is the ability to reason locally about a shared mutable resource, which in our case is a heap. Local reasoning is achieved by specifying a program in terms of the heap cells  it accesses, and then using the frame rule to abstract away the rest of the heap. The frame rule is specified as follows:
+
+\begin{prooftree}
+\AxiomC{\{P\} C \{Q\}}
+\UnaryInfC{\{P $\ast$ R\} C \{Q $\ast$ R\}}
+\end{prooftree}
+
+If we have a program {\it C} with the precondition {\it P} and the postcondition {\it Q}, we can abstract away the rest of the heap {\it R}, as we know that {\it c} does not modify any part of {\it R}.
+
+\subsubsection{Partial Correctness}
+In this paper, we only consider partial correctness specifications of separation logic. This means that we do not provide proofs of termination for any of the programs that we examine, only proofs of correctness.
+
+
+\subsubsection{Separation Algebra}
+A separation algebra is a cancellative, partial, commutative monoid ($\Sigma$, $\circ$, {\it u}) where $\Sigma$ is the carrier type, $\circ$ is the binary operator, and {\it u} is the unit element\,\cite{Calcagno07:LCS}.
+
+We can define heaps in terms of a separation algebra by taking $\Sigma$ to be a type of heaps, $\circ$ to be a composition operator for two disjoint heaps, and {\it u} to be {\it emp}, the unit of the separating conjunction \cite{BirkedalL:veroop-conf}.
+
+\subsubsection{Building the Separation Logic}
+\todo{Maybe add a reference to low-level separation logic-paper}
+As presented in the problem statement, we need to extend the intuitionistic logic in which the Imp language is already defined with a separation logic, in order to be able to reason about programs involving a heap. This section describes how we have used prior work by Jesper Bengtson et al.\,\cite{BirkedalL:veroop-conf} to build such a logic. Our utilization of this logic will be clarified in Section \ref{sec:assertions_heaps}.
+
+\paragraph{Purpose.}
+The purpose of building the separation logic is to be able to create assertions {\it heap} $\rightharpoonup$ {\it state} $\rightharpoonup$ {\it Prop} for use in program specifications that need to describe both a stack (or state) and a heap.
+
+\paragraph{Procedure.} The basis of our separation logic is {\it Prop}, the sort for propositions in Coq\,\cite{CoqIntro}. 	It is established that Prop is an intuitionistic logic by proving that it satisfies all the axioms of an intuitionistic logic. To further develop the intuitionistic logic of {\it Prop}, we exploit the following properties of intuitionistic logic:
+
+\begin{enumerate}[label=\arabic*)]
+\item We can to create an intuitionstic logic from a function space {\it A} $\rightharpoonup$ {\it B}, where {\it B} is the carrier of an intuitionistic logic and {\it A} is any type.
+\item We can create a separation logic from a function space {\it A} $\rightharpoonup$ {\it B}, where {\it A} is the carrier of a separation algebra and {\it B} is the carrier of an intuitionistic logic.\,\cite{JBSlides}
+\end{enumerate}
+
+By 1), we can extend the intuitionistic logic of {\it Prop} with a state (or stack), to achieve an intermediate logic {\it state} $\rightharpoonup$ {\it Prop}. This will allow us to create assertions about programs using a stack. Note that all of the connectives defined for the logic of {\it Prop} now work on assertions of {\it state} $\rightharpoonup$ {\it Prop}, as these are just pointwise liftings.
+
+As we have already established that we can define heaps in terms of a separation algebra, we extend {\it state} $\rightharpoonup$ {\it Prop} with a type of heaps by 2). Thus we achieve a separation logic \heap $\rightharpoonup$ {\it state} $\rightharpoonup$ {\it Prop}, with which we can create assertions about programs involving both a stack {\it and} a heap. Furthermore, since we create the separation logic from an equivalence relation on heaps, we can create assertions that are closed under the equivalence of heaps. This means that any assertion that holds for a given heap {\it h} will also hold for any equivalent heap {\it h'}. Analogously to the intermediate logic, the connectives now work on assertions of \heap $\rightharpoonup$ {\it state} $\rightharpoonup$ {\it Prop}.
+\todo{We define our heap to be a partial function on natural numbers mapping addresses (locations) to values}
+
+\subsubsection{Hoare Rules --- Part 2}
+\todo{Revise title of section}
+\label{sec:hoare_rules}
+% All the rules have been proven sound in Coq.
+This section describes Hoare rules for each of the four operations presented in Section \ref{sec:heap_operations}. All of the rules have been proven sound in Coq. Note that these rules are local\,\cite{Reynolds02}, and thus rely on the frame rule (see Section \ref{sec:frame_rule}) for reasoning about non-local specifications.
+\subsubsection{Read}
+\[
+	\infrule[Read]{}
+		{
+		\triple
+			{e\mapsto e'}
+			{\;X<\sim\lbrack\;e\;\rbrack\;}
+			{\exists v.\;(e\;\mapsto\;e')\subst{v}{X}\;\land\;(X=e')\subst{v}{X}}
+		}
+\]
+The Read rule reads the value at address {\it e}, {\it e'}, onto the stack. Consequently, all previous occurrences of {\it X} must be substituted with the old value of {\it X}, here denoted by the existential variable {\it v}, to avoid corrupting previous definitions.
+
+\subsubsection{Write}
+\[
+	\infrule[Write]{}
+		{
+		\triple
+			{e\mapsto-}
+			{\;\lbrack\;e\;\rbrack\;<\sim\;e'\;}
+			{e\mapsto e'}
+		}
+\]
+The Write rule destructively updates an address on the heap. Importantly, the precondition requires the updated address to be active, i.e. it must exist on the heap beforehand. If one wishes to write to a non-active address, the address must be allocated first.
+\todo{Write somewhere that all addresses are evaluated on the stack.}
+
+\subsubsection{Allocate}
+\[
+	\infrule[Allocate]{}
+		{
+		\triple
+			{\;emp\;}
+			{\;X\;\&=ALLOC\;n\;}
+			{\exists a. X=a\;\land\;\odot _{i=a}^{a+n-1} i\mapsto0}
+		}
+\]
+The Allocate rule allocates {\it n} memory cells as specified by the parameter to {\it ALLOC}, and lets the variable {\it X} point to the first of these cells. As it is the case in other programming languages, such as Java\,\cite{JavaDataTypes}, we allocate memory cells with a default value of zero. We do not have a separate notion of a {\it null} pointer, so pointing to zero is equivalent to pointing to {\it null}. Interpreting a value of zero as either a concrete `0' or a {\it null} pointer is up to the program.
+% We allocate with 0
+% We can always find an address
+
+\subsubsection{Deallocate}
+\[
+	\infrule[Deallocate]{}
+		{
+		\triple
+			{e\mapsto-}
+			{\;DEALLOC\;e\;}
+			{emp}
+		}
+\]
+The Deallocate rule removes an active address from the heap. As reflected in the semantics presented in Section \ref{sec:heap_operations}, deallocation is asymmetric with respect to allocation.
+
+\subsection{Creating Assertions}
+\label{sec:assertions_heaps}
+We can create specifications from the assertion logic presented in Section \ref{sec:separation_logic} for Imp programs involving heaps. Following our definition of the logic, we must prove that any assertion used in a specification is closed under the equivalence of heaps. Consequently, and contrary to the basic version of Imp, we cannot simply state our assertions as functions on a state, such as shown in Figure \ref{fig:assertions_basic_imp}.
+
+\begin{figure}
+\[
+	\infrule{}
+		{
+		\triple
+			{\;fun\;st => st\;X = aeval\;st\;(ANum\;0)\;}
+			{\;SKIP\;}
+			{\;fun\;st => st\;X = aeval\;st\;(ANum\;0)\;}
+		}
+\]
+\caption{An example of a specification in the basic version of Imp.}
+\label{fig:assertions_basic_imp}
+\end{figure}
+
+However, because of the implementation of the logic, we do not want to model our assertions as explicit functions inside the specifications. Firstly, the explicit function definition constitutes unnecessary clutter in our specifications. Secondly, exactly because our connectives are pointwise liftings, the state and the heap need not be mentioned in the specifications at all. Instead, we define and prove assertions in terms of the heap and the state. An example analogous to the one in Figure \ref{fig:assertions_basic_imp} is shown in Figure \ref{fig:assertions_extended_imp}.
+
+\begin{figure}
+\[
+	\infrule{}
+		{
+		\triple
+			{\;aexp\_eq\;(AId X)\;(ANum\;0)\;}
+			{\;SKIP\;}
+			{\;aexp\_eq\;(AId X)\;(ANum\;0)\;}
+		}
+\]
+\caption{An example of a specification in the extended version of Imp.}
+\label{fig:assertions_extended_imp}
+\end{figure}
+
+The assertion {\it aexp\_eq} in Figure \ref{fig:assertions_extended_imp} is defined as a function \heap $\rightharpoonup$ {\it state} $\rightharpoonup$ {\it Prop} closed under the equivalence of heaps. All expressions shown inside preconditions and postconditions in the following sections are modeled in this manner, including the points-to predicate.
+
+Naturally, as all the hoare rules from the basic version of Imp presented in Section \ref{sec:background_imp} were not implemented in our assertion logic, these have been reimplemented in this logic.
+
+%operators are pointwise liftings
+\todo{Add something about the implications of changing the assertion logic for the existing Imp.}
+
+\subsection{The Frame Rule}
+\label{sec:frame_rule}
+\paragraph{Frame Rule}
+The Hoare rules for the heap operations are defined as local rules for the sake of simplicity. To make claims about more complex programs with effects outside just a local scope, we need to widen our perspective. We need to prove that the behaviour of a given command is not changed by the fact that there might be an additional part of the heap which the it does not access. For this type of local reasoning, we adopt the frame rule as described by Yang and O'Hearn\,\cite{Yang02asemantic}.
+
+\begin{figure}
+\[
+	\infrule{
+		\triple
+			{P}
+			{\;c\;}
+			{Q}
+		}
+		{
+		\triple
+			{P\;*\;R}
+			{\;c\;}
+			{Q\;*\;R}
+		}
+\]
+\begin{center}
+\textit{where no variable occurring free in R is modified by c.}
+\end{center}
+\caption{The standard definition of the frame rule.}
+\label{fig:frame_rule}
+\end{figure}
+
+As stated in the side condition in Figure \ref{fig:frame_rule}, the frame rule only holds in the event that $c$ does not modify $R$. This means that whenever this rule is used to prove a property of a program, it would have to be proven that the command does not modify $R$. To avoid this, we alter the frame rule slightly: If $c$ does not modify $R$, then $R$ is unchanged by the execution of $c$. In the case that $c$ does modify $R$, there must exist a list of values that when substituted with the variables that have been modified by $c$, will restore the original state of $R$ before $c$ was executed. We can use this to construct a postcondition for the frame rule that will preserve the side condition from the standard frame rule. We formalize the modified frame rule in Figure \ref{fig:modified_frame_rule}.
+
+\begin{figure}
+\[
+	\infrule{
+		\triple
+			{P}
+			{\;c\;}
+			{Q}
+		}
+		{
+		\triple
+			{P\;*\;R}
+			{\;c\;}
+			{Q\;*\;(\exists vs.\;R\subst{vs}{modified\_by\;c})}
+		}
+\]
+\caption{The modified definition of the frame rule.}
+\label{fig:modified_frame_rule}
+\end{figure}
+
+\paragraph{Safety Monotonicity}
+In Section \ref{sec:hoare_triple} we introduced the notion of safety to our Hoare triple, as a way of ensuring that no commands that evaluate to an erroneous state can satisfy the triple. Thus far we have only reasoned about safety in a local scope, but when using the local Hoare rules to prove programs involving arbitrary heaps, we assume safety monotonicity. This means that if executing a command c is safe in a state involving a heap $h'$ , and $h'\;\heapsubop\;h$, then c must also be safe in a state involving $h$. This property follows from the frame rule.
+\todo{Is this section accurate?}
+
+\subsection{Rules of Consequence}
+\paragraph{Rules of Consequence}
+The precondition or postcondition of a Hoare rule might at times differ from the ones needed when proving a program. While the condition in our goal might be logically equivalent to one in a given rule, their differences prevents them from being unified. To accommodate this difference, Hoare logic introduces the rules of consequence\,\cite{Hoare69anaxiomatic}. They state that any precondition $P$ can be substituted for a weaker precondition $P'$, provided that $P$ entails $P'$, while any postcondition $Q$ can be substituted for a stronger postcondition $Q'$, provided that $Q'$ entails $Q$. These rules are shown in Figure \ref{fig:rules_of_consequence}.
+
+\begin{figure}
+\[
+	\infrule{P\entails P' \;\; \triple{P'}{\;c\;}{Q}} {\triple{P}{\;c\;}{Q}} 
+	\;\;\;\;\;\; 
+	\infrule{Q'\entails Q \;\; \triple{P}{\;c\;}{Q'}} {\triple{P}{\;c\;}{Q}}
+\]
+\caption{The rules of consequence.}
+\label{fig:rules_of_consequence}
+\end{figure}
+
+While these rules have not been changed by our changes to states in Imp, the change to assertions have changed how these rules are proven.
