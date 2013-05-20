@@ -7,133 +7,37 @@
 	},
 	"buffers":
 	[
-		{
-			"file": "report.tex",
-			"settings":
-			{
-				"buffer_size": 2639,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "bibliography.bib",
-			"settings":
-			{
-				"buffer_size": 3029,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "introduction.tex",
-			"settings":
-			{
-				"buffer_size": 4997,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "heap_operations.tex",
-			"settings":
-			{
-				"buffer_size": 5263,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "solution.tex",
-			"settings":
-			{
-				"buffer_size": 1163,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "hoare_rules.tex",
-			"settings":
-			{
-				"buffer_size": 2456,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "separation_logic.tex",
-			"settings":
-			{
-				"buffer_size": 6809,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "background.tex",
-			"settings":
-			{
-				"buffer_size": 3214,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "assertions_heaps.tex",
-			"settings":
-			{
-				"buffer_size": 2349,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "frame_rule.tex",
-			"settings":
-			{
-				"buffer_size": 2590,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "related_work.tex",
-			"settings":
-			{
-				"buffer_size": 73,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "conclusion.tex",
-			"settings":
-			{
-				"buffer_size": 69,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "hoare_triple.tex",
-			"settings":
-			{
-				"buffer_size": 1856,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "abstract.tex",
-			"settings":
-			{
-				"buffer_size": 618,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "rules_of_con.tex",
-			"settings":
-			{
-				"buffer_size": 1127,
-				"line_ending": "Unix"
-			}
-		}
 	],
 	"build_system": "",
 	"command_palette":
 	{
-		"height": 392.0,
+		"height": 107.0,
 		"selected_items":
 		[
+			[
+				"git stash",
+				"Git: Stash Changes"
+			],
+			[
+				"stash",
+				"Git: Stash Pop"
+			],
+			[
+				"apply",
+				"Git: Stash Apply"
+			],
+			[
+				"pull",
+				"Git: Pull"
+			],
+			[
+				"git diff",
+				"Git: Diff Current File"
+			],
+			[
+				"doc",
+				"YACS: Documents"
+			],
 			[
 				"install",
 				"Package Control: Install Package"
@@ -160,22 +64,38 @@
 	},
 	"file_history":
 	[
-		"/Users/thomas/Documents/ITU/2. semester/Cloud Computing/CC2013-2/Final Project/tex/report/report.sublime-project",
-		"/Users/thomas/Documents/ITU/2. semester/SASP/SASP-Project/report/assertions_heaps.tex",
-		"/Users/thomas/Documents/ITU/2. semester/SASP/SASP-Project/report/separation_logic.tec",
-		"/Users/thomas/Documents/ITU/2. semester/Cloud Computing/CC2013-2/Final Project/source/agent2/agent.py",
-		"/Users/thomas/Documents/ITU/2. semester/SASP/SASP-Project/report/solution.tex",
-		"/Users/thomas/Documents/ITU/2. semester/SASP/SASP-Project/report/report.tex",
-		"/Users/thomas/Documents/ITU/2. semester/SASP/SASP-Project/report/introduction.tex",
-		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/report.sublime-workspace",
-		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/background.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/proving_imp_programs.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/imp.tex",
 		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/introduction.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/hoare_triple.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/bibliography.bib",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/report.sublime-workspace",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/src/SLImp/ILImp.v",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/separation_logic.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/solution.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/heap_operations.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/conclusion.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/frame_rule.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/hoare_rules.tex",
 		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/report.sublime-project",
-		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/Solution.tex",
-		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/problem.tex",
-		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/related_work.tex",
 		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/abstract.tex",
 		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/report.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/background.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/report.bbl",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/rules_of_con.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/macros.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/coq/heap_operation_notation.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/coq/heap_operation_notation",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/problem.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/heap.v",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/coq/imp.v",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/coq/hoare_example.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/coq/hoare_example.v",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/coq/heap.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/coq/imp.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/imp.v",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/Solution.tex",
+		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/related_work.tex",
 		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/discussion.tex",
 		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/example.tex",
 		"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/bacground.tex",
@@ -200,15 +120,28 @@
 		"height": 0.0,
 		"where_history":
 		[
+			"/Users/sunealkaersig/Documents/Dropbox/Sune/ITU/Kandidat/2. Semester/SASP/SASP-Project/report/coq",
 			""
 		]
 	},
 	"find_state":
 	{
-		"case_sensitive": false,
+		"case_sensitive": true,
 		"find_history":
 		[
-			"\\~{}",
+			"ev",
+			"eval",
+			"ass",
+			"hoare",
+			"jazz",
+			"if",
+			"safety monotonicity",
+			"pointsto",
+			"invalid",
+			"invalidfa",
+			"invalid",
+			"monotonicity",
+			"heap",
 			"'",
 			"    \n",
 			"<",
@@ -220,7 +153,6 @@
 		"regex": false,
 		"replace_history":
 		[
-			"$\\sim$"
 		],
 		"reverse": false,
 		"show_context": true,
@@ -231,408 +163,8 @@
 	"groups":
 	[
 		{
-			"selected": 2,
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"file": "report.tex",
-					"settings":
-					{
-						"buffer_size": 2639,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2635,
-								2635
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "bibliography.bib",
-					"settings":
-					{
-						"buffer_size": 3029,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								826,
-								805
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/LaTeX/Bibtex.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 223.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "introduction.tex",
-					"settings":
-					{
-						"buffer_size": 4997,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2693,
-								2693
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 56.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "heap_operations.tex",
-					"settings":
-					{
-						"buffer_size": 5263,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1381,
-								1381
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/LaTeX/LaTeX.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 244.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "solution.tex",
-					"settings":
-					{
-						"buffer_size": 1163,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								642,
-								642
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "hoare_rules.tex",
-					"settings":
-					{
-						"buffer_size": 2456,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								73,
-								73
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/LaTeX/LaTeX.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "separation_logic.tex",
-					"settings":
-					{
-						"buffer_size": 6809,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 796.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 7,
-					"file": "background.tex",
-					"settings":
-					{
-						"buffer_size": 3214,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								3175,
-								3183
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/LaTeX/LaTeX.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 826.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 8,
-					"file": "assertions_heaps.tex",
-					"settings":
-					{
-						"buffer_size": 2349,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								999,
-								999
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/LaTeX/LaTeX.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 109.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 9,
-					"file": "frame_rule.tex",
-					"settings":
-					{
-						"buffer_size": 2590,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2312,
-								2312
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/LaTeX/LaTeX.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 331.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 10,
-					"file": "related_work.tex",
-					"settings":
-					{
-						"buffer_size": 73,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								73,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 11,
-					"file": "conclusion.tex",
-					"settings":
-					{
-						"buffer_size": 69,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								69,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 12,
-					"file": "hoare_triple.tex",
-					"settings":
-					{
-						"buffer_size": 1856,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1745,
-								1745
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 13,
-					"file": "abstract.tex",
-					"settings":
-					{
-						"buffer_size": 618,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								54,
-								37
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 14,
-					"file": "rules_of_con.tex",
-					"settings":
-					{
-						"buffer_size": 1127,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								719,
-								719
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/LaTeX/LaTeX.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				}
 			]
 		}
 	],
@@ -671,6 +203,10 @@
 	{
 		"height": 100.0
 	},
+	"output.git":
+	{
+		"height": 100.0
+	},
 	"replace":
 	{
 		"height": 64.0
@@ -683,7 +219,11 @@
 		[
 			[
 				"",
-				"report.sublime-project"
+				"report.tex"
+			],
+			[
+				"macr",
+				"macros.tex"
 			],
 			[
 				"ap",

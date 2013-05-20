@@ -1,11 +1,12 @@
 %!TEX root = ./report.tex
 \section{Proving Imp Programs}
+\todo{Introduction to proving - maybe with why and methodology}
 \subsection{Hoare Logic}
 \subsubsection{The Hoare Triple}
-As previously mentioned, specifications of Imp programs are given using Hoare triples. Due to the new assertion type presented in Section \ref{sec:assertions_heaps}, a change of the definition of this hoare triple is needed accordingly. The basic Hoare triple is defined as follows:
+As previously mentioned, specifications of Imp programs are given using Hoare triples. Due to the new assertion type presented in Section \ref{sec:assertions_heaps}, a change of the definition of this Hoare triple is needed accordingly. The basic Hoare triple is defined as follows:
 \\
 \\
-\textit{If a command c is started in a state satisfying an assertion P, then the resulting state will satisfy an assertion Q, if c terminates.}\todo{Add reference to definition.}
+\textit{If a command c is started in a state satisfying an assertion P, then the resulting state will satisfy an assertion Q, if c terminates.}\todo{Add reference to definition. Perhaps change to more canonical wording. Remember to propagate changes to other sentence.}
 \\
 \\
 While this essentially still holds for the extended Imp specifications, this definition is insufficient. As discussed in Section \ref{sec:error_semantics}, some of the heap-manipulating operations can evaluate to a faulty state. This is an issue, since the Hoare triple claims that the resulting state is guaranteed to satisfy the post-condition. With the above definition, this can no longer be guaranteed if the resulting state is faulty. As such, we need our Hoare triple to  express that the command c does not result in an error state.
@@ -16,7 +17,7 @@ While this essentially still holds for the extended Imp specifications, this def
 \\
 To express the idea of a command not failing in a state, we introduce the notion of safety. A command is safe in a state {\it st} if the command, starting in {\it st}, does not evaluate to None. We therefore define safety as follows:
 
-\[safe\;c\;st\;: \;\neg \;(<c,\;st>\;\Downarrow None)\]
+\[ \mathit{safe\;c\;st\;: \;\neg \;(<c,\;st>\;\Downarrow None)}\]
 
 Having formalized the a safety predicate, we can now formulate a new definition of our Hoare triple. This gives us the following definition of a Hoare triple:
 
@@ -97,7 +98,7 @@ Having formalized the a safety predicate, we can now formulate a new definition 
 
 \subsection{Separation Logic}
 \label{sec:separation_logic}
-Separation logic is an extension of Floyd-Hoare logic that enables local reasoning about shared resources. While its original purpose was to provide assertions for reasoning about shared mutable data structures, such as heaps, it has now been applied to a broader range of subject areas, such as shared-variable concurrency\,\cite{reynolds2008AnIntroductionTo}\todo{Add page number?}. Throughout this paper, we work exclusively on heaps (for the definition of the heap, see Section \ref{sec:programming_with_mutable_state}).
+Separation logic is an extension of Floyd-Hoare \todo{lyder mærkeligt med Floyd her} logic that enables local reasoning about shared resources. While its original purpose was to provide assertions for reasoning about shared mutable data structures, such as heaps, it has now been applied to a broader range of subject areas, such as shared-variable concurrency\,\cite{reynolds2008AnIntroductionTo}\todo{Add page number?}. Throughout this paper, we work exclusively on heaps (for the definition of the heap, see Section \ref{sec:programming_with_mutable_state}).
 
 \subsubsection{The Connectives}
 For separation logic, three new connectives are added to those already known from Hoare logic. 
@@ -144,7 +145,7 @@ The purpose of building the separation logic is to be able to create assertions 
 \begin{enumerate}[label=\arabic*)]
 \item We can to create an intuitionstic logic from a function space {\it A} $\rightharpoonup$ {\it B}, where {\it B} is the carrier of an intuitionistic logic and {\it A} is any type.
 \item We can create a separation logic from a function space {\it A} $\rightharpoonup$ {\it B}, where {\it A} is the carrier of a separation algebra and {\it B} is the carrier of an intuitionistic logic.\,\cite{JBSlides}
-\end{enumerate}
+\end{enumerate} \todo{maybe move 2) to between the next two paragraphs.}
 
 By 1), we can extend the intuitionistic logic of {\it Prop} with a state (or stack), to achieve an intermediate logic {\it state} $\rightharpoonup$ {\it Prop}. This will allow us to create assertions about programs using a stack. Note that all of the connectives defined for the logic of {\it Prop} now work on assertions of {\it state} $\rightharpoonup$ {\it Prop}, as these are just pointwise liftings.
 
@@ -155,6 +156,7 @@ As we have already established that we can define heaps in terms of a separation
 \todo{Revise title of section}
 \label{sec:hoare_rules}
 % All the rules have been proven sound in Coq.
+\label{sec:heap_operations}
 This section describes Hoare rules for each of the four operations presented in Section \ref{sec:heap_operations}. All of the rules have been proven sound in Coq. Note that these rules are local\,\cite{Reynolds02}, and thus rely on the frame rule (see Section \ref{sec:frame_rule}) for reasoning about non-local specifications.
 \subsubsection{Read}
 \[

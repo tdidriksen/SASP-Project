@@ -948,11 +948,19 @@ Proof.
       inversion H2.
     SCase "Post condition".
       intros.
+      specialize (H ((cstack st), x)).
+      specialize (H H0).
+      destruct H.
+      specialize (H3 st').
+      Local Opaque SABIOps.
+      simpl.
       simpl in H0.
       simpl.
       exists x, x0.
       split.
       SSCase "left".
+        inversion H2; subst.
+        simpl in *.
         admit.
       SSCase "right".
         split.
@@ -1003,9 +1011,6 @@ Proof.
         SSSCase "right".
           admit.
   Case "ALLOC".
-    intros.
-    unfold hoare_triple.
-    intros.
     split.
     SCase "Safety".
       unfold safe, not. intros. inversion H2.
@@ -1019,7 +1024,18 @@ Proof.
         simpl.
         Local Transparent MapSepAlgOps.
         simpl in *.
-        admit.
+        intros.
+        specialize (x1 k).
+        remember (cheap st) as heap.
+        remember (heap [k]%map) as heapk.
+        destruct heapk.
+        remember ((alloc addr n heap) [k]%map) as o.
+        destruct o.
+        
+        inversion x1.
+        left.
+        split.
+        
       SSCase "right".
         split.
         SSSCase "left".
@@ -1067,11 +1083,20 @@ Proof.
       specialize (H H0).
       destruct H.
       unfold safe in H.
+      Local Transparent MapSepAlgOps.
+      simpl in *.
+      unfold safe.
+      intros H3.
+      apply H.
+      inversion H3; subst.
       destruct st.
       simpl in *.
-      Local Transparent MapSepAlgOps.
-      simpl in x1.
-      admit.
+      specialize (x1 (aeval s a)).
+      apply not_find_in_iff in H6.
+      rewrite H6 in x1.
+      apply E_DeallocError with (addr := (aeval s a)).
+      reflexivity.
+      apply x1.	
     SCase "postcondition".
       Local Opaque MapSepAlgOps.
       intros.
@@ -1119,7 +1144,25 @@ Proof.
   Case "read".
     split. 
     SCase "Safety".
-      admit.
+      specialize (H ((cstack st), x)).
+      simpl in *.
+      specialize (H H0).
+      destruct H.
+      unfold safe in H.
+      Local Transparent MapSepAlgOps.
+      simpl in *.
+      unfold safe.
+      intros H3.
+      apply H.
+      inversion H3; subst.
+      destruct st.
+      simpl in *.
+      specialize (x1 (aeval s a)).
+      apply not_find_in_iff in H8.
+      rewrite H8 in x1.
+      apply E_ReadError with (addr := aeval s a).
+      reflexivity.
+      apply x1.
     SCase "postcondition".
       intros.
       simpl.
@@ -1166,13 +1209,30 @@ Proof.
   Case "write".
     split.
     SCase "Safety".
-      admit.
+      specialize (H ((cstack st), x)).
+      simpl in *.
+      specialize (H H0).
+      destruct H.
+      unfold safe in H.
+      Local Transparent MapSepAlgOps.
+      simpl in *.
+      unfold safe.
+      intros H3.
+      apply H.
+      inversion H3; subst.
+      destruct st.
+      simpl in *.
+      specialize (x1 (aeval s a)).
+      apply not_find_in_iff in H8.
+      rewrite H8 in x1.
+      apply E_WriteError with (addr := aeval s a).
+      reflexivity.
+      apply x1.
     SCase "postcondition".
       intros.
       simpl in *.
       exists (write (aeval (cstack st) a) (aeval (cstack st) a0) x), x0.
       split.
-      	admit.
       split.
         specialize (H ((cstack st), x)).
         specialize (H H0).
@@ -1206,7 +1266,6 @@ Proof.
       	intuition.
 Qed.
 
-([ a1 ] <~ a2) / st || Some (cstack st, write addr value (cheap st))
 Program Definition alloc_cell a : Assertion :=
   (ANum a) |-> (ANum 0).
  
