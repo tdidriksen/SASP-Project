@@ -5,6 +5,36 @@
 In this section we will describe the Imp language and its features. The parts of Imp originating from its initial implementation will be presented\,\cite{Pierce:SF} along side our additions. It is worth noting that expressions in Imp are limited to arithmetics and booleans.\todo{Seems odd here, maybe move to grammar section?}
 
 \subsection{Grammar}
+
+\begin{figure}
+\begin{alltt}
+                  program = com ;
+                  com =   "SKIP"
+                        | id "::=" aexp            (* ASSIGNMENT *)
+                        | com ";" com
+                        | "IFB" bexp "THEN" com "ELSE" com "FI"
+                        | "WHILE" bexp "DO" com END
+                        | id \lsquigarr "[" aexp "]"       (* READ *)
+                        | "[" aexp "]" \lsquigarr id       (* WRITE *)
+                        | "DEALLOC" aexp           (* DEALLOCATE *)
+                        | id "&=" "ALLOC" nat ;    (* ALLOCATE *)
+                  aexp =  "ANum" nat
+                        | "AId" id
+                        | "APlus" aexp aexp
+                        | "AMinus" aexp aexp
+                        | "AMult" aexp aexp ;
+                  bexp =  "BTrue"
+                        | "BFalse"
+                        | "BEq" aexp aexp
+                        | "BLe" aexp aexp
+                        | "BNot" bexp
+                        | "BAnd" bexp bexp ;
+                  id = "Id" nat ;
+                  nat = natural number, 0 included ;
+\end{alltt}
+\caption{Grammar for the extended Imp language.}
+\end{figure}
+
 \subsection{The Program State}
 To represent values at a point of execution Imp uses a $state$. This state, is a partially applied function $id \rightharpoonup value$\todo{Give a definition of id?}, where $id$ identifies the variable. The language has a command for assignment of variables, along with control-flow statements for conditionals, loops, and sequencing of commands. To be able to reason about these commands, assertions are used to make claims about a particular state of a program during execution. Given a state these assertions will give a claim based on this state\todo{Maybe example of this?}. As such assertions are defined as $state \rightharpoonup proposition$. Each of the command is specified by a Hoare rule, and will be discussed further in section \ref{sec:hoare_rules}.
 \todo{Revise this section. Should be about the old state and the addition of the heap.}
