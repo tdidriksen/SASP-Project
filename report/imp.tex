@@ -5,16 +5,16 @@
 In this section we will describe the Imp language and its features. The parts of Imp originating from its initial implementation will be presented\,\cite{Pierce:SF} along side our additions. It is worth noting that expressions in Imp are limited to arithmetics and booleans.\todo{Seems odd here, maybe move to grammar section?}
 
 \subsection{The Program State}
-To represent values at a point of execution Imp uses a $state$. In the basic version of Imp this state, is a partially applied function $id \rightharpoonup value$, where $id$ identifies the variable. It is the same notion as what would usually be called a the program stack.
+To represent values at a point of execution Imp uses a $state$. In the basic version of Imp this state, is a partially applied function $id \to value$, where $id$ identifies the variable. It is the same notion as what would usually be called a the program stack.
 
 \paragraph{}
-\textbf{Definition 1 (The state):} \textit{The state is a function for mapping from identifiers to values, which is specified as }$state \eqdef id \rightharpoonup value.$
+\textbf{Definition 1 (The state):} \textit{The state is a function from identifiers to values, which is specified as }$state \eqdef id \to value.$
 
 \paragraph{}
-We extend this state by adding a heap, which will provide us with a mapping from addresses to values. For the sake of simplicity, we will consider the address space of the heap to be infinite, which means that a program cannot run out of memory. We define heaps as a partial function from addresses ($nat$) to values ($nat$):
+We extend the storage in Imp with a mutable state in the form of a heap. This will provide us with a mapping from addresses to values. For the sake of simplicity, we will consider the address space of the heap to be infinite, which means that a program cannot run out of memory. We define heaps as a partial function from addresses to values.
 
 \paragraph{}
-\textbf{Definition 2 (The heap):} \textit{The heap is function for mapping addresses to values, which is specified as } $\heap \eqdef a\rightharpoonup v, \; where\; a, \;v \in \mathbb{N}.$
+\textbf{Definition 2 (The heap):} \textit{The heap is a partial function mapping addresses to values, which is specified assignment} $\heap \eqdef a\to v, \; where\; a, \;v \in \mathbb{N}.$
 
 \subsection{Grammar}
 
