@@ -50,7 +50,9 @@
 \newcommand{\keywords}[1]{\par\addvspace\baselineskip
 \noindent\keywordname\enspace\ignorespaces#1}
 \input{macros}
-
+\newcounter{defcounter}
+\setcounter{defcounter}{1}
+\newcommand{\defbf}[1]{\paragraph{}\textbf{Definition \arabic{defcounter} (#1)}\stepcounter{defcounter}}
 
 \renewcommand{\footnotemargin}{3.99pt}
 
