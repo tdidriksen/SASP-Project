@@ -1,7 +1,9 @@
 %!TEX root = ./report.tex
 \section{Proving Imp Programs}
 \todo{Introduction to proving - maybe with why and methodology}
+An interesting property of the Imp language is that any Imp program can be formally verified directly within the Coq environment. This section introduces Hoare logic, the formal system within which Imp programs are verified, together with its main concepts. Additionally, we define the rules required for reasoning about the operations of the extended Imp language.
 \subsection{Hoare Logic}
+
 \subsubsection{The Hoare Triple}
 As previously mentioned, specifications of Imp programs are given using Hoare triples. Due to the new assertion type presented in Section \ref{sec:assertions_heaps}, a change of the definition of this Hoare triple is needed accordingly. The basic Hoare triple is defined as follows:
 \\

@@ -203,7 +203,7 @@ Lastly, it should be noted that we have no notion of void types and do not provi
 
 \subsubsection{Error Semantics}
 \label{sec:error_semantics}
-An interesting consequence of adding an addressable heap to a programming language is the possibility of writing programs that evaluate to a faulty program state. Contrary to the basic version of the Imp language, an addressable heap enables the user to write programs that type check, but evaluate to an erroneous state: When reading, writing, or deallocating, the program might end up in a faulty program state if attempting to access an inactive \todo{Inactive? Not invalid, or something else?} address on the heap. Note that because we assume that the address space of the heap is infinite, allocation cannot fail. The error semantics are presented in Figure \ref{fig:heap_error_semantics}.
+An interesting consequence of adding an addressable heap to a programming language is the possibility of writing programs that evaluate to a faulty program state. Contrary to the basic version of the Imp language, an addressable heap enables the user to write programs that type check, but evaluate to an erroneous program state: When reading, writing, or deallocating, the program might end up in a faulty program state if attempting to access an inactive \todo{Inactive? Not invalid, or something else?} address on the heap. Note that because we assume that the address space of the heap is infinite, allocation cannot fail. The error semantics are presented in Figure \ref{fig:heap_error_semantics}.
 \begin{figure}
 \[
     \infrule[ReadError]{
