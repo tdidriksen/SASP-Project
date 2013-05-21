@@ -181,7 +181,7 @@ This means that the state $s$ is updated with a variable $X$ with the value $n$.
 \\
 \[
     \infrule[Allocate]{
-       \neg \exists e. heap(a) = e \;\;\;\;\;\;\;\;\; \forall n.\; (n > a \wedge n \leq a+n) \implies \neg \exists e'. heap(n) = e'
+       \neg \exists e. heap(a) = e \;\;\;\;\;\;\;\;\; \forall n.\; (n > a \wedge n \leq a+n) \impl \neg \exists e'. heap(n) = e'
     }{
        \langle (X\;\&\!\!\!=\mathbf{ALLOC}\;n),\;(s,\;h) \rangle \Downarrow Some\;([s\;|\;X:a],\;alloc\;a\;n\;h)
     }
