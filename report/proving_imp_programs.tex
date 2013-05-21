@@ -134,17 +134,36 @@ Aside from the new connectives, separation logic uses the {\it points-to} relati
 \subsubsection{Local Reasoning and the Frame Rule}
 One of the key points of separation logic is the ability to reason locally about a shared mutable resource, which in our case is a heap. Local reasoning is achieved by specifying a program in terms of the heap cells  it accesses, and then using the frame rule to abstract away the rest of the heap. The frame rule is specified as follows:
 
-\begin{prooftree}
-\AxiomC{\{P\} C \{Q\}}
-\UnaryInfC{\{P $\ast$ R\} C \{Q $\ast$ R\}}
-\end{prooftree}
+\begin{figure}
+\[
+	\infrule{
+		\triple
+			{P}
+			{\;c\;}
+			{Q}
+		}
+		{
+		\triple
+			{P\;*\;R}
+			{\;c\;}
+			{Q\;*\;R}
+		}
+\]
+\begin{center}
+\textit{where no variable occurring free in R is modified by c.}
+\end{center}
+\caption{The standard definition of the frame rule.}
+\label{fig:frame_rule}
+\end{figure}
 
 If we have a program {\it C} with the precondition {\it P} and the postcondition {\it Q}, we can abstract away the rest of the heap {\it R}, as we know that {\it c} does not modify any part of {\it R}.
 
 
 \subsubsection{Separation Algebra}
-A separation algebra is a partial, commutative monoid ($\Sigma$, $\circ$, {\it u}) where $\Sigma$ is the carrier type, $\circ$ is the binary operator, and {\it u} is the unit element\,\cite{Calcagno07:LCS}.
+\defbf{Separation Algebra}
+\textit{A separation algebra is a partial, commutative monoid ($\Sigma$, $\circ$, {\it u}) where $\Sigma$ is the carrier type, $\circ$ is the binary operator, and {\it u} is the unit element}\,\cite{Calcagno07:LCS}.
 
+\paragraph{}
 We can define heaps in terms of a separation algebra by taking $\Sigma$ to be a type of heaps, $\circ$ to be a composition operator for two disjoint heaps, and {\it u} to be {\it emp}, the unit of the separating conjunction \cite{BirkedalL:veroop-conf}.
 
 \todo{Have another look at forall and exists axioms}
@@ -361,19 +380,20 @@ $ &
 This section describes how we have used prior work by Jesper Bengtson et al.\,\cite{BirkedalL:veroop-conf} to build a separation logic. Here, an intuitionistic logic is defined as a logic for which the axioms presented in Figure \ref{fig:axioms_int_logic} hold. Accordingly, a separation logic is defined as a logic for which the axioms presented in Figure \ref{fig:axioms_sep_logic} hold.
 
 \paragraph{Purpose.}
-The purpose of building the separation logic is to be able to create assertions {\it heap} $\rightharpoonup$ {\it state} $\rightharpoonup$ {\it Prop} for use in program specifications that need to describe both a state and a heap.
+The purpose of building the separation logic is to be able to create assertions {\it heap} $\to$ {\it state} $\to$ {\it Prop} for use in program specifications that need to describe both a state and a heap.
 
 \paragraph{Procedure.} 
 The basis of our separation logic is {\it Prop}, the sort for propositions in Coq\,\cite{CoqIntro}. It is established that Prop is an intuitionistic logic by proving that it satisfies all the axioms of an intuitionistic logic. To further develop the intuitionistic logic of {\it Prop}, we exploit the following properties of intuitionistic logic:
 
 \begin{enumerate}[label=\arabic*)]
-\item We can to create an intuitionstic logic from a function space {\it A} $\rightharpoonup$ {\it B}, where {\it B} is the carrier of an intuitionistic logic and {\it A} is any type.
-\item We can create a separation logic from a function space {\it A} $\rightharpoonup$ {\it B}, where {\it A} is the carrier of a separation algebra and {\it B} is the carrier of an intuitionistic logic.\,\cite{JBSlides}
+\item We can to create an intuitionstic logic from a function space {\it A} $\to$ {\it B}, where {\it B} is the carrier of an intuitionistic logic and {\it A} is any type.
+\item We can create a separation logic from a function space {\it A} $\to$ {\it B}, where {\it A} is the carrier of a separation algebra and {\it B} is the carrier of an intuitionistic logic.\,\cite{JBSlides}
 \end{enumerate} \todo{maybe move 2) to between the next two paragraphs.}
 
-By 1), we can extend the intuitionistic logic of {\it Prop} with a state to achieve an intermediate logic {\it state} $\rightharpoonup$ {\it Prop}. This will allow us to create assertions about programs using a state. Note that all of the connectives defined for the logic of {\it Prop} now work on assertions of {\it state} $\rightharpoonup$ {\it Prop}, as these are just pointwise liftings.
+By 1), we can extend the intuitionistic logic of {\it Prop} with a state to achieve an intermediate logic {\it state} $\to$ {\it Prop}. This will allow us to create assertions about programs using a state. Note that all of the connectives defined for the logic of {\it Prop} now work on assertions of {\it state} $\to$ {\it Prop}, as these are just pointwise liftings.
 
-As we have already established that we can define heaps in terms of a separation algebra, we extend {\it state} $\rightharpoonup$ {\it Prop} with a type of heaps by 2). Thus we achieve a separation logic \heap $\rightharpoonup$ {\it state} $\rightharpoonup$ {\it Prop}, with which we can create assertions about programs involving both a state {\it and} a heap. Furthermore, since we create the separation logic from an equivalence relation on heaps, we can create assertions that are closed under the equivalence of heaps. This means that any assertion that holds for a given heap {\it h} will also hold for any equivalent heap {\it h'}. Analogously to the intermediate logic, the connectives now work on assertions of \heap $\rightharpoonup$ {\it state} $\rightharpoonup$ {\it Prop}.
+As we have already established that we can define heaps in terms of a separation algebra, we extend {\it state} $\to$ {\it Prop} with a type of heaps by 2). Thus we achieve a separation logic \heap $\to$ {\it state} $\to$ {\it Prop}, with which we can create assertions about programs involving both a state {\it and} a heap. Furthermore, since we create the separation logic from an equivalence relation on heaps, we can create assertions that are closed under the equivalence of heaps. This means that any assertion that holds for a given heap {\it h} will also hold for any equivalent heap {\it h'}. Analogously to the intermediate logic, the connectives now work on assertions of \heap $\to$ {\it state} $\to$ {\it Prop}.
+
 \todo{We define our heap to be a partial function on natural numbers mapping addresses (locations) to values}
 
 \subsubsection{Hoare Rules --- Part 2}
@@ -467,7 +487,7 @@ However, because of the implementation of the logic, we do not want to model our
 \label{fig:assertions_extended_imp}
 \end{figure}
 
-The assertion {\it aexp\_eq} in Figure \ref{fig:assertions_extended_imp} is defined as a function \heap $\rightharpoonup$ {\it state} $\rightharpoonup$ {\it Prop} closed under the equivalence of heaps. All expressions shown inside preconditions and postconditions in the following sections are modeled in this manner, including the points-to predicate.
+The assertion {\it aexp\_eq} in Figure \ref{fig:assertions_extended_imp} is defined as a function \heap $\to$ {\it state} $\to$ {\it Prop} closed under the equivalence of heaps. All expressions shown inside preconditions and postconditions in the following sections are modeled in this manner, including the points-to predicate.
 
 Naturally, as all the hoare rules from the basic version of Imp presented in Section \ref{sec:background_imp} were not implemented in our assertion logic, these have been reimplemented in this logic.
 
@@ -478,28 +498,6 @@ Naturally, as all the hoare rules from the basic version of Imp presented in Sec
 \label{sec:frame_rule}
 \paragraph{Frame Rule}
 The Hoare rules for the heap operations are defined as local rules for the sake of simplicity. To make claims about more complex programs with effects outside just a local scope, we need to widen our perspective. We need to prove that the behaviour of a given command is not changed by the fact that there might be an additional part of the heap which the it does not access. For this type of local reasoning, we adopt the frame rule as described by Yang and O'Hearn\,\cite{Yang02asemantic}.
-
-\begin{figure}
-\[
-	\infrule{
-		\triple
-			{P}
-			{\;c\;}
-			{Q}
-		}
-		{
-		\triple
-			{P\;*\;R}
-			{\;c\;}
-			{Q\;*\;R}
-		}
-\]
-\begin{center}
-\textit{where no variable occurring free in R is modified by c.}
-\end{center}
-\caption{The standard definition of the frame rule.}
-\label{fig:frame_rule}
-\end{figure}
 
 As stated in the side condition in Figure \ref{fig:frame_rule}, the frame rule only holds in the event that $c$ does not modify $R$. This means that whenever this rule is used to prove a property of a program, it would have to be proven that the command does not modify $R$. To avoid this, we alter the frame rule slightly: If $c$ does not modify $R$, then $R$ is unchanged by the execution of $c$. In the case that $c$ does modify $R$, there must exist a list of values that when substituted with the variables that have been modified by $c$, will restore the original state of $R$ before $c$ was executed. We can use this to construct a postcondition for the frame rule that will preserve the side condition from the standard frame rule. We formalize the modified frame rule in Figure \ref{fig:modified_frame_rule}.
 
