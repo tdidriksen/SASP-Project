@@ -48,87 +48,93 @@ We extend the storage in Imp with a mutable state in the form of a heap. This wi
 \label{fig:imp_grammar}
 \end{figure}
 
-The full grammar for the extended Imp language, including the added operations for manipulating the heap, namely read, write, deallocate, and allocate, is shown in Figure \ref{fig:imp_grammar}. Besides these, we have skip, assignment, sequencing, conditional statements, and while loops from the basic version of Imp. Basically, any Imp program consists of one or more commands, arithmetic expressions on natural numbers, and boolean expressions. All variables, implemented as identifiers on natural numbers ({\it id}), are evaluated with the {\it state}. Since the domain of the heap is the natural numbers, an address on the heap is accessed by evaluating any {\it aexp} representing a memory address with the state.
+The full grammar for the extended Imp language, including the added operations for manipulating the heap, namely read, write, deallocate, and allocate, is shown in Figure \ref{fig:imp_grammar}. Besides these, we have skip, assignment, sequencing, conditional statements, and while loops from the basic version of Imp. Basically, any Imp program consists of a command, arithmetic expressions on natural numbers, and boolean expressions. All variables, implemented as identifiers on natural numbers ({\it id}), are evaluated with the {\it state}. Since the domain of the heap is the natural numbers, an address on the heap is accessed by evaluating any {\it aexp} representing a memory address with the state.
 
 \subsection{Semantics}
 \label{sec:semantics}
-We now define syntax and operational semantics for the operations of the Imp language. Four operations have been added for manipulating the heap: Read (or lookup), Write (or mutate), Allocate, and Deallocate (or dispose).
+We now define operational semantics for the operations of the Imp language. Four operations have been added for manipulating the heap: Read, Write, Allocate, and Deallocate.
 
-The Imp syntax for each of the operations is shown in Figure \ref{fig:heap_semantics} as the first part of the $\langle \; \rangle$  -notation. \todo{What is this notation?}
-\paragraph{Functions manipulating the heap.}
-\todo{Consider moving this section into 'Programming with mutable state'}
-The following heap-manipulating functions underlying the implementation of the heap operations in Imp are used in the semantics presented in Figure \ref{fig:heap_semantics}. The definitions of {\it a} and {\it v} are as presented in Section \ref{sec:programming_with_mutable_state}.
-\begin{itemize}
-\item {\it write} $\eqdef$ {\it a} $\rightharpoonup$ {\it v} $\rightharpoonup$ {\it heap}
-\item {\it dealloc} $\eqdef$ {\it a} $\rightharpoonup$ {\it heap}
-\item {\it alloc} $\eqdef$ {\it a} $\rightharpoonup$ {\it n} $\rightharpoonup$ {\it heap}
-\end{itemize}
-The second parameter of the {\it alloc} function, {\it n}, is a natural number specifying the number of cells to allocate.
+\paragraph{Notation.}
+The operational semantics are specified using the following notation:
+
+\[
+    \infrule[Title]{
+      Preconditions
+    }
+    {
+       \langle (c),\;(s,\;h) \rangle \Downarrow Some\;(s',\;h')
+    }
+\]
+
+Read this notation as follows: Given that the preconditions hold (if any), then evaluating the command $c$ in a program state with a state $s$ and heap $h$ will result in a program state with a state $s'$ and a heap $h'$. Due to the error semantics explained later in this section, the resulting program state is wrapped in an Option type\,\cite{CoqOption}. Thus, any faulty program state is represented by $None$, while any normal program state is represented by $Some\;(state,\;heap)$.
+
+Updating a state is described using this notation:
+\begin{center}$[s\;|\;X:n]$\end{center}
+This means that the state $s$ is updated with a variable $X$ with the value $n$. If $X$ already exists in the state, the new value for $X$ will shadow the existing value.
 
 \subsubsection{Semantics}
-\todo{Explain the notation for the semantics}
 \begin{figure}
 
 \[
     \infrule[Skip]{}
     {
-       \langle \mathbf{SKIP},\;Some(s,\;h) \rangle \; \Downarrow Some(s,\;h)
+       \langle \mathbf{SKIP},\;(s,\;h) \rangle \Downarrow Some\;(s,\;h)
     }
 \]
 \\
 \[
     \infrule[Assignment]{}
     {
-       \langle (\cassign{X}{n}),\;Some(s,\;h) \rangle \; \Downarrow Some(update\;s\;X\;n,\;h)
+       \langle (\cassign{X}{n}),\;(s,\;h) \rangle \Downarrow Some\;([s\;|\;X:n],\;h)
     }
 \]
 \\
 \[
     \infrule[Sequence]{
-      \langle c1,\;st \rangle \; \Downarrow Some(st')\;\;\;\;
-      \langle c2,\;st' \rangle \; \Downarrow Some(st'')
+      \langle c1,\;(s,\;h) \rangle \Downarrow Some\;(s',\;h')\;\;\;\;
+      \langle c2,\;(s',\;h') \rangle \Downarrow Some\;(s'',\;h'')
     }
     {
-       \langle c1;c2,\;st \rangle \; \Downarrow Some(st'')
+       \langle c1;c2,\;(s,\;h) \rangle \Downarrow Some\;(s'',\;h'')
     }
 \]
 \\
 \[
-    \infrule[If True]{
-      b = true\;\;\;\;
-      \langle c1,\;st \rangle \; \Downarrow Some(st')
+    \infrule[IfTrue]{
+      b = true\;\;\;\;\;\;\;\;
+      \langle c1,\;(s,\;h) \rangle \Downarrow Some\;(s',\;h')
     }
     {
-       \langle (\;\mathbf{IFB}\;{b}\;\mathbf{THEN}\;{c1}\;\mathbf{ELSE}\;{c2}\;\mathbf{FI}),\;st \; \rangle \; \Downarrow Some(st')
+       \langle (\mathbf{IFB}\;{b}\;\mathbf{THEN}\;{c1}\;\mathbf{ELSE}\;{c2}\;\mathbf{FI}),\;(s,\;h) \rangle \Downarrow Some\;(s',\;h')
     }
 \]
 \\
 \[
-    \infrule[If False]{
-      b = false\;\;\;\;
-      \langle c2,\;st \rangle \; \Downarrow Some(st')
+    \infrule[IfFalse]{
+      b = false\;\;\;\;\;\;\;\;
+      \langle c2,\;(s,\;h) \rangle \Downarrow Some\;(s',\;h')
     }
     {
-       \langle (\;\mathbf{IFB}\;{b}\;\mathbf{THEN}\;{c1}\;\mathbf{ELSE}\;{c2}\;\mathbf{FI}),\;st \; \rangle \; \Downarrow Some(st')
+       \langle (\mathbf{IFB}\;{b}\;\mathbf{THEN}\;{c1}\;\mathbf{ELSE}\;{c2}\;\mathbf{FI}),\;(s,\;h) \rangle \Downarrow Some\;(s',\;h')
     }
 \]
 \\
 \[
-    \infrule[While Loop]{
-      b = true\;\;\;\;
-      \langle c,\;st \rangle \; \Downarrow Some(st')
+    \infrule[WhileLoop]{
+      b = true\;\;\;\;\;\;
+      \langle c,\;(s,\;h) \rangle \Downarrow Some\;(s',\;h')
     }
     {
-       \langle (\;\mathbf{WHILE}\;{b}\;\mathbf{DO}\;{c}\;\mathbf{END}),\;st \; \rangle \; \Downarrow Some(st')
+       \langle (\mathbf{WHILE}\;{b}\;\mathbf{DO}\;{c}\;\mathbf{END}),\;(s,\;h) \rangle \Downarrow Some\;(s',\;h')
     }
 \]
 \\
 \[
-    \infrule[While End]{
+    \infrule[WhileEnd]{
       b = false
     }
     {
-       \langle (\;\mathbf{WHILE}\;{b}\;\mathbf{DO}\;{c}\;\mathbf{END}),\;st \; \rangle \; \Downarrow Some(st)
+       \langle (\mathbf{WHILE}\;{b}\;\mathbf{DO}\;{c}\;\mathbf{END}),\;(s,\;h) \rangle \Downarrow Some\;(s,\;h)
     }
 \]
 \\
@@ -136,7 +142,7 @@ The second parameter of the {\it alloc} function, {\it n}, is a natural number s
     \infrule[Read]{
        heap(a) = n
     }{
-       \langle  (X\;<\sim\; [ a ]),\;Some(s,\;h) \rangle \; \Downarrow Some\;([s\;|\;X:n],\;h)
+       \langle  (X\;\lsquigarr\; [ a ]),\;(s,\;h) \rangle \Downarrow Some\;([s\;|\;X:n],\;h)
     }
 \]
 \\
@@ -144,7 +150,7 @@ The second parameter of the {\it alloc} function, {\it n}, is a natural number s
     \infrule[Write]{
        \exists e. heap(a) = e
     }{
-       \langle  ([ a ]\;<\sim\; b),\;Some(s,\;h) \rangle \; \Downarrow Some\;([s\;|\;X:a],\;write\;a\;b\;h)
+       \langle  ([ a ]\;\lsquigarr\; b),\;(s,\;h) \rangle \Downarrow Some\;([s\;|\;X:a],\;write\;a\;b\;h)
     }
 \]
 \\
@@ -152,7 +158,7 @@ The second parameter of the {\it alloc} function, {\it n}, is a natural number s
     \infrule[Deallocate]{
        \exists e. heap(a) = e
     }{
-       \langle  (DEALLOC\;a),\;Some(s,\;h) \rangle \; \Downarrow Some\;(s,\;dealloc\;a\;h)
+       \langle  (\mathbf{DEALLOC}\;a),\;(s,\;h) \rangle \Downarrow Some\;(s,\;dealloc\;a\;h)
     }
 \]
 \\
@@ -160,30 +166,32 @@ The second parameter of the {\it alloc} function, {\it n}, is a natural number s
     \infrule[Allocate]{
        \neg \exists e. heap(a) = e \;\;\;\;\;\;\;\;\; \forall n.\; (n > a \wedge n \leq a+n) \implies \neg \exists e'. heap(n) = e'
     }{
-       \langle (X=ALLOC\;n),\;Some(s,\;h) \rangle \; \Downarrow Some\;([s\;|\;X:a],\;alloc\;a\;n\;h)
+       \langle (X\;\&\!\!\!=\mathbf{ALLOC}\;n),\;(s,\;h) \rangle \Downarrow Some\;([s\;|\;X:a],\;alloc\;a\;n\;h)
     }
 \]
 \caption{Semantics for the operations in Imp}
 \label{fig:imp_semantics}
 \end{figure}
-The semantics for the heap operations are given in Figure \ref{fig:heap_semantics}. There are a few interesting points to note here. Firstly, the semantics of allocation and deallocation are asymmetric. This asymmetry becomes evident when the input to the two underlying functions are examined: {\it alloc} accepts a number {\it n} of cells to allocate, while {\it dealloc} accepts a single address to deallocate. Therefore, it is possible to encapsulate the allocation of an arbitrary number of memory cells in a single allocation operation, while deallocating {\it n} cells from the heap has to be done in {\it n} individual deallocation operations. This limitation makes deallocation easier to reason about, but places a heavier burden of memory management on the user of the language.
+For completeness, the semantics for all the operations of the extended Imp language are given in Figure \ref{fig:imp_semantics}. We will, however, not discuss the semantics of the operations already existing in the basic version of Imp, as these have not been altered. A discussion of these can be found in ``Software Foundations''\,\cite{Pierce:SF}.
 
-Secondly, locating free addresses in the address space for the allocation operation is not a part of the allocation semantics, although the semantics do state that these addresses must be consecutive and   not already allocated. \todo{Perhaps this point belongs in a different section} Here, we simply assume that such consecutive and free addresses exist in the heap, and leave it up to the soundness proof of the corresponding Hoare rule (see Section \ref{sec:hoare_rules}) to prove this fact.
+Regarding the operations on the heap, there are a few interesting points to note. Firstly, the semantics of allocation and deallocation are asymmetric. This asymmetry becomes evident when we examine the semantics of the two operations more closely. The parameter $a$ of the Deallocate operation represents an arithmetic expression denoting the address of the cell we wish to deallocate. In contrast, the parameter $n$ of the Allocate operation denotes the number of cells we wish to allocate on the heap. Hence, we can allocate $n$ cells with one invocation of Allocate, but deallocating $n$ cells requires $n$ invocations of Deallocate. This asymmetry makes deallocation easier to reason about, but places a heavier burden of memory management on the user of the language.
 
-Lastly, it should be noted that we have no notion of void types and do not provide any measures for ignoring evaluated values. Consequently, providing a variable in which to store the result of a read or allocation operation is required. For allocation, this also has the benefit of safeguarding against allocating unreachable memory, which would be unfortunate in an environment without garbage collection.
+Secondly, locating free addresses in the address space for the allocation operation is not a part of the allocation semantics, although the semantics do state that these addresses must be consecutive and not already allocated. \todo{Perhaps this point belongs in a different section} Here, we simply assume that such consecutive and free addresses exist on the heap. The problem of finding such addresses is addressed by the soundness proof of the corresponding Hoare rule for allocation, presented in Section \ref{sec:hoare_rules_heap}.
+
+Lastly, it should be noted that we have no notion of void types and do not provide any measures for ignoring evaluated values. Consequently, providing a variable in which to store the result of a Read or Allocate operation is required. For Allocate, this also has the benefit of safeguarding against allocating unreachable memory, which would be unfortunate in an environment without garbage collection.
 
 \todo{The address space of the heap is infinite! Write this somewhere}
 \todo{We allocate cells with 0! Write this somewhere}
 
 \subsubsection{Error Semantics}
 \label{sec:error_semantics}
-An interesting consequence of adding an addressable state to a programming language is the possibility of writing programs that evaluate to a faulty state. Contrary to the basic version of the Imp language, an addressable state enables the user to write programs that type check but evaluate to an erroneous state: When reading, writing, or deallocating, the program might end up in a faulty state if attempting to access an inactive \todo{Inactive? Not invalid, or something else?} address on the heap. Note that because we assume that the address space of the heap is infinite, allocation cannot fail. We present the error semantics in Figure \ref{fig:heap_error_semantics}.
+An interesting consequence of adding an addressable heap to a programming language is the possibility of writing programs that evaluate to a faulty program state. Contrary to the basic version of the Imp language, an addressable heap enables the user to write programs that type check, but evaluate to an erroneous state: When reading, writing, or deallocating, the program might end up in a faulty program state if attempting to access an inactive \todo{Inactive? Not invalid, or something else?} address on the heap. Note that because we assume that the address space of the heap is infinite, allocation cannot fail. The error semantics are presented in Figure \ref{fig:heap_error_semantics}.
 \begin{figure}
 \[
     \infrule[ReadError]{
        \neg \exists e. heap(a) = e
     }{
-       < (X\;<\sim\; [ a ]),\;Some(s,\;h) > \; \Downarrow None
+       \langle (X\;\lsquigarr\;[ a ]),\;Some\;(s,\;h) \rangle \Downarrow None
     }
 \]
 \\
@@ -191,7 +199,7 @@ An interesting consequence of adding an addressable state to a programming langu
     \infrule[WriteError]{
        \neg \exists e. heap(a) = e
     }{
-       < ([ a ]\;<\sim\; b),\;Some(s,\;h) > \; \Downarrow None
+       \langle ([ a ]\;\lsquigarr\; b),\;Some\;(s,\;h) \rangle \Downarrow None
     }
 \]
 \\
@@ -199,7 +207,7 @@ An interesting consequence of adding an addressable state to a programming langu
     \infrule[DeallocateError]{
        \neg \exists e. heap(a) = e
     }{
-       < (DEALLOC\;a),\;Some(s,\;h) > \; \Downarrow None
+       \langle (\mathbf{DEALLOC}\;a),\;Some\;(s,\;h) \rangle \Downarrow None
     }
 \]
 \caption{Error semantics for the Read, Write, and Deallocate operations}
