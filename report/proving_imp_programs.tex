@@ -380,7 +380,7 @@ $ &
 This section describes how we have used prior work by Jesper Bengtson et al.\,\cite{BirkedalL:veroop-conf} to build a separation logic. Here, an intuitionistic logic is defined as a logic for which the axioms presented in Figure \ref{fig:axioms_int_logic} hold. Accordingly, a separation logic is defined as a logic for which the axioms presented in Figure \ref{fig:axioms_sep_logic} hold.
 
 \paragraph{Purpose.}
-The purpose of building the separation logic is to be able to create assertions {\it heap} $\to$ {\it state} $\to$ {\it Prop} for use in program specifications that need to describe both a state and a heap.
+The purpose of building the separation logic is to be able to create assertions {\it heap} $\to$ {\it state} $\to$ {\it Prop} for use in program specifications that need to make claims both a state and a heap.
 
 \paragraph{Procedure.} 
 The basis of our separation logic is {\it Prop}, the sort for propositions in Coq\,\cite{CoqIntro}. It is established that Prop is an intuitionistic logic by proving that it satisfies all the axioms of an intuitionistic logic. To further develop the intuitionistic logic of {\it Prop}, we exploit the following properties of intuitionistic logic:
@@ -394,25 +394,27 @@ By 1), we can extend the intuitionistic logic of {\it Prop} with a state to achi
 
 As we have already established that we can define heaps in terms of a separation algebra, we extend {\it state} $\to$ {\it Prop} with a type of heaps by 2). Thus we achieve a separation logic \heap $\to$ {\it state} $\to$ {\it Prop}, with which we can create assertions about programs involving both a state {\it and} a heap. Furthermore, since we create the separation logic from an equivalence relation on heaps, we can create assertions that are closed under the equivalence of heaps. This means that any assertion that holds for a given heap {\it h} will also hold for any equivalent heap {\it h'}. Analogously to the intermediate logic, the connectives now work on assertions of \heap $\to$ {\it state} $\to$ {\it Prop}.
 
+\paragraph{}
+Using this logic, we can now define Hoare rules in terms of assertions that make claims about heaps. In other words, we are now able to define Hoare rules for the heap-manipulating operations of the extended Imp language. 
+
 \todo{We define our heap to be a partial function on natural numbers mapping addresses (locations) to values}
 
 \subsubsection{Hoare Rules --- Part 2}
 \todo{Revise title of section}
 \label{sec:hoare_rules_heap}
 % All the rules have been proven sound in Coq.
-\label{sec:heap_operations}
-This section describes Hoare rules for each of the four operations presented in Section \ref{sec:heap_operations}. All of the rules have been proven sound in Coq. Note that these rules are local\,\cite{Reynolds02}, and thus rely on the frame rule (see Section \ref{sec:frame_rule}) for reasoning about non-local specifications.
+This section describes Hoare rules for each of the four heap-manipulating operations. Note that these rules are local\,\cite{Reynolds02}, and thus rely on the frame rule for reasoning about non-local specifications.
 \subsubsection{Read}
 \[
 	\infrule[Read]{}
 		{
 		\triple
 			{e\mapsto e'}
-			{\;X<\sim\lbrack\;e\;\rbrack\;}
-			{\exists v.\;(e\;\mapsto\;e')\subst{v}{X}\;\land\;(X=e')\subst{v}{X}}
+			{\;X\;\lsquigarr\;\lbrack\;e\;\rbrack\;}
+			{\exists v.\;(e\;\mapsto\;e')\subst{v}{X}\;\land\;(X=(e'\subst{v}{X}))}
 		}
 \]
-The Read rule reads the value at address {\it e}, {\it e'}, onto the stack. Consequently, all previous occurrences of {\it X} must be substituted with the old value of {\it X}, here denoted by the existential variable {\it v}, to avoid corrupting previous definitions.
+The Read rule reads the value at address {\it e}, {\it e'}, into the state. Because the value of {\it X} has now changed, all previous occurrences of {\it X} must be substituted for the old value of {\it X}, here denoted by the existential variable {\it v}, to avoid corrupting previous definitions.
 
 \subsubsection{Write}
 \[
@@ -420,7 +422,7 @@ The Read rule reads the value at address {\it e}, {\it e'}, onto the stack. Cons
 		{
 		\triple
 			{e\mapsto-}
-			{\;\lbrack\;e\;\rbrack\;<\sim\;e'\;}
+			{\;\lbrack\;e\;\rbrack\;\lsquigarr\;e'\;}
 			{e\mapsto e'}
 		}
 \]
@@ -433,11 +435,13 @@ The Write rule destructively updates an address on the heap. Importantly, the pr
 		{
 		\triple
 			{\;emp\;}
-			{\;X\;\&=ALLOC\;n\;}
+			{\;X\;\&\!\!\!=ALLOC\;n\;}
 			{\exists a. X=a\;\land\;\odot _{i=a}^{a+n-1} i\mapsto0}
 		}
 \]
 The Allocate rule allocates {\it n} memory cells as specified by the parameter to {\it ALLOC}, and lets the variable {\it X} point to the first of these cells. As it is the case in other programming languages, such as Java\,\cite{JavaDataTypes}, we allocate memory cells with a default value of zero. We do not have a separate notion of a {\it null} pointer, so pointing to zero is equivalent to pointing to {\it null}. Interpreting a value of zero as either a concrete `0' or a {\it null} pointer is up to the program.
+
+The existential variable $a$ in the postcondition denotes the address at which allocation begins. Because of our assumption that the address space of the heap is infinite, we can always choose this $a$ to be greater than any other active address on the heap. Hence, allocation never fails.
 % We allocate with 0
 % We can always find an address
 
@@ -451,48 +455,7 @@ The Allocate rule allocates {\it n} memory cells as specified by the parameter t
 			{emp}
 		}
 \]
-The Deallocate rule removes an active address from the heap. As reflected in the semantics presented in Section \ref{sec:heap_operations}, deallocation is asymmetric with respect to allocation.
-
-\subsection{Creating Assertions}
-\label{sec:assertions_heaps}
-We can create specifications from the assertion logic presented in Section \ref{sec:separation_logic} for Imp programs involving heaps. Following our definition of the logic, we must prove that any assertion used in a specification is closed under the equivalence of heaps. Consequently, and contrary to the basic version of Imp, we cannot simply state our assertions as functions on a state, such as shown in Figure \ref{fig:assertions_basic_imp}.
-
-\begin{figure}
-\[
-	\infrule{}
-		{
-		\triple
-			{\;fun\;st => st\;X = aeval\;st\;(ANum\;0)\;}
-			{\;SKIP\;}
-			{\;fun\;st => st\;X = aeval\;st\;(ANum\;0)\;}
-		}
-\]
-\caption{An example of a specification in the basic version of Imp.}
-\label{fig:assertions_basic_imp}
-\end{figure}
-
-However, because of the implementation of the logic, we do not want to model our assertions as explicit functions inside the specifications. Firstly, the explicit function definition constitutes unnecessary clutter in our specifications. Secondly, exactly because our connectives are pointwise liftings, the state and the heap need not be mentioned in the specifications at all. Instead, we define and prove assertions in terms of the heap and the state. An example analogous to the one in Figure \ref{fig:assertions_basic_imp} is shown in Figure \ref{fig:assertions_extended_imp}.
-
-\begin{figure}
-\[
-	\infrule{}
-		{
-		\triple
-			{\;aexp\_eq\;(AId X)\;(ANum\;0)\;}
-			{\;SKIP\;}
-			{\;aexp\_eq\;(AId X)\;(ANum\;0)\;}
-		}
-\]
-\caption{An example of a specification in the extended version of Imp.}
-\label{fig:assertions_extended_imp}
-\end{figure}
-
-The assertion {\it aexp\_eq} in Figure \ref{fig:assertions_extended_imp} is defined as a function \heap $\to$ {\it state} $\to$ {\it Prop} closed under the equivalence of heaps. All expressions shown inside preconditions and postconditions in the following sections are modeled in this manner, including the points-to predicate.
-
-Naturally, as all the hoare rules from the basic version of Imp presented in Section \ref{sec:background_imp} were not implemented in our assertion logic, these have been reimplemented in this logic.
-
-%operators are pointwise liftings
-\todo{Add something about the implications of changing the assertion logic for the existing Imp.}
+The Deallocate rule removes an active address from the heap. As reflected in the semantics presented in Section \ref{sec:semantics}, deallocation is asymmetric with respect to allocation.
 
 \subsection{The Frame Rule}
 \label{sec:frame_rule}
