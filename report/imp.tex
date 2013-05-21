@@ -43,11 +43,11 @@ We extend this state by adding a heap, which will provide us with a mapping from
                   id = "Id" nat ;
                   nat = natural number, 0 included ;
 \end{alltt}
+\caption{Full Grammar for the extended Imp language, specified in EBNF.}
 \label{fig:imp_grammar}
-\caption{Grammar for the extended Imp language.}
 \end{figure}
 
-The full grammar for the extended Imp language, including operations for manipulating the heap, namely Read, Write, Deallocate, and Allocate, are shown in Figure \ref{imp_grammar}. Besides these, we have assignment, sequencing, conditional statements, and while loops. 
+The full grammar for the extended Imp language, including the added operations for manipulating the heap, namely read, write, deallocate, and allocate, is shown in Figure \ref{fig:imp_grammar}. Besides these, we have skip, assignment, sequencing, conditional statements, and while loops from the basic version of Imp. Basically, any Imp program consists of one or more commands, arithmetic expressions on natural numbers, and boolean expressions. All variables, implemented as identifiers on natural numbers ({\it id}), are evaluated with the {\it state}. Since the domain of the heap is the natural numbers, an address on the heap is accessed by evaluating any {\it aexp} representing a memory address with the state.
 
 \subsection{Semantics}
 \label{sec:semantics}
