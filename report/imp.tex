@@ -2,36 +2,35 @@
 \section{The Imp Language}
 \label{sec:background_imp}
 % As previously mentioned, Imp\footnote{Not to be confused with Irons IMP language or the Edinburgh IMP language.} is a simple imperative programming language studied in the electronic book ``Software Foundations'' and implemented in Coq. The language includes a selection of core features of widely used imperative programming languages such as C and Java, \todo{"... and certain properties about the language as a whole have been proven" lyder underligt} and certain properties about the language as a whole have been proven. This helps verification of programs written in Imp, as the precise definition of Imp can be used to formally prove that a certain program satisfies a particular specification. 
-In this section we will describe the Imp language and its features. The parts of Imp originating from its initial implementation will be presented\,\cite{Pierce:SF} along side our additions. We will refer to the unmodified version of Imp as \textit{the basic version of Imp}, and the version including our modifications as \textit{the extended version of Imp}.
+In this section we will describe the Imp language and its features. The parts of Imp originating from its initial implementation will be presented\,\cite{Pierce:SF} alongside our additions. We will refer to the unmodified version of Imp as \textit{the basic version of Imp}, and the version including our modifications as \textit{the extended version of Imp}.
 
 \subsection{The Program State}
 \label{sec:the_program_state}
-To represent values at a point of execution Imp uses a $state$. In both the basic and the extended version of Imp this state, is a partially applied function $id \to value$, where $id$ identifies the variable. It is the same notion as what would typically be called a program stack.
+To represent values at a point of execution Imp uses a $state$. In both the basic and the extended version of Imp this state is a partially applied function $id \to value$, where $id$ identifies a variable. It is the same notion as what would typically be called a program stack.
 
-\defbf{The state} \textit{The state is a function from identifiers to values, which is specified as }$state \eqdef id \to value.$
-
-\paragraph{}
-We extend the storage in Imp with a mutable state in the form of a heap. For modeling this heap we use maps from the Coq Containers library\,\cite{CoqContainers}.This will provide us with a mapping from addresses to values. For the sake of simplicity, we will consider the address space of the heap to be infinite, which means that a program cannot run out of memory. We define heaps as a partial function from addresses to values.
-
-\defbf{The heap} \textit{The heap is a partial function mapping addresses to values, which is specified assignment} $\heap \eqdef a\to v, \; where\; a, \;v \in \mathbb{N}.$
+\defbf{State} \textit{The state is a function from identifiers to values, which is specified as }$state \eqdef id \to value.$
 
 \paragraph{}
+We extend the storage in Imp with a mutable state in the form of a heap. For modeling this heap we use maps from the Coq Containers library\,\cite{CoqContainers}. This will provide us with a mapping from addresses to values. For the sake of simplicity, we will consider the address space of the heap to be infinite, which means that a program cannot run out of memory. We define a heap as a partial function from addresses to values.
+
+\defbf{Heap} \textit{The heap is a partial function mapping addresses to values, which is specified } $\heap \eqdef a\to v, \; where\; a, \;v \in \mathbb{N}.$
+
+\paragraph{} %say waht key and value is in our situation
 To avoid terminological confusion, definition 1 will henceforth be referred to as $the\;state$, definition 2 as $the\;heap$, and the combination of the two as $the\;program\;state$.
 
 \paragraph{Functions operating on the heap.}
-For look up on the heap we will be using the already defined $find$ function from the implementation of maps\,\cite{CoqContainers}. Find returns a value wrapped in Coq's standard Option type\,\cite{CoqOption}, meaning that if the key existed in the map it will return $Some(value)$, and if the key was not found in the map it will return $None$.
+For lookup on the heap we will be using the already defined $find$ function from the implementation of maps\,\cite{CoqContainers}. Find returns a value wrapped in Coq's standard Option type\,\cite{CoqOption}, meaning that if the key exists in the map it will return $Some(value)$, and if the key was not found in the map it will return $None$.
 
-\defbf{Find} \textit{Find is a function which given an key k and a map m, returns the corresponding value wrapped in an option type. Find is defined as }{\it find} $\eqdef$ {\it key} $\to$ {\it map} $\to$ {\it value.}
+\defbf{Find} \textit{Find is a function which given an key k and a map m, returns the corresponding value wrapped in an option type. Find is defined as }{\it find} $\eqdef$ {\it key} $\to$ {\it map} $\to$ {\it option value.}
 
+\paragraph{}
+In our case, the key and value are natural numbers, coming from our definition of a heap.
 \paragraph{}
 The following heap-manipulating functions underlying the implementation of the heap operations in Imp are used in the semantics discussed in Section \ref{sec:semantics}.
 
-\defbf{Write}\textit{Write is a function which given a value v, an address a, and a heap h, returns a modified h, such that look up on a results in v. Write is defined as} {\it write} $\eqdef$ {\it a} $\to$ {\it v} $\to$ {\it heap} $\to$ {\it heap.}
-\defbf{Deallocate} \textit{Deallocate is a function which given an address a and a heap h, returns a modified h, such that look up on a fails. Deallocate is defined as }{\it dealloc} $\eqdef$ {\it a} $\to$ {\it heap} $\to$ {\it heap}
-\defbf{Allocate} \textit{Allocate is a function which given an address a, a natural number n, and a heap h, returns a modified h, such that look up on a, a+1 ... a+n all result in 0. Allocate is defined as }{\it alloc} $\eqdef$ {\it a} $\to$ {\it n} $\to$ {\it heap} $\to$ {\it heap.}
-
-\paragraph{}
-The second parameter of the {\it alloc} function, {\it n}, is a natural number specifying the number of cells to allocate.
+\defbf{Write}\textit{Write is a function which given a value v, an address a, and a heap h, returns h, extended with a mapping from a to v, such that lookup on a results in v. Write is defined as} {\it write} $\eqdef$ {\it a} $\to$ {\it v} $\to$ {\it heap} $\to$ {\it heap.}
+\defbf{Deallocate} \textit{Deallocate is a function which given an address a and a heap h, returns h, with no mapping from a to v, such that lookup on a fails. Deallocate is defined as }{\it dealloc} $\eqdef$ {\it a} $\to$ {\it heap} $\to$ {\it heap}
+\defbf{Allocate} \textit{Allocate is a function which given an address a, a natural number of cells to allocate n, and a heap h, returns h, extended with a mapping from a to v, such that lookup on a, a+1} $\cdots$ \textit{a+n-1 all result in 0. Allocate is defined as }{\it alloc} $\eqdef$ {\it a} $\to$ {\it n} $\to$ {\it heap} $\to$ {\it heap.}
 
 \subsection{Grammar}
 
