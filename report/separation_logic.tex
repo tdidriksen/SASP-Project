@@ -27,7 +27,7 @@ One of the key points of separation logic is the ability to reason locally about
 
 If we have a program {\it C} with the precondition {\it P} and the postcondition {\it Q}, we can abstract away the rest of the heap {\it R}, as we know that {\it c} does not modify any part of {\it R}.
 
-\subsubsection{Partial Correctness}
+\subsubsection{Partial Correctness}\todo{Move to hoare logic}
 In this paper, we only consider partial correctness specifications of separation logic. This means that we do not provide proofs of termination for any of the programs that we examine, only proofs of correctness.
 
 
@@ -39,6 +39,13 @@ We can define heaps in terms of a separation algebra by taking $\Sigma$ to be a 
 \subsubsection{Building the Separation Logic}
 \todo{Maybe add a reference to low-level separation logic-paper}
 As presented in the problem statement, we need to extend the intuitionistic logic in which the Imp language is already defined with a separation logic, in order to be able to reason about programs involving a heap. This section describes how we have used prior work by Jesper Bengtson et al.\,\cite{BirkedalL:veroop-conf} to build such a logic. Our utilization of this logic will be clarified in Section \ref{sec:assertions_heaps}.
+
+\begin{figure}
+
+A $\vdash$ $\top$
+
+\caption{The axioms of our intuitionistic logic.}
+\end{figure}
 
 \paragraph{Purpose.}
 The purpose of building the separation logic is to be able to create assertions {\it heap} $\rightharpoonup$ {\it state} $\rightharpoonup$ {\it Prop} for use in program specifications that need to describe both a stack (or state) and a heap.

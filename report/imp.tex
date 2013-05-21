@@ -4,6 +4,17 @@
 % As previously mentioned, Imp\footnote{Not to be confused with Irons IMP language or the Edinburgh IMP language.} is a simple imperative programming language studied in the electronic book ``Software Foundations'' and implemented in Coq. The language includes a selection of core features of widely used imperative programming languages such as C and Java, \todo{"... and certain properties about the language as a whole have been proven" lyder underligt} and certain properties about the language as a whole have been proven. This helps verification of programs written in Imp, as the precise definition of Imp can be used to formally prove that a certain program satisfies a particular specification. 
 In this section we will describe the Imp language and its features. The parts of Imp originating from its initial implementation will be presented\,\cite{Pierce:SF} along side our additions. It is worth noting that expressions in Imp are limited to arithmetics and booleans.\todo{Seems odd here, maybe move to grammar section?}
 
+\subsection{The Program State}
+To represent values at a point of execution Imp uses a $state$. This state, is a partially applied function $id \rightharpoonup value$\todo{Give a definition of id?}, where $id$ identifies the variable. The language has a command for assignment of variables, along with control-flow statements for conditionals, loops, and sequencing of commands. To be able to reason about these commands, assertions are used to make claims about a particular state of a program during execution. Given a state these assertions will give a claim based on this state\todo{Maybe example of this?}. As such assertions are defined as $state \rightharpoonup proposition$. Each of the command is specified by a Hoare rule, and will be discussed further in section \ref{sec:hoare_rules}.
+\todo{Revise this section. Should be about the old state and the addition of the heap.}
+
+%To be able to implement such programs as list reversal in Imp\todo{Something wrong.}, we need to introduce the idea of a mutable state. Originally, the state in Imp is managed by a stack, which is a function from variables to values.
+We extend this state by adding a heap, which will provide us with a mapping from addresses to values. For the sake of simplicity, we will consider the address space of the heap to be infinite, which means that a program cannot run out of memory. We define heaps as a partial function from addresses ($nat$) to values ($nat$):
+
+\[
+\heap \eqdef a\rightharpoonup v, \; where\; a, \;v \in \mathbb{N}
+\] 
+
 \subsection{Grammar}
 
 \begin{figure}
@@ -32,19 +43,11 @@ In this section we will describe the Imp language and its features. The parts of
                   id = "Id" nat ;
                   nat = natural number, 0 included ;
 \end{alltt}
+\label{fig:imp_grammar}
 \caption{Grammar for the extended Imp language.}
 \end{figure}
 
-\subsection{The Program State}
-To represent values at a point of execution Imp uses a $state$. This state, is a partially applied function $id \rightharpoonup value$\todo{Give a definition of id?}, where $id$ identifies the variable. The language has a command for assignment of variables, along with control-flow statements for conditionals, loops, and sequencing of commands. To be able to reason about these commands, assertions are used to make claims about a particular state of a program during execution. Given a state these assertions will give a claim based on this state\todo{Maybe example of this?}. As such assertions are defined as $state \rightharpoonup proposition$. Each of the command is specified by a Hoare rule, and will be discussed further in section \ref{sec:hoare_rules}.
-\todo{Revise this section. Should be about the old state and the addition of the heap.}
-
-%To be able to implement such programs as list reversal in Imp\todo{Something wrong.}, we need to introduce the idea of a mutable state. Originally, the state in Imp is managed by a stack, which is a function from variables to values.
-We extend this state by adding a heap, which will provide us with a mapping from addresses to values. For the sake of simplicity, we will consider the address space of the heap to be infinite, which means that a program cannot run out of memory. We define heaps as a partial function from addresses ($nat$) to values ($nat$):
-
-\[
-\heap \eqdef a\rightharpoonup v, \; where\; a, \;v \in \mathbb{N}
-\] 
+The full grammar for the extended Imp language, including operations for manipulating the heap, namely Read, Write, Deallocate, and Allocate, are shown in Figure \ref{imp_grammar}. Besides these, we have assignment, sequencing, conditional statements, and while loops. 
 
 \subsection{Semantics}
 \label{sec:semantics}

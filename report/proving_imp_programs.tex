@@ -133,6 +133,212 @@ A separation algebra is a cancellative, partial, commutative monoid ($\Sigma$, $
 
 We can define heaps in terms of a separation algebra by taking $\Sigma$ to be a type of heaps, $\circ$ to be a composition operator for two disjoint heaps, and {\it u} to be {\it emp}, the unit of the separating conjunction \cite{BirkedalL:veroop-conf}.
 
+\begin{figure}
+\begin{center}
+\setlength{\tabcolsep}{0.5cm}
+\begin{tabular}{ c c c }
+$
+	\infrule{}
+		{
+		  A \vdash \top
+		}
+$ & $
+	\infrule{}
+		{
+		  \bot \vdash A
+		}
+$ & $
+	\infrule
+	    {
+			A\;x \vdash B
+	    }
+		{
+			\forall A, A \vdash B
+		}
+$ \\ \\
+$
+	\infrule[]
+	    {
+			\forall x, B \vdash A\;x
+	    }
+		{
+			\forall A, B \vdash A
+		}
+$ &
+$
+	\infrule[]
+	    {
+			\forall x, A\;x \vdash B
+	    }
+		{
+			\exists A, A \vdash B
+		}
+$ &
+$
+	\infrule[]
+	    {
+			B \vdash A\;x
+	    }
+		{
+			\exists A, B \vdash A
+		}
+$ \\ \\
+$
+	\infrule[]
+	    {
+			A \vdash C
+	    }
+		{
+			A \land B \vdash C
+		}
+$ &
+$
+	\infrule[]
+	    {
+			B \vdash C
+	    }
+		{
+			A \land B \vdash C
+		}
+$ &
+$
+	\infrule[]
+	    {
+			A \vdash B
+	    }
+		{
+			A \vdash B \lor C
+		}
+$ \\ \\
+$
+	\infrule[]
+	    {
+			A \vdash C
+	    }
+		{
+			A \vdash B \lor C
+		}
+$ &
+$
+	\infrule[]
+	    {
+			A \vdash C\;\;\;B \vdash C
+	    }
+		{
+			A \lor B \vdash C
+		}
+$ &
+$
+	\infrule[]
+	    {
+			A \vdash B\;\;\;A \vdash C
+	    }
+		{
+			A \vdash B \land C
+		}
+$ \\ \\
+\multicolumn{3}{c}{
+$
+	\infrule[]
+	    {
+			A \vdash (B \Rightarrow C)
+	    }
+		{
+			A \land B \vdash C
+		}
+	\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;
+	\infrule[]
+	    {
+			A \land B \vdash C
+	    }
+		{
+			A \vdash (B \Rightarrow C)
+		}
+$}
+
+\end{tabular}
+\end{center}
+
+% ltrueR: forall C, C |-- ltrue;
+% lfalseL: forall C, lfalse |-- C;
+% lforallL: forall T x (P: T -> Frm) C, P x |-- C -> lforall P |-- C;
+% lforallR: forall T (P: T -> Frm) C, (forall x, C |-- P x) -> C |-- lforall P;
+% lexistsL: forall T (P: T -> Frm) C, (forall x, P x |-- C) -> lexists P |-- C;
+% lexistsR: forall T x (P: T -> Frm) C, C |-- P x -> C |-- lexists P;
+% landL1: forall P Q C, P |-- C  ->  P //\\ Q |-- C;
+% landL2: forall P Q C, Q |-- C  ->  P //\\ Q |-- C;
+% lorR1:  forall P Q C, C |-- P  ->  C |-- P \\// Q;
+% lorR2:  forall P Q C, C |-- Q  ->  C |-- P \\// Q;
+% landR:  forall P Q C, C |-- P  ->  C |-- Q  ->  C |-- P //\\ Q;
+% lorL:   forall P Q C, P |-- C  ->  Q |-- C  ->  P \\// Q |-- C;
+% landAdj: forall P Q C, C |-- (P -->> Q) -> C //\\ P |-- Q;
+% limplAdj: forall P Q C, C //\\ P |-- Q -> C |-- (P -->> Q)
+
+\caption{The axioms of our intuitionistic logic.}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\setlength{\tabcolsep}{0.5cm}
+\begin{tabular}{ c c c }
+$
+	\infrule{}
+		{
+ 		  P * Q \vdash Q * P
+		}
+$ & $
+	\infrule{}
+		{
+ 		  (P * Q) * R \vdash P * (Q * R)
+		}
+$ & $
+	\infrule
+	    {
+			P * Q \vdash R
+	    }
+		{
+			P \vdash Q \wand R
+		}
+$ \\ \\
+$
+	\infrule[]
+	    {
+			P \vdash Q \wand R
+	    }
+		{
+			P * Q \vdash R
+		}
+$ &
+$
+	\infrule[]
+	    {
+			P \vdash Q
+	    }
+		{
+			P * R \vdash Q * R
+		}
+$ &
+$
+	\infrule[]
+		{}
+	    {
+			P * emp \vdash P
+	    }
+$ \\ \\
+&
+$
+	\infrule[]
+		{}
+	    {
+			P \vdash P * emp
+	    }
+$ &
+\end{tabular}
+\end{center}
+
+\caption{The axioms of our separation logic.}
+\end{figure}
+
 \subsubsection{Building the Separation Logic}
 \todo{Maybe add a reference to low-level separation logic-paper}
 As presented in the problem statement, we need to extend the intuitionistic logic in which the Imp language is already defined with a separation logic, in order to be able to reason about programs involving a heap. This section describes how we have used prior work by Jesper Bengtson et al.\,\cite{BirkedalL:veroop-conf} to build such a logic. Our utilization of this logic will be clarified in Section \ref{sec:assertions_heaps}.
