@@ -8,27 +8,34 @@ Hoare logic\,\cite{Hoare69anaxiomatic} is a formal system for program verificati
 In Hoare logic, only partial correctness of a program is proven. This means that we only prove the correctness of a program in the event that the program terminates. Proving that a program terminates is a separate activity, which we will not consider here.
 %partial correctness
 \subsubsection{The Hoare Triple}
-As previously mentioned, specifications of Imp programs are given using Hoare triples. Due to the new assertion type presented in Section \ref{sec:assertions_heaps}, a change of the definition of this Hoare triple is needed accordingly. The basic Hoare triple is defined as follows:
-\\
-\\
-\textit{If a command c is started in a state satisfying an assertion P, then the resulting state will satisfy an assertion Q, if c terminates.}\todo{Add reference to definition. Perhaps change to more canonical wording. Remember to propagate changes to other sentence.}
-\\
-\\
-While this essentially still holds for the extended Imp specifications, this definition is insufficient. As discussed in Section \ref{sec:error_semantics}, some of the heap-manipulating operations can evaluate to a faulty state. This is an issue, since the Hoare triple claims that the resulting state is guaranteed to satisfy the post-condition. With the above definition, this can no longer be guaranteed if the resulting state is faulty. As such, we need our Hoare triple to  express that the command c does not result in an error state.
-\\
-\\
-\textit{If a command c is started in a state st satisfying an assertion P, and c does not fail in st, then the resulting state will satisfy an assertion Q, if c terminates.}
-\\
-\\
-To express the idea of a command not failing in a state, we introduce the notion of safety. A command is safe in a state {\it st} if the command, starting in {\it st}, does not evaluate to None. We therefore define safety as follows:
+The Hoare triple is one of the central concepts of Hoare logic.
 
-\[ \mathit{safe\;c\;st\;: \;\neg \;(<c,\;st>\;\Downarrow None)}\]
+\defbf{Orignial Hoare Triple\label{original_hoare}} \textit{If command c is started in a state satisfying assertion P, and if c eventually terminates, then the final state is guaranteed to satisfy the assertion Q}\,\cite{Pierce:SF}\textit{.}
+
+\paragraph{}
+Note that in the case that c does not terminate, we can not say anything about Q. Below is a formalization of the definition above.
+
+\[
+\forall st\;st'.\;\langle c,\;st\rangle\;\Downarrow Some\; st' \impl P\;st \impl Q\;st'
+\]
+
+The addition of a heap to the program state brings forth a new aspect of this triple definition. As discussed in Section \ref{sec:error_semantics}, some of the heap-manipulating operations can evaluate to a faulty program state. This is an issue, since the Hoare triple claims that, if c terminates, the resulting state is guaranteed to satisfy the post-condition. With the above definition, this can no longer be guaranteed if the resulting program state is faulty. As such, we need our Hoare triple to express that the command c does not result in an error state.
+
+\defbf{Redefined Hoare Triple} \textit{If command c is started in a state satisfying assertion P, if c eventually terminates, and c does not fail in st, then the final state is guaranteed to satisfy the assertion Q. We use the following notation for the Hoare triple: } $\triple{P}{\;c\;}{Q}$
+
+\paragraph{}
+To express the idea of a command not failing in a state, we introduce the notion of safety. A command is safe in a state {\it st} if the command, starting in {\it st}, does not evaluate to $None$. We therefore define safety as follows:
+
+\[ \mathit{safe\;c\;st\;: \;\neg \;(\langle c,\;st\rangle\;\Downarrow None)}\]
 
 Having formalized the a safety predicate, we can now formulate a new definition of our Hoare triple. This gives us the following definition of a Hoare triple:
 
 \[
-\forall st.\; P\;st \impl safe\;c\;st \land \forall st'. <c,\;st>\;\Downarrow Some\; st' \impl Q\;st'
+\forall st.\; P\;st \impl safe\;c\;st \land \forall st'. \langle c,\;st\rangle\;\Downarrow Some\; st' \impl Q\;st'
 \]
+
+When referring to $the\;Hoare\;triple$ we mean the redefined Hoare triple.
+
 \subsubsection{Hoare Rules --- Part 1}
 The Hoare rules for the operations found in the basic version of Imp are shown in Figure \ref{fig:hoare_rules_basic_imp}. Because these are all defined in ``Software Foundations'', we will not go through the justification for each of them. As an example, however, we will consider the justification for the Assignment rule.
 
