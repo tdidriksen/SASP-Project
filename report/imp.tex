@@ -5,15 +5,16 @@
 In this section we will describe the Imp language and its features. The parts of Imp originating from its initial implementation will be presented\,\cite{Pierce:SF} along side our additions. It is worth noting that expressions in Imp are limited to arithmetics and booleans.\todo{Seems odd here, maybe move to grammar section?}
 
 \subsection{The Program State}
-To represent values at a point of execution Imp uses a $state$. This state, is a partially applied function $id \rightharpoonup value$\todo{Give a definition of id?}, where $id$ identifies the variable. The language has a command for assignment of variables, along with control-flow statements for conditionals, loops, and sequencing of commands. To be able to reason about these commands, assertions are used to make claims about a particular state of a program during execution. Given a state these assertions will give a claim based on this state\todo{Maybe example of this?}. As such assertions are defined as $state \rightharpoonup proposition$. Each of the command is specified by a Hoare rule, and will be discussed further in section \ref{sec:hoare_rules}.
-\todo{Revise this section. Should be about the old state and the addition of the heap.}
+To represent values at a point of execution Imp uses a $state$. In the basic version of Imp this state, is a partially applied function $id \rightharpoonup value$, where $id$ identifies the variable. It is the same notion as what would usually be called a the program stack.
 
-%To be able to implement such programs as list reversal in Imp\todo{Something wrong.}, we need to introduce the idea of a mutable state. Originally, the state in Imp is managed by a stack, which is a function from variables to values.
+\paragraph{}
+\textbf{Definition 1 (The state):} \textit{The state is a function for mapping from identifiers to values, which is specified as }$state \eqdef id \rightharpoonup value.$
+
+\paragraph{}
 We extend this state by adding a heap, which will provide us with a mapping from addresses to values. For the sake of simplicity, we will consider the address space of the heap to be infinite, which means that a program cannot run out of memory. We define heaps as a partial function from addresses ($nat$) to values ($nat$):
 
-\[
-\heap \eqdef a\rightharpoonup v, \; where\; a, \;v \in \mathbb{N}
-\] 
+\paragraph{}
+\textbf{Definition 2 (The heap):} \textit{The heap is function for mapping addresses to values, which is specified as } $\heap \eqdef a\rightharpoonup v, \; where\; a, \;v \in \mathbb{N}.$
 
 \subsection{Grammar}
 
