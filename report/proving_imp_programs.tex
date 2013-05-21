@@ -1,9 +1,12 @@
 %!TEX root = ./report.tex
-\section{Proving Imp Programs}
+\section{Verifying Imp Programs}
 \todo{Introduction to proving - maybe with why and methodology}
 An interesting property of the Imp language is that any Imp program can be formally verified directly within the Coq environment. This section introduces Hoare logic, the formal system within which Imp programs are verified, together with its main concepts. Additionally, we define the rules required for reasoning about the operations of the extended Imp language.
 \subsection{Hoare Logic}
+Hoare logic\,\cite{Hoare69anaxiomatic} is a formal system for program verification. It formalizes the evaluation of a program using two types of assertions: preconditions and postcondtions. A precondition is an assertion that holds prior to program execution, and a postcondition is an assertion that holds after program execution.
 
+In Hoare logic, only partial correctness of a program is proven. This means that we only prove the correctness of a program in the event that the program terminates. Proving that a program terminates is a separate activity, which we will not consider here.
+%partial correctness
 \subsubsection{The Hoare Triple}
 As previously mentioned, specifications of Imp programs are given using Hoare triples. Due to the new assertion type presented in Section \ref{sec:assertions_heaps}, a change of the definition of this Hoare triple is needed accordingly. The basic Hoare triple is defined as follows:
 \\
@@ -27,12 +30,17 @@ Having formalized the a safety predicate, we can now formulate a new definition 
 \forall st.\; P\;st \impl safe\;c\;st \land \forall st'. <c,\;st>\;\Downarrow Some\; st' \impl Q\;st'
 \]
 \subsubsection{Hoare Rules --- Part 1}
+The Hoare rules for the operations found in the basic version of Imp are shown in Figure \ref{fig:hoare_rules_basic_imp}. Because these are all defined in ``Software Foundations'', we will not go through the justification for each of them. As an example, however, we will consider the justification for the Assignment rule.
+
+Let us think of the $Q$ in the Assignment rule as any property of natural numbers, such as ``being equal to 1'', and note the fact that $a$ is an arithmetic expression on natural numbers. This means that if we have $Q(a)$, that $Q$ holds for $a$, we can state that ``a is equal to 1''. Then the assignment command, $X ::= a$, transfers this property of $a$ to $X$, so that we are now able to state that ``X is equal to 1'', or $Q(X)$. Rephrasing this intuition, we can say that if we substitute all occurrences of $X$ in $Q$ with $a$ in the precondition, and we know that $Q(a)$ holds, then when we transfer the property of $Q(a)$ to $X$, then $Q$ must hold in the postcondition, since $Q(a)$ held in the precondition.
+
+Taking a closer look at the assignment rule, we realize that it only holds for assigning a variable to the state, and not the heap. In fact, we have no way of expressing concise propositions about the heap inside a Hoare rule. For stating propositions about the heap, we turn to separation logic.
 \begin{figure}
 \[
     \infrule[Assignment]{}{
       	\triple
       		{Q\subst a X} 
-      		{\;\cassign {X} {a}\;}
+      		{\;X::=a\;}
 	  		{Q}
     }
     \;\;\;\;\;\;\;\;
@@ -93,7 +101,7 @@ Having formalized the a safety predicate, we can now formulate a new definition 
     }
 \]
 \caption{Hoare rules of the Imp language.}
-\label{fig:hoare_rules_imp}
+\label{fig:hoare_rules_basic_imp}
 \end{figure}
 \todo{Revise title of section}
 \todo{Mention partial correctness here.}
