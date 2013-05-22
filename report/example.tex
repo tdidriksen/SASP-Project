@@ -1,5 +1,6 @@
 %!TEX root = ./report.tex
 \section{An Example}
+\label{sec:ex}
 Figure \ref{fig:example} shows a simple example program swapping two values on the heap. An informal correctness proof of this program using the rules we have developed in the above sections is given in Figure \ref{fig:dec_example}. The frame rule is applied prior to each application of a Hoare rule, and lines 19-20 gives an example of the use of the rule of consequence. Also, for simplicity, some trivial intermediate derivations are not shown. The derivations on lines 12 and 18 utilizes the notion of pure assertions\,\cite{reynolds2008AnIntroductionTo}, which in this case means that any conjunction between two assertions can be substituted for a separating conjunction if one (or both) of the assertions do not make claims about the heap.
 \begin{figure}
 \begin{alltt}

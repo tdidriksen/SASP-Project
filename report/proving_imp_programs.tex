@@ -3,6 +3,7 @@
 \todo{Introduction to proving - maybe with why and methodology}
 An interesting property of the Imp language is that any Imp program can be formally verified directly within the Coq environment. This section introduces Hoare logic, the formal system within which Imp programs are verified, together with its main concepts. Additionally, we define the rules required for reasoning about the operations of the extended Imp language.
 \subsection{Hoare Logic}
+\label{sec:hoare_rules}
 Hoare logic\,\cite{Hoare69anaxiomatic} is a formal system for program verification. It formalizes the evaluation of a program using two types of assertions: preconditions and postcondtions. A precondition is an assertion that holds prior to program execution, and a postcondition is an assertion that holds after program execution.
 
 In Hoare logic, only partial correctness of a program is proven. This means that we only prove the correctness of a program in the event that the program terminates. Proving that a program terminates is a separate activity, which we will not consider here.
@@ -486,6 +487,7 @@ The side condition of the frame rule states that the frame rule only holds in th
 In Section \ref{sec:hoare_triple} we introduced the notion of safety to our Hoare triple, as a way of ensuring that no commands that evaluate to an erroneous program state can satisfy the triple. Thus far we have only reasoned about safety in a local scope, so to use the frame rule to globalize our local Hoare rules we have to consider safety monotonicity. Safety monotonicity means that if executing a command $c$ is safe in a program state involving a heap $h'$ , and $h'\;\heapsubop\;h$, then $c$ must also be safe in a program state involving $h$. To be able to prove the frame rule, we have to also prove safety monotonicity.
 
 \subsection{Rules of Consequence}
+\label{sec:rules_of_con}
 The precondition or postcondition of a Hoare rule might at times differ from the ones needed when verifying a program. While the condition we are trying to prove might be logically equivalent to one in a given rule, their differences prevent them from being unified. To accommodate this difference, Hoare logic introduces the rules of consequence\,\cite{Hoare69anaxiomatic}. They state that any precondition $P$ can be substituted for a weaker precondition $P'$, while any postcondition $Q$ can be substituted for a stronger postcondition $Q'$. These rules are shown in Figure \ref{fig:rules_of_consequence}.
 
 \begin{figure}
