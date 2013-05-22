@@ -320,7 +320,7 @@ Program Definition bassn b : Assertion :=
 
 (* aexp equality *)
 Program Definition aexp_eq (a1 a2 : aexp) : Assertion :=
-  mk_asn (fun h st => aeval st a1 = aeval st a2) _.
+  mk_asn (fun _ st => aeval st a1 = aeval st a2) _.
 (* No Obligations *)
 
 Program Definition aexp_eq_sub (a1 : id) (a2 : aexp) (X : id) (n : nat) : Assertion :=
@@ -353,34 +353,84 @@ Proof.
     assumption.
 Qed.
 
-Definition pure (P : Assertion) :=
+Definition pure'' (P : Assertion) :=
   Forall Q, (P ** Q -|- P //\\ Q).
 
-Lemma convert_pure P Q (H: pure P) :
+Lemma convert_pure P Q (H: pure'' P) :
   P ** Q -|- P //\\ Q.
 Proof. apply H. Qed.
+
+Definition pure (P: Assertion) :=
+  forall s h h', P h s <-> P h' s.
+
+Require Export SepAlg.
+  
+Lemma convert_pure1 P Q (H: pure P) :
+  P //\\ Q |-- P ** Q.
+Proof.
+  unfold pure in H.
+  intros Pre h'' s'' H'.
+  simpl in H'.
+  Local Opaque MapSepAlgOps.
+  simpl.
+  exists sa_unit.
+  exists h''.
+  eexists.
+  apply sa_mulC.
+  apply sa_unitI.
+  inversion H'.
+  split.
+  eapply H.
+  eassumption.
+  assumption.
+Qed.
+
+Lemma convert_pure2 P Q (H: pure P) (H': pure Q) :
+  P ** Q |-- P //\\ Q.
+Proof.
+  unfold pure in *.
+  intros Pre h'' s'' H''.
+  simpl in H''.
+  simpl.
+  destruct H''.
+  destruct H0.
+  destruct H0.
+  inversion H0.
+  split.
+  eapply H.
+  eassumption.
+  eapply H'.
+  eassumption.
+Qed.
+
 
 Local Transparent ILFun_Ops.
 Local Transparent ILPre_Ops.
 Local Transparent SABIOps.
 
-Lemma aexp_eq_sub_pure : forall X v v',
-  pure (aexp_eq_sub X v X v').
+Lemma exists_aexp_eq_sub_pure : forall X v,
+  pure (Exists v', aexp_eq_sub X v X v').
 Proof.
   intros X v v'.
   unfold pure.
   split.
-    intros Pre h s.
-    simpl.
-
     intros.
-    destruct H.
-    destruct H.
-    destruct H.
-    inversion H.
-    split.
+    simpl in *.
+    assumption.
+    
+    intros.
+    simpl in *.
+    assumption.
+Qed.
 
-Admitted.
+
+(**
+list_sub ns ids a b X = n /\ X not_in ids -> b X = n
+*)
+
+
+
+
 
 (* Function calls *)
 
@@ -447,13 +497,13 @@ Proof.
     intros.
     inversion H.
     
-    subst.(**
-    apply H1 with st'0.
-    apply H2 with st.
+    subst.
+    apply H2 with st'0.
+    apply H1 with st.
     assumption.
     assumption.
-    assumption.*)
- Admitted.
+    assumption.
+Qed.
 
 
 Program Definition assn_sub (X: id) a (Q : Assertion) : Assertion :=
@@ -807,6 +857,27 @@ Proof.
     intuition.
 Qed.
 
+Theorem sep_hoare_consequence_pre2 : forall (P P' Q : Assertion) c,
+  {{ P' }} c {{ Q }} ->
+  P |-- P' ->
+  {{ P }} c {{ Q }}.
+Proof.
+(**
+  unfold hoare_triple.
+  intros.
+  split.
+  Case "safety".
+    apply H in H1.
+    specialize (H0 _ H1).
+    apply H0.
+    intuition.
+  Case "".
+    apply H0.
+    apply H in H1.
+    apply H1.
+    intuition.*)
+Admitted.
+
 Theorem sep_hoare_consequence_post : forall (P Q Q' : Assertion) c,
   {{ P }} c {{ Q' }} ->
   Q' |-- Q ->
@@ -840,18 +911,14 @@ Fixpoint modified_by (c : com) : list id :=
   end.
   
 Fixpoint list_sub (vs : list nat) (l : list id) (ost : state) (ast : state) : state :=
-  match vs with
-  | vsh :: vs =>
-    match l with
-      | lh :: l => list_sub vs l ost (substitute ast ost (cons (lh, ANum(vsh)) nil))
-      | _ => ast
-    end
-  | _ =>
-    match l with
-      | h :: t => ast
-      | _ => ast
-    end
-  end. 
+  match l with
+    | nil => ast
+    | lh :: ls =>
+      match vs with
+      | nil => ast
+      | vsh :: vs' => list_sub vs' ls ost (substitute ast ost (cons (lh, ANum(vsh)) nil))
+      end
+  end.
   
 Program Definition var_sub (R : Assertion) vs xs : Assertion :=
   mk_asn (fun h st => R h (list_sub vs xs st st)) _.
@@ -862,6 +929,32 @@ Next Obligation.
   apply H1.
   apply H0.
 Qed.
+
+Fixpoint existsb {X: Type} (f:X->bool) (l: list X) : bool :=
+	match l with
+	| nil => false
+	| h :: t => orb (f h) (existsb f t)
+	end.
+
+Lemma list_sub_not_in_ids : forall ns ids a b X n,
+  list_sub ns ids a b X = n /\ existsb (beq_id X) ids = false ->
+  b X = n.
+Proof.
+  intros.
+  induction ns.
+  inversion H.
+  simpl in H0.
+  induction ids.
+  assumption.
+  assumption.
+  
+  apply IHns.
+  split.
+  inversion H.
+  admit.
+  inversion H.
+  assumption.
+Admitted.
 
 Definition empty_heap : Heap := []%map.
       
@@ -1285,6 +1378,8 @@ P a s -> Q b s -> sa_mul a b c -> (P*Q) c s
 sa_mul h ([x <- 0]) (h[x<-0])
 *)
 
+Local Transparent MapSepAlgOps.
+
 Lemma conj_comp : forall (P Q : Assertion) (a b c : Heap) s,
   P a s ->
   Q b s ->
@@ -1476,6 +1571,7 @@ Definition X := Id 0.
 Definition Y := Id 1.
 Definition Z := Id 2.
 Definition V := Id 3.
+Definition T := Id 4.
 Definition a := (ANum 0).
 Definition b := (ANum 1).
 Definition c := (ANum 2).
@@ -1516,6 +1612,7 @@ Local Transparent ILFun_Ops.
 Local Transparent ILPre_Ops.
 Local Transparent SABIOps.
 
+
 Example heap_swap_prog :
   {{ a |-> c ** b |-> d }}
   heap_swap
@@ -1528,46 +1625,144 @@ Proof.
   rewrite sepSPC.
   eapply hoare_seq.
   apply frame_rule.
+  simpl.
+  apply sep_hoare_consequence_pre with (P':=b|->d).
+    simpl.
+    intros.
+    destruct H0.
+    assumption.
   apply hoare_read.
   
   eapply hoare_seq.
   rewrite sepSPC.
-  apply frame_rule'.
+  apply frame_rule.
+  assert (Exists vs, var_sub (Exists v, points_to_sub a c X v //\\ aexp_eq_sub X c X v) vs (modified_by (Y <~ [b])) |-- 
+         (Exists v, points_to_sub a c X v //\\ aexp_eq_sub X c X v)).
+    lexistsL.
+    intros.
+    simpl.
+    intros.
+    destruct H0.
+    destruct H0.
+    split.
+    intuition.
+    split.
+    assumption.
+    apply list_sub_not_in_ids with a0 (Y::nil) t0.
+    split.
+    assumption.
+    reflexivity.
+  rewrite H.
   rewrite exists_conj_elim.
   rewrite landC.
-  rewrite <- convert_pure.
+  rewrite convert_pure1.
   rewrite sepSPC.
-  apply frame_rule'.
+  apply frame_rule.
   apply sep_hoare_consequence_pre with (P':=a |->_).
-  simpl.
-  intros.
-  exists (ANum 2).
-  simpl in H0.
-  simpl.
-  inversion H0.
-  assumption.
+    simpl.
+    intros.
+    exists (ANum 2).
+    destruct H1.
+    simpl.
+    assumption.
   
   apply hoare_write.
-  admit. (*pure*)
+  apply exists_aexp_eq_sub_pure.
   
   rewrite sepSPC.
   eapply sep_hoare_consequence_post.
-  apply frame_rule'.
+  apply frame_rule.
+  assert (Exists vs, var_sub (Exists v, (points_to_sub b d Y v) //\\ aexp_eq_sub Y d Y v) vs (modified_by ([a]<~ AId Y)) |--
+         Exists v, points_to_sub b d Y v //\\ aexp_eq_sub Y d Y v).
+    simpl.
+    intros.
+    exists 0.
+    split.
+    destruct H0.
+    destruct H0.
+    inversion H0.
+    assumption.
+    inversion H0.
+    destruct H1.
+    inversion H1.
+    apply list_sub_not_in_ids with x nil t0.
+    split.
+    assumption.
+    reflexivity.
+  rewrite H.
   rewrite exists_conj_elim.
   rewrite landC.
-  rewrite <- convert_pure.
+  rewrite convert_pure1.
   rewrite sepSPC.
-  apply frame_rule'.
+  apply frame_rule.
   apply sep_hoare_consequence_pre with (P':=b |->_).
-  simpl.
-  intros.
-  exists (ANum 3).
-  simpl.
-  inversion H0.
-  assumption.
+    simpl.
+    intros.
+    exists (ANum 3).
+    simpl.
+    destruct H1.
+    assumption.
   
   apply hoare_write.
-  admit. (*pure*)
+  apply exists_aexp_eq_sub_pure.
+  assert ((b |-> AId X **
+    (Exists vs,
+     var_sub (Exists v', aexp_eq_sub Y d Y v') vs (modified_by ([b]<~ AId X)))) **
+   (Exists vs,
+    var_sub
+      (a |-> AId Y **
+       (Exists vs0,
+        var_sub (Exists v', aexp_eq_sub X c X v') vs0
+          (modified_by ([a]<~ AId Y)))) vs (modified_by ([b]<~ AId X))) |--
+          ((b |-> AId X ** (Exists v', aexp_eq_sub Y d Y v')) ** (a |-> AId Y ** (Exists v', aexp_eq_sub X c X v')))).
+    simpl.
+    intros.
+    do 8 (destruct H0).
+    exists x, x0.
+    split.
+    assumption.
+    split.
+    exists x2, x3.
+    split.
+    assumption.
+    split.
+    assumption.	
+    exists 0.
+    do 2 (destruct H2).
+    apply list_sub_not_in_ids with x5 nil t0.
+    split.
+    assumption.
+    reflexivity.
+    do 4 (destruct H1).
+    exists x6, x7.
+    split.
+    assumption.
+    inversion H1.
+    simpl in H3.
+    assert (list_sub x5 nil t0 t0 Y = t0 Y).
+      destruct x5.
+      simpl.
+      reflexivity.
+      simpl.
+      reflexivity.
+    split.
+	rewrite H5 in H3.
+	assumption.
+	do 2 (destruct H4).
+	exists 0.
+	assert (list_sub x9 nil (list_sub x5 nil t0 t0) (list_sub x5 nil t0 t0) = t0).
+	  destruct x9.
+	  simpl.
+	  destruct x5.
+	  simpl. reflexivity.
+	  simpl. reflexivity.
+	  simpl.
+	  destruct x5.
+	  simpl. reflexivity.
+	  simpl. reflexivity.
+	rewrite <- H6.
+	assumption.
+  rewrite H.
   rewrite sepSPA.
   rewrite sepSPC with (P:=a |-> AId Y).
   rewrite sepSPC with (P:=b |-> AId X).
@@ -1579,23 +1774,27 @@ Proof.
   rewrite sepSPA1 with (P:=(Exists v', aexp_eq_sub X c X v') ** b |-> AId X).
   rewrite sepSPC.
   apply scME.
-  rewrite sepSPC.
-  rewrite convert_pure.
+  simpl.
+  Local Transparent MapSepAlgOps.
+  intros.
+  destruct H1.
+  destruct H1.
+  destruct H1.
+  inversion H1.
+  destruct H3.
+  rewrite H3 in H2.
+  simpl in x1.
+  admit.
+  rewrite sepSPC.	
   simpl.
   intros.
-  inversion H0.
+  destruct H1.
+  destruct H1.
+  destruct H1.
   inversion H1.
+  destruct H3.
   rewrite H3 in H2.
   assumption.
-  admit. (*pure*)
-  rewrite convert_pure.
-  simpl.
-  intros.
-  inversion H0.
-  inversion H1.
-  rewrite H3 in H2.
-  assumption.
-  admit. (*pure*)
 Qed.
 
 Definition list_cell (addr elem next : aexp) : Assertion :=
@@ -1625,6 +1824,90 @@ Definition alloc_list :=
   [ APlus (AId X) (ANum 6) ] <~ (ANum 4);
   [ APlus (AId X) (ANum 7) ] <~ (ANum 0)
   {{ heap_list (AId X) (1::2::3::4::nil) }}.
+
+Local Transparent ILFun_Ops.
+Local Transparent ILPre_Ops.
+Local Opaque SABIOps.
+
+Example dups :
+  {{ (AId X) |-> (ANum 1) ** APlus (AId X) (ANum 1) |-> (ANum 1) ** APlus (AId X) (ANum 2) |-> (ANum 2) }}
+  Y ::= (ANum 1);
+  Z ::= (ANum 3);
+  V ::= (AId X);
+  WHILE BNot (BEq (AId Z) (ANum 0)) DO
+    T <~ [ (AId V) ];
+    IFB BEq (AId T) (AId Y) THEN
+      DEALLOC (AId V)
+    ELSE
+      [ (AId V) ] <~ APlus (AId T) (ANum 1)
+    FI;
+    V ::= APlus (AId V) (ANum 1);
+    Z ::= AMinus (AId Z) (ANum 1)
+  END
+  {{ APlus (AId X) (ANum 2) |-> (ANum 3) }}.
+Proof.
+  eapply hoare_seq.
+  eapply sep_hoare_consequence_pre2.
+  apply hoare_asgn.
+  instantiate (1:=AId X |-> ANum 1 **
+   APlus (AId X) (ANum 1) |-> ANum 1 ** APlus (AId X) (ANum 2) |-> ANum 2 //\\ aexp_eq (AId Y) (ANum 1)).
+   
+Admitted.
+
+
+Example new_ex :
+  {{ heap_list (AId X) (1::2::3::nil) }}
+  Y ::= (AId X);
+  Z ::= (ANum 1);
+  WHILE BNot (BEq (AId Z) (ANum 0)) DO
+    V <~ [ (AId Y) ];
+    [ (AId Y) ] <~ APlus (AId V) (ANum 1);
+    Z <~ [ APlus (AId Y) (ANum 1) ];
+    Y ::= APlus (AId Y) (ANum 2)
+  END
+  {{ heap_list (AId X) (2::3::4::nil) }}.
+Proof.
+  eapply hoare_seq.
+  eapply sep_hoare_consequence_pre2.
+  apply hoare_asgn.
+  instantiate (1:=heap_list (AId X) (1::2::3::nil) //\\ aexp_eq (AId Y) (AId X)).
+  simpl.
+  intros.
+  split.
+  assumption.
+  rewrite update_eq.
+  rewrite update_neq.
+  reflexivity.
+  reflexivity.
+  
+  eapply hoare_seq.
+  eapply sep_hoare_consequence_pre2.
+  apply hoare_asgn.
+  instantiate (1:=heap_list (AId X) (1::2::3::nil) //\\ aexp_eq (AId Y) (AId X) //\\ aexp_eq (AId Z) (ANum 1)).
+  simpl.
+  intros.
+  split.
+  inversion H0.
+  assumption.
+  split.
+  rewrite update_neq.
+  rewrite update_neq.
+  inversion H0.
+  assumption.
+  reflexivity.
+  reflexivity.
+  reflexivity.
+  
+  eapply sep_hoare_consequence_post.
+  apply hoare_while.
+  
+  eapply hoare_seq.
+  unfold heap_list.
+Admitted.
+  
+ 
+  
+  
   
 Definition list_reversal :=
   Y ::= (ANum 0);
@@ -1653,6 +1936,124 @@ Example list_reversal_proof :
   list_reversal
   {{ heap_list (AId Y) (rev l) }}.
 Proof.
+  unfold list_reversal.
+  eapply hoare_seq.
+  eapply sep_hoare_consequence_pre2.
+  apply hoare_asgn.
+  instantiate (1:= heap_list (AId X) l //\\ aexp_eq (AId Y) (ANum 0)).
+  simpl.
+  intros.
+  split.
+  assumption.
+  reflexivity.
+  
+  eapply sep_hoare_consequence_post.
+  apply sep_hoare_consequence_pre with (list_rev_inv l (AId X) (AId Y) //\\ aexp_eq (AId Y) (ANum 0)).
+  unfold list_rev_inv.
+  apply landR.
+  apply lexistsR with l.
+  apply lexistsR with nil.
+  rewrite convert_pure.
+  simpl.
+  intros.
+  split.
+  reflexivity.
+  inversion H0.
+  simpl.
+  assert ((AId X |-> ANum 1 **
+     APlus (AId X) (ANum 1) |-> APlus (AId X) (ANum 2) **
+     APlus (AId X) (ANum 2) |-> ANum 2 **
+     APlus (APlus (AId X) (ANum 2)) (ANum 1) |-> ANum 0 ** empSP) |-- (AId X |-> ANum 1 **
+     APlus (AId X) (ANum 1) |-> APlus (AId X) (ANum 2) **
+     APlus (AId X) (ANum 2) |-> ANum 2 **
+     APlus (APlus (AId X) (ANum 2)) (ANum 1) |-> ANum 0 ** empSP) ** empSP).
+	 rewrite empSPR.
+	 rewrite empSPR.
+	 reflexivity.
+  apply H3.
+  intuition.
+  assumption.
+  admit.
+  
+  simpl.
+  intros.
+  inversion H0.
+  assumption.
+  
+  apply hoare_while.
+  eapply hoare_seq.
+  rewrite landA.
+  rewrite landC.
+  rewrite <- convert_pure.
+  rewrite sepSPC.
+  apply frame_rule.
+  unfold list_rev_inv.
+  assert (Exists a0, Exists b0, l_rev l a0 b0 ** heap_list (AId X) a0 ** heap_list (AId Y) b0 |--
+         Exists a, Exists a0, Exists b0, Exists k, (AId X) |-> (ANum a) ** APlus (AId X) (ANum 1) |-> k ** l_rev l (a::a0) b0 ** heap_list k a0 ** heap_list (AId Y) b0).
+    lexistsR 1.
+    lexistsR (2::nil).
+    apply lexistsR with nil.
+    lexistsR (APlus (AId X) (ANum 2)).
+    simpl.
+    intros.
+    destruct H0.
+    destruct H0.
+    admit.
+  rewrite H.
+  assert (Exists a0,
+     Exists a1,
+     Exists b0,
+     Exists k,
+     AId X |-> ANum a0 **
+     APlus (AId X) (ANum 1) |-> k **
+     l_rev l (a0 :: a1) b0 ** heap_list k a1 ** heap_list (AId Y) b0 |--
+     AId X |-> ANum 1 **
+     APlus (AId X) (ANum 1) |-> (APlus (AId X) (ANum 2)) **
+     l_rev l (1 :: (2::nil)) nil ** heap_list (APlus (AId X) (ANum 2)) (2::nil) ** heap_list (AId Y) nil).
+     lexistsL.
+     intros.
+     lexistsL.
+     intros.
+     lexistsL.
+     intros.
+     lexistsL.
+     intros.
+     admit.
+  rewrite H0.
+  rewrite sepSPC.
+  rewrite sepSPA.
+  apply frame_rule.
+  apply hoare_read.
+  admit.
+  
+  eapply hoare_seq.
+  (*here*)
+  
+  
+  apply hoare_while with (list_rev_inv l X Y.
+  
+  eapply hoare_seq.
+  rewrite landA.
+  rewrite landC.
+  rewrite <- convert_pure.
+  rewrite sepSPC.
+  apply frame_rule.
+  simpl.
+  rewrite <- sepSPC with (Q:=AId X |-> ANum 1).
+  apply frame_rule.
+  apply frame_rule.
+  apply hoare_read.
+  admit. (*pure*)
+  
+  eapply hoare_seq.
+  simpl.
+  intros.
+  exists (APlus (AId X) (ANum 2)).
+  simpl.
+  assumption.
+  apply hoare_write.
+  
+
   unfold list_reversal.
   eapply hoare_seq.
   apply sep_hoare_consequence_pre with (P':=assn_sub Y (ANum 0) ((heap_list (AId X) l) //\\ aexp_eq (AId Y) (ANum 0))).
