@@ -1041,26 +1041,22 @@ Proof.
       inversion H2.
     SCase "Post condition".
       intros.
+      inversion H2; subst.
       specialize (H ((cstack st), x)).
+      simpl in H.
       specialize (H H0).
       destruct H.
+      unfold safe in H.
       specialize (H3 st').
       Local Opaque SABIOps.
       simpl.
       simpl in H0.
       simpl.
+	  Local Transparent SABIOps.
+	  simpl.
+	  inversion H2; subst.
       exists x, x0.
-      split.
-      SSCase "left".
-        inversion H2; subst.
-        simpl in *.
-        admit.
-      SSCase "right".
-        split.
-        SSSCase "left".
-      	  admit.
-      	SSSCase "right". 
-          admit. 
+      admit.
   Case "IFB".
     intros.
     unfold hoare_triple.
@@ -1073,15 +1069,7 @@ Proof.
       simpl.
       simpl in H0.
       exists x, x0.
-      split.
-      SSCase "left".
-        admit.
-      SSCase "right".
-        split.
-        SSSCase "left".
-          admit.
-        SSSCase "right".
-          admit.
+      admit.
   Case "WHILE".
     intros.
     unfold hoare_triple.
@@ -1091,18 +1079,31 @@ Proof.
       unfold safe, not. intros. inversion H2.
     SCase "postcondition".
       intros.
-      simpl in H0.
-      simpl.
-      exists x, x0.
-      split.
-      SSCase "left".      
+      specialize (H ((cstack st), x)).
+      specialize (H H0).
+      destruct H.
+      inversion H2; subst.
+      SSCase "While End".
+      	exists x, x0.
+      	split.
+      	SSSCase "sa_mul".
+      	  assumption.
+      	  split.
+      	  SSSSCase "left".
+      		specialize (H3 ((cstack st'), x)).
+      		apply H3.
+      		apply E_WhileEnd.
+      		assumption.
+      	  SSSSCase "right".
+      		simpl.
+      		exists nil.
+      		simpl.
+      		remember (modified_by c) as modC.
+      		destruct modC.
+      		assumption.
+      		assumption.
+      SSCase "While Loop".
         admit.
-      SSCase "right".
-        split.
-        SSSCase "left".
-          admit.
-        SSSCase "right".
-          admit.
   Case "ALLOC".
     split.
     SCase "Safety".
@@ -1115,20 +1116,7 @@ Proof.
       split.
       SSCase "left".
         simpl.
-        Local Transparent MapSepAlgOps.
-        simpl in *.
-        intros.
-        specialize (x1 k).
-        remember (cheap st) as heap.
-        remember (heap [k]%map) as heapk.
-        destruct heapk.
-        remember ((alloc addr n heap) [k]%map) as o.
-        destruct o.
-        
-        inversion x1.
-        left.
-        split.
-        
+        admit.
       SSCase "right".
         split.
         SSSCase "left".
@@ -1199,37 +1187,41 @@ Proof.
       simpl.
       exists (dealloc (aeval (cstack st) a) x), x0.
       split.
+      SSCase "sa_mul".
         admit.
-      split. 
-        specialize (H ((cstack st), x)).
-        simpl in *.
-        specialize (H H0).
-        destruct H.
-        specialize (H3 ((cstack st), (dealloc (aeval (cstack st) a) x))).
-        simpl in *.
-        apply H3.
-        apply E_Dealloc with (st := (cstack st, x)).
-          reflexivity.
-          simpl.
-          Local Transparent MapSepAlgOps.
-          simpl.
-		  simpl in x1.
-		  specialize (x1 (aeval (cstack st) a)).
-		  unfold In in H7.
-		  destruct H7.
-		  apply find_mapsto_iff in H4.
-		  rewrite H4 in x1.
-		  destruct x1.
-		  unfold In.
-		  exists x2.
-		  apply H5.
-		  unfold safe in H.
-		  apply ex_falso_quodlibet.
-		  apply H.
-		  apply E_DeallocError with (addr := aeval (cstack st) a). 
-		  reflexivity.
-		  simpl.
-		  apply H5.
+        split.
+        SSSCase "left". 
+          specialize (H ((cstack st), x)).
+          simpl in *.
+          specialize (H H0).
+          destruct H.
+          specialize (H3 ((cstack st), (dealloc (aeval (cstack st) a) x))).
+          simpl in *.
+          apply H3.
+          apply E_Dealloc with (st := (cstack st, x)).
+          SSSSCase "Dealloc precondition 1".
+            reflexivity.
+          SSSSCase "Dealloc precondition 2".
+          	simpl.
+            Local Transparent MapSepAlgOps.
+            simpl.
+	  	    simpl in x1.
+		    specialize (x1 (aeval (cstack st) a)).
+    	    unfold In in H7.
+		    destruct H7.
+		    apply find_mapsto_iff in H4.
+		    rewrite H4 in x1.
+		    destruct x1.
+		    unfold In.
+		    exists x2.
+		    apply H5.
+		    unfold safe in H.
+		    apply ex_falso_quodlibet.
+		    apply H.
+		    apply E_DeallocError with (addr := aeval (cstack st) a). 
+		    reflexivity.
+		    simpl.
+		    apply H5.
       exists nil.
       simpl.
       assumption.
@@ -1258,33 +1250,39 @@ Proof.
       apply x1.
     SCase "postcondition".
       intros.
+      Local Opaque MapSepAlgOps.
       simpl.
       exists x, x0.
       split.
-      inversion H2; subst.
-      simpl.
-      intuition.
-      split.
-        specialize (H ((cstack st), x)).
-        simpl in H.
-        specialize (H H0).
-        destruct H.
+      SSCase "sa_mul".
         inversion H2; subst.
-        specialize (H3 ((ImpDep.update (cstack st) i n), x)).
-        simpl in *.
-        apply H3.
-        apply E_Read with (st := (cstack st, x)) (addr := (aeval (cstack st) a)).
         simpl.
-        reflexivity.
-        simpl.
-        Local Transparent MapSepAlgOps.
-        simpl in x1.
-        specialize (x1 (aeval (cstack st) a)).
-        rewrite H9 in x1.
-        inversion x1.
-        inversion H4.
-        apply find_mapsto_iff.
-        assumption.
+        intuition.
+      SSCase "postcondition".
+        split.
+        SSSCase "left".
+          specialize (H ((cstack st), x)).
+          simpl in H.
+          specialize (H H0).
+          destruct H.
+          inversion H2; subst.
+          specialize (H3 ((ImpDep.update (cstack st) i n), x)).
+          simpl in *.
+          apply H3.
+          apply E_Read with (st := (cstack st, x)) (addr := (aeval (cstack st) a)).
+          SSSSCase "Read pre condition 1".
+            simpl.
+            reflexivity.
+          SSSSCase "Read pre condition 2".
+            simpl.
+	        Local Transparent MapSepAlgOps.
+	        simpl in x1.
+	        specialize (x1 (aeval (cstack st) a)).
+	        rewrite H9 in x1.
+	        inversion x1.
+	        inversion H4.
+	        apply find_mapsto_iff.
+	        assumption.
         unfold safe in H.
       	apply ex_falso_quodlibet.
       	apply H.
@@ -1299,6 +1297,7 @@ Proof.
 	  rewrite update_stack_same.
 	  assumption.
   Local Opaque MapSepAlgOps.
+  Local Opaque SABIOps.
   Case "write".
     split.
     SCase "Safety".
@@ -1323,29 +1322,36 @@ Proof.
       apply x1.
     SCase "postcondition".
       intros.
+      Local Opaque MapSepAlgOps.
       simpl in *.
       exists (write (aeval (cstack st) a) (aeval (cstack st) a0) x), x0.
       split.
-      split.
-        specialize (H ((cstack st), x)).
-        specialize (H H0).
-        destruct H.
-        specialize (H3 ((cstack st'), (write (aeval (cstack st) a) (aeval (cstack st) a0) x))).
-        apply H3.
+      SSCase "sa_mul".
         inversion H2; subst.
-        simpl in *.
-        apply E_Write with (st := (cstack st, x)) (n := n).
-        reflexivity.
-        reflexivity.
         simpl.
-        Local Transparent MapSepAlgOps.
-        simpl in x1.
-        specialize (x1 (aeval (cstack st) a)).
-        rewrite H10 in x1.
-        inversion x1.
-        inversion H4.
-        apply find_mapsto_iff.
-        assumption.
+        admit.
+      SSCase "postcondition".
+        split.
+        SSSCase "left".
+          specialize (H ((cstack st), x)).
+          specialize (H H0).
+          destruct H.
+          specialize (H3 ((cstack st'), (write (aeval (cstack st) a) (aeval (cstack st) a0) x))).
+          apply H3.
+          inversion H2; subst.
+          simpl in *.
+          apply E_Write with (st := (cstack st, x)) (n := n).
+            reflexivity.
+            reflexivity.
+          simpl.
+          Local Transparent MapSepAlgOps.
+          simpl in x1.
+          specialize (x1 (aeval (cstack st) a)).
+          rewrite H10 in x1.
+          inversion x1.
+          inversion H4.
+          apply find_mapsto_iff.
+          assumption.
         unfold safe in H.
       	apply ex_falso_quodlibet.
       	apply H.
@@ -1353,6 +1359,7 @@ Proof.
       	reflexivity.
       	simpl.
       	apply H4.
+     SSSCase "right".
 	    exists nil.
       	simpl.
       	inversion H2; subst; simpl.

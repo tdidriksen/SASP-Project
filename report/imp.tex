@@ -2,35 +2,35 @@
 \section{The Imp Language}
 \label{sec:background_imp}
 % As previously mentioned, Imp\footnote{Not to be confused with Irons IMP language or the Edinburgh IMP language.} is a simple imperative programming language studied in the electronic book ``Software Foundations'' and implemented in Coq. The language includes a selection of core features of widely used imperative programming languages such as C and Java, \todo{"... and certain properties about the language as a whole have been proven" lyder underligt} and certain properties about the language as a whole have been proven. This helps verification of programs written in Imp, as the precise definition of Imp can be used to formally prove that a certain program satisfies a particular specification. 
-In this section we will describe the Imp language and its features. The parts of Imp originating from its initial implementation will be presented\,\cite{Pierce:SF} alongside our additions. We will refer to the unmodified version of Imp as \textit{the basic version of Imp}, and the version including our modifications as \textit{the extended version of Imp}.
+In this section we describe the Imp language and its features. The parts of Imp originating from its initial implementation will be presented\,\cite{Pierce:SF} alongside our additions. We will refer to the unmodified version of Imp as \textit{the basic version of Imp}, and the version including our modifications as \textit{the extended version of Imp}.
 
 \subsection{The Program State}
 \label{sec:the_program_state}
-To represent values at a point of execution Imp uses a $state$. In both the basic and the extended version of Imp this state is a partially applied function $id \to value$, where $id$ identifies a variable. It is the same notion as what would typically be called a program stack.
+Values at a point of execution Imp are represented by a $state$. In both the basic and the extended version of Imp, this state is a partially applied function $id \to value$, where $id$ identifies a variable. 
 
-\defbf{State} \textit{The state is a function from identifiers to values, which is specified as }$state \eqdef id \to value.$
+\defbf{State} \textit{The state is a function from identifiers to values, which is defined as }$state \eqdef id \to value.$
 
 \paragraph{}
-We extend the storage in Imp with a mutable state in the form of a heap. For modeling this heap we use maps from the Coq Containers library\,\cite{CoqContainers}. This will provide us with a mapping from addresses to values. For the sake of simplicity, we will consider the address space of the heap to be infinite, which means that a program cannot run out of memory. We define a heap as a partial function from addresses to values.
+We extend the storage in Imp with a mutable state in the form of a heap. For modeling this heap, we use maps from the Coq Containers library\,\cite{CoqContainers}, which allow us to map addresses to values. For the sake of simplicity, we will consider the address space of the heap to be infinite, which means that a program cannot run out of memory. 
 
 \defbf{Heap} \textit{The heap is a partial function mapping addresses to values, which is specified } $\heap \eqdef a\to v, \; where\; a, \;v \in \mathbb{N}.$
 
-\paragraph{} %say waht key and value is in our situation
-To avoid terminological confusion, definition 1 will henceforth be referred to as $the\;state$, definition 2 as $the\;heap$, and the combination of the two as $the\;program\;state$.
+\paragraph{} 
+To avoid terminological confusion, Definition 1 will henceforth be referred to as $the\;state$, Definition 2 as $the\;heap$, and the combination of the two as $the\;program\;state$.
 
 \paragraph{Functions operating on the heap.}
-For lookup on the heap we will be using the already defined $find$ function from the implementation of maps\,\cite{CoqContainers}. Find returns a value wrapped in Coq's standard Option type\,\cite{CoqOption}, meaning that if the key exists in the map it will return $Some(value)$, and if the key was not found in the map it will return $None$.
+For lookup on the heap we will be using the existing $find$ function from the implementation of maps\,\cite{CoqContainers}. Find returns a value wrapped in Coq's standard Option type\,\cite{CoqOption}, meaning that if the key exists in the map it will return $Some(value)$, otherwise it will return $None$.
 
-\defbf{Find} \textit{Find is a function which given an key k and a map m, returns the corresponding value wrapped in an option type. Find is defined as }{\it find} $\eqdef$ {\it key} $\to$ {\it map} $\to$ {\it option value.}
+\defbf{Find} \textit{Find is a function which given a key k and a map m, returns the value at key k wrapped in an option type. Find is defined as }{\it find} $\eqdef$ {\it key} $\to$ {\it map} $\to$ {\it option value.}
 
 \paragraph{}
-In our case, the key and value are natural numbers, coming from our definition of a heap.
+In our case, the key and value are natural numbers, because of our definition of the heap.
 \paragraph{}
-The following heap-manipulating functions underlying the implementation of the heap operations in Imp are used in the semantics discussed in Section \ref{sec:semantics}.
+The following heap-manipulating functions underlying the implementation of the heap operations in Imp are used for specifying the semantics discussed in Section \ref{sec:semantics}.
 
-\defbf{Write}\textit{Write is a function which given a value v, an address a, and a heap h, returns h, extended with a mapping from a to v, such that lookup on a results in v. Write is defined as} {\it write} $\eqdef$ {\it a} $\to$ {\it v} $\to$ {\it heap} $\to$ {\it heap.}
-\defbf{Deallocate} \textit{Deallocate is a function which given an address a and a heap h, returns h, with no mapping from a to v, such that lookup on a fails. Deallocate is defined as }{\it dealloc} $\eqdef$ {\it a} $\to$ {\it heap} $\to$ {\it heap}
-\defbf{Allocate} \textit{Allocate is a function which given an address a, a natural number of cells to allocate n, and a heap h, returns h, extended with a mapping from a to v, such that lookup on a, a+1} $\cdots$ \textit{a+n-1 all result in 0. Allocate is defined as }{\it alloc} $\eqdef$ {\it a} $\to$ {\it n} $\to$ {\it heap} $\to$ {\it heap.}
+\defbf{write}\textit{write is a function which given a value v, an address a, and a heap h, returns h, extended with a mapping from a to v, such that lookup on a results in v. Write is defined as} {\it write} $\eqdef$ {\it a} $\to$ {\it v} $\to$ {\it heap} $\to$ {\it heap.}
+\defbf{dealloc} \textit{dealloc is a function which given an address a and a heap h, returns h, with no mapping from a to v, such that lookup on a fails. Deallocate is defined as }{\it dealloc} $\eqdef$ {\it a} $\to$ {\it heap} $\to$ {\it heap.}
+\defbf{alloc} \textit{alloc is a function which given an address a, a natural number of cells to allocate n, and a heap h, returns h extended with a mapping from a to 0, a+1 to 0} $\cdots$ \textit{a+n-1 to 0, such that lookup on a, a+1} $\cdots$ \textit{a+n-1 all result in 0. allocate is defined as }{\it alloc} $\eqdef$ {\it a} $\to$ {\it n} $\to$ {\it heap} $\to$ {\it heap.}
 
 \subsection{Grammar}
 
@@ -60,11 +60,11 @@ The following heap-manipulating functions underlying the implementation of the h
                   id = "Id" nat ;
                   nat = natural number, 0 included ;
 \end{alltt}
-\caption{Full Grammar for the extended Imp language, specified in EBNF.}
+\caption{Full grammar for the extended Imp language, specified in EBNF.}
 \label{fig:imp_grammar}
 \end{figure}
 
-The full grammar for the extended Imp language, including the added operations for manipulating the heap, namely read, write, deallocate, and allocate, is shown in Figure \ref{fig:imp_grammar}. Besides these, we have skip, assignment, sequencing, conditional statements, and while loops from the basic version of Imp. Basically, any Imp program consists of a command, arithmetic expressions on natural numbers, and boolean expressions. All variables, implemented as identifiers on natural numbers ({\it id}), are evaluated with the {\it state}. Since the domain of the heap is the natural numbers, an address on the heap is accessed by evaluating any {\it aexp} representing a memory address with the state.
+The full grammar for the extended Imp language, including the added operations for manipulating the heap, namely read, write, deallocate, and allocate, is shown in Figure \ref{fig:imp_grammar}. Besides these, we have skip, assignment, sequencing, conditional statements, and while loops from the basic version of Imp. Basically, any Imp program consists of a command, arithmetic expressions on natural numbers, and boolean expressions. All variables, implemented as identifiers on natural numbers ({\it id}), are evaluated with the {\it state}. Since the domain of the heap is the natural numbers, an address on the heap is accessed by evaluating any {\it aexp} representing a memory address to a natural number with the state.
 
 \subsection{Semantics}
 
@@ -89,6 +89,11 @@ Updating a state is described using this notation:
 \begin{center}$[s\;|\;X:n]$\end{center}
 This means that the state $s$ is updated with a variable $X$ with the value $n$. If $X$ already exists in the state, the new value for $X$ will shadow the existing value.
 
+Lastly, evaluating a boolean is described using this notation:
+
+\begin{center}$b\Downarrow BTrue \;\;\;\;\;\;\; b\Downarrow BFalse$\end{center}
+The left one means that $b$ evaluates to $true$, and the right one that $b$ evaluates to $false$.
+
 \subsubsection{Semantics}
 \begin{figure}
 
@@ -102,7 +107,7 @@ This means that the state $s$ is updated with a variable $X$ with the value $n$.
 \[
     \infrule[Assignment]{}
     {
-       \langle (\cassign{X}{n}),\;(s,\;h) \rangle \Downarrow Some\;([s\;|\;X:n],\;h)
+       \langle (X\;::=\;n),\;(s,\;h) \rangle \Downarrow Some\;([s\;|\;X:n],\;h)
     }
 \]
 \\
@@ -118,7 +123,7 @@ This means that the state $s$ is updated with a variable $X$ with the value $n$.
 \\
 \[
     \infrule[IfTrue]{
-      b = true\;\;\;\;\;\;\;\;
+      b\Downarrow BTrue\;\;\;\;\;\;\;\;
       \langle c1,\;(s,\;h) \rangle \Downarrow Some\;(s',\;h')
     }
     {
@@ -128,7 +133,7 @@ This means that the state $s$ is updated with a variable $X$ with the value $n$.
 \\
 \[
     \infrule[IfFalse]{
-      b = false\;\;\;\;\;\;\;\;
+      b\Downarrow BFalse\;\;\;\;\;\;\;\;
       \langle c2,\;(s,\;h) \rangle \Downarrow Some\;(s',\;h')
     }
     {
@@ -138,17 +143,20 @@ This means that the state $s$ is updated with a variable $X$ with the value $n$.
 \\
 \[
     \infrule[WhileLoop]{
-      b = true\;\;\;\;\;\;
-      \langle c,\;(s,\;h) \rangle \Downarrow Some\;(s',\;h')
+      \begin{array}{c}
+      b\Downarrow BTrue\;\;\;\;\;\;
+      \langle c,\;(s,\;h) \rangle \Downarrow Some\;(s',\;h') \\
+      \langle (\mathbf{WHILE}\;{b}\;\mathbf{DO}\;{c}\;\mathbf{END}),\;(s',\;h') \rangle \Downarrow Some\;(s'',\;h'')
+      \end{array}
     }
     {
-       \langle (\mathbf{WHILE}\;{b}\;\mathbf{DO}\;{c}\;\mathbf{END}),\;(s,\;h) \rangle \Downarrow Some\;(s',\;h')
+       \langle (\mathbf{WHILE}\;{b}\;\mathbf{DO}\;{c}\;\mathbf{END}),\;(s,\;h) \rangle \Downarrow Some\;(s'',\;h'')
     }
 \]
 \\
 \[
     \infrule[WhileEnd]{
-      b = false
+      b\Downarrow BFalse
     }
     {
        \langle (\mathbf{WHILE}\;{b}\;\mathbf{DO}\;{c}\;\mathbf{END}),\;(s,\;h) \rangle \Downarrow Some\;(s,\;h)
@@ -181,12 +189,12 @@ This means that the state $s$ is updated with a variable $X$ with the value $n$.
 \\
 \[
     \infrule[Allocate]{
-       \neg \exists e. heap(a) = e \;\;\;\;\;\;\;\;\; \forall n.\; (n > a \wedge n \leq a+n) \impl \neg \exists e'. heap(n) = e'
+       \neg \exists e. heap(a) = e \;\;\;\;\;\;\;\;\; \forall n'.\; (n' > a \wedge n' \leq a+n) \impl \neg \exists e'. heap(n') = e'
     }{
        \langle (X\;\&\!\!\!=\mathbf{ALLOC}\;n),\;(s,\;h) \rangle \Downarrow Some\;([s\;|\;X:a],\;alloc\;a\;n\;h)
     }
 \]
-\caption{Semantics for the operations in Imp}
+\caption{Semantics for the operations in Imp.}
 \label{fig:imp_semantics}
 \end{figure}
 For completeness, the semantics for all the operations of the extended Imp language are given in Figure \ref{fig:imp_semantics}. We will, however, not discuss the semantics of the operations already existing in the basic version of Imp, as these have not been altered. A discussion of these can be found in ``Software Foundations''\,\cite{Pierce:SF}.
@@ -227,6 +235,6 @@ An interesting consequence of adding an addressable heap to a programming langua
        \langle (\mathbf{DEALLOC}\;a),\;Some\;(s,\;h) \rangle \Downarrow None
     }
 \]
-\caption{Error semantics for the Read, Write, and Deallocate operations}
+\caption{Error semantics for the Read, Write, and Deallocate operations.}
 \label{fig:heap_error_semantics}
 \end{figure}

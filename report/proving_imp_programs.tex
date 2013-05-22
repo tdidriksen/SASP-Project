@@ -1,7 +1,6 @@
 %!TEX root = ./report.tex
 \section{Verifying Imp Programs}
-\todo{Introduction to proving - maybe with why and methodology}
-An interesting property of the Imp language is that any Imp program can be formally verified directly within the Coq environment. This section introduces Hoare logic, the formal system within which Imp programs are verified, together with its main concepts. Additionally, we define the rules required for reasoning about the operations of the extended Imp language.
+An interesting property of the Imp language is that any Imp program can be formally verified directly within the Coq environment. This section introduces Hoare logic, the formal system within which programs of the basic version of Imp are verified, together with its main concepts. Additionally, we introduce separation logic, an extension to Hoare logic, and define the rules required for reasoning about the operations of the extended Imp language.
 \subsection{Hoare Logic}
 \label{sec:hoare_rules}
 Hoare logic\,\cite{Hoare69anaxiomatic} is a formal system for program verification. It formalizes the evaluation of a program using two types of assertions: preconditions and postcondtions. A precondition is an assertion that holds prior to program execution, and a postcondition is an assertion that holds after program execution.
@@ -20,29 +19,30 @@ Note that in the case that $c$ does not terminate, we can not say anything about
 \forall st\;st'.\;\langle c,\;st\rangle\;\Downarrow Some\; st' \impl P\;st \impl Q\;st'
 \]
 
-The addition of a heap to the program state, however, renders the above formalization insufficient. As discussed in Section \ref{sec:error_semantics}, some of the heap-manipulating operations can evaluate to a faulty program state. This is an issue, since the Hoare triple claims that if $c$ terminates, the resulting state is guaranteed to satisfy the post-condition. With the above definition, this can no longer be guaranteed if the resulting program state is faulty. As such, we need our Hoare triple to express that the command $c$ does not evaluate to an erroneous program state.
+The addition of a heap to the program state, however, renders the above formalization insufficient. As discussed in Section \ref{sec:error_semantics}, some of the heap-manipulating operations can evaluate to a faulty program state. This is an issue, since the Hoare triple claims that if $c$ terminates, the resulting program state is guaranteed to satisfy the postcondition. With Definition 7, this can no longer be guaranteed if the resulting program state is faulty. As such, we need our Hoare triple to express that the command $c$ does not evaluate to an erroneous program state.
 
 \defbf{Redefined Hoare Triple} \textit{If a command c is started in a program state st satisfying an assertion P, if c eventually terminates, and if c does not fail in st, then the resulting program state is guaranteed to satisfy the assertion Q. We use the following notation for the Hoare triple: } $\triple{P}{\;c\;}{Q}$
 
 \paragraph{}
-To express the idea of a command not failing in a given program state, we introduce the notion of safety. A command is safe in a state {\it st} if the command, starting in {\it st}, does not evaluate to $None$. We therefore define safety as follows:
+\label{sec:safety}
+To express the idea of a command not failing in a given program state, we introduce the notion of safety. A command is safe in a program state {\it st} if the command, starting in {\it st}, does not evaluate to $None$. We therefore define safety as follows:
 
 \[ \mathit{safe\;c\;st\;: \;\neg \;(\langle c,\;st\rangle\;\Downarrow None)}\]
 
 Having formalized the safety predicate, we can now formalize Definition 8 as follows:
 
 \[
-\forall st.\; P\;st \impl safe\;c\;st \land \forall st'. \langle c,\;st\rangle\;\Downarrow Some\; st' \impl Q\;st'
+\forall st.\; P\;st \impl safe\;c\;st \land (\forall st'. \langle c,\;st\rangle\Downarrow Some\; st' \impl Q\;st')
 \]
 
 Any reference to $the\;Hoare\;triple$ in subsequent sections will refer to the Hoare triple as defined in Definition 8.
 
-\subsubsection{Hoare Rules --- Part 1}
+\subsection{Hoare Rules --- Basic Version of Imp}
 The Hoare rules for the operations found in the basic version of Imp are shown in Figure \ref{fig:hoare_rules_basic_imp}. Because these are all defined in ``Software Foundations'', we will not go through the justification for each of them. As an example, however, we will consider the justification for the Assignment rule.
 
-Let us think of the $Q$ in the Assignment rule as any property of natural numbers, such as ``being equal to 1'', and note the fact that $a$ is an arithmetic expression on natural numbers. This means that if we have $Q(a)$, that $Q$ holds for $a$, we can state that ``$a$ is equal to 1''. Then the assignment command, $X ::= a$, transfers this property of $a$ to $X$, so that we are now able to state that ``$X$ is equal to 1'', or $Q(X)$. Rephrasing this intuition, we can say that if we substitute all occurrences of $X$ in $Q$ with $a$ in the precondition, and we know that $Q(a)$ holds, then when we transfer the property of $Q$ to $X$, then $Q$ must hold in the postcondition, since $Q(a)$ held in the precondition.
+Let us think of the $Q$ in the Assignment rule as any property of natural numbers, such as ``being equal to 1'', and note the fact that $a$ is an arithmetic expression on natural numbers. This means that if we have $Q(a)$, that $Q$ holds for $a$, we can state that ``$a$ is equal to 1''. Then the assignment command, $X ::= a$, transfers this property of $a$ to $X$, so that we are now able to state that ``$X$ is equal to 1'', or $Q(X)$. Rephrasing this intuition, we can say that if we substitute all occurrences of $X$ in $Q$ for $a$ in the precondition, and we know that $Q(a)$ holds, then when we transfer the property of $Q$ to $X$, $Q$ must hold in the postcondition, since $Q(a)$ held in the precondition.
 
-Taking a closer look at the assignment rule, we realize that it only holds for assigning a variable to the state, and not the heap. In fact, we have no way of expressing concise propositions about the heap inside a Hoare rule. For stating propositions about the heap, we turn to separation logic.
+Taking a closer look at the Assignment rule, we realize that it only holds for assigning a variable to the state, and not the heap. In fact, we have no way of expressing concise propositions about the heap inside a Hoare rule. For stating propositions about the heap, we turn to separation logic.
 \begin{figure}
 \[
     \infrule[Assignment]{}{
@@ -108,7 +108,7 @@ Taking a closer look at the assignment rule, we realize that it only holds for a
 	  		{Q}
     }
 \]
-\caption{Hoare rules of the Imp language.}
+\caption{Hoare rules of the basic version of the Imp language.}
 \label{fig:hoare_rules_basic_imp}
 \end{figure}
 \todo{Revise title of section}
@@ -133,7 +133,7 @@ Despite its name, there is nothing magic about the magic wand. Also known as the
 Aside from the new connectives, separation logic uses the {\it points-to} relation. Denoted by {\it e} $\mapsto$ {\it e'}, it states that {\it e} points to {\it e'} on the heap, and nothing else is on the heap. As such, the points-to relation both says something about the contents and the size of the heap. Given {\it x} $\mapsto$ {\it x'} $\ast$ {\it y} $\mapsto$ {\it y'}, we know that in one part of the heap, {\it x} points to {\it x'}, and in another part of the heap, {\it y} points to {\it y'}, and nothing else is on the heap.
 
 \subsubsection{Local Reasoning and the Frame Rule}
-One of the key points of separation logic is the ability to reason locally about a shared mutable resource, which in our case is a heap. Local reasoning is achieved by specifying a program in terms of the heap cells  it accesses, and then using the frame rule to abstract away the rest of the heap. For this, we adopt the frame rule as described by Yang and O'Hearn\,\cite{Yang02asemantic}.
+One of the key points of separation logic is the ability to reason locally about a shared mutable resource, which in our case is a heap. Local reasoning is achieved by specifying a program in terms of the heap cells it accesses, and then using the frame rule as described by Yang and O'Hearn\,\cite{Yang02asemantic} to abstract away the rest of the heap.
 
 \begin{figure}
 \[
@@ -157,7 +157,7 @@ One of the key points of separation logic is the ability to reason locally about
 \label{fig:frame_rule}
 \end{figure}
 
-If we have a program {\it C} with the precondition {\it P} and the postcondition {\it Q}, we can abstract away the rest of the heap {\it R}, as we know that {\it c} does not modify any part of {\it R}.
+If we have a program {\it c} with the precondition {\it P} and the postcondition {\it Q}, we can abstract away the rest of the heap {\it R}, as we know that {\it c} does not modify any part of {\it R}.
 
 
 \subsubsection{Separation Algebra}
@@ -381,7 +381,7 @@ $ &
 This section describes how we have used prior work by Jesper Bengtson et al.\,\cite{BirkedalL:veroop-conf} to build a separation logic. Here, an intuitionistic logic is defined as a logic for which the axioms presented in Figure \ref{fig:axioms_int_logic} hold. Accordingly, a separation logic is defined as a logic for which the axioms presented in Figure \ref{fig:axioms_sep_logic} hold.
 
 \paragraph{Purpose.}
-The purpose of building the separation logic is to be able to create assertions {\it heap} $\to$ {\it state} $\to$ {\it Prop} for use in program specifications that need to make claims both a state and a heap.
+The purpose of building the separation logic is to be able to create assertions {\it heap} $\to$ {\it state} $\to$ {\it Prop} for use in program specifications that need to make claims about both a state and a heap.
 
 \paragraph{Procedure.} 
 The basis of our separation logic is {\it Prop}, the sort for propositions in Coq\,\cite{CoqIntro}. It is established that Prop is an intuitionistic logic by proving that it satisfies all the axioms of an intuitionistic logic. To further develop the intuitionistic logic of {\it Prop}, we exploit the following properties of intuitionistic logic:
@@ -393,14 +393,14 @@ The basis of our separation logic is {\it Prop}, the sort for propositions in Co
 
 By 1), we can extend the intuitionistic logic of {\it Prop} with a state to achieve an intermediate logic {\it state} $\to$ {\it Prop}. This will allow us to create assertions about programs using a state. Note that all of the connectives defined for the logic of {\it Prop} now work on assertions of {\it state} $\to$ {\it Prop}, as these are just pointwise liftings.
 
-As we have already established that we can define heaps in terms of a separation algebra, we extend {\it state} $\to$ {\it Prop} with a type of heaps by 2). Thus we achieve a separation logic \heap $\to$ {\it state} $\to$ {\it Prop}, with which we can create assertions about programs involving both a state {\it and} a heap. Furthermore, since we create the separation logic from an equivalence relation on heaps, we can create assertions that are closed under the equivalence of heaps. This means that any assertion that holds for a given heap {\it h} will also hold for any equivalent heap {\it h'}. Analogously to the intermediate logic, the connectives now work on assertions of \heap $\to$ {\it state} $\to$ {\it Prop}.
+As we have already established, we can define heaps in terms of a separation algebra, we extend the logic of {\it state} $\to$ {\it Prop} with a type of heaps by 2). Thus we achieve a separation logic \heap $\to$ {\it state} $\to$ {\it Prop}, with which we can create assertions about programs involving both a state {\it and} a heap. Furthermore, since we create the separation logic from an equivalence relation on heaps, we can create assertions that are closed under the equivalence of heaps. This means that any assertion that holds for a given heap {\it h} will also hold for any equivalent heap {\it h'}. Analogously to the intermediate logic, the connectives now work on assertions of \heap $\to$ {\it state} $\to$ {\it Prop}.
 
 \paragraph{}
 Using this logic, we can now define Hoare rules in terms of assertions that make claims about heaps. In other words, we are now able to define Hoare rules for the heap-manipulating operations of the extended Imp language. 
 
 \todo{We define our heap to be a partial function on natural numbers mapping addresses (locations) to values}
 
-\subsubsection{Hoare Rules --- Part 2}
+\subsection{Hoare Rules --- Extended Version of Imp}
 \todo{Revise title of section}
 \label{sec:hoare_rules_heap}
 % All the rules have been proven sound in Coq.
@@ -462,7 +462,7 @@ The Deallocate rule removes an active address from the heap. As reflected in the
 \label{sec:frame_rule}
 To make claims about more complex programs with effects outside just a local scope, we need to widen our perspective. We need to prove that the behaviour of a given command is not changed by the fact that there might be an additional part of the heap which it does not modify. 
 
-The side condition of the frame rule states that the frame rule only holds in the event that $c$ does not modify $R$. This means that in order to use this rule, it would have to be proven that the command does not modify $R$. To avoid this, we alter the frame rule slightly: If $c$ does not modify $R$, then $R$ is unchanged by the execution of $c$. In the case that $c$ does modify $R$, there must exist a list of values that when substituted with the variables that have been modified by $c$, will restore the original program state of $R$ before $c$ was executed. We can use this to construct a postcondition for the frame rule that will preserve the side condition from the standard frame rule. We formalize the modified frame rule in Figure \ref{fig:modified_frame_rule}.
+The side condition of the frame rule states that it only holds in the event that $c$ does not modify $R$. This means that in order to use this rule, it would have to be proven that the command does not modify $R$. To avoid this, we alter the frame rule slightly: If $c$ does not modify $R$, then $R$ is unchanged by the execution of $c$. In the case that $c$ does modify $R$, there must exist a list of values that when substituted for the variables that have been modified by $c$, will restore the original program state of $R$ before $c$ was executed. We can use this to construct a postcondition for the frame rule that will preserve the side condition from the standard frame rule. We formalize the modified frame rule in Figure \ref{fig:modified_frame_rule}.
 
 \begin{figure}
 \[
@@ -484,11 +484,11 @@ The side condition of the frame rule states that the frame rule only holds in th
 \end{figure}
 
 \paragraph{Safety Monotonicity}
-In Section \ref{sec:hoare_triple} we introduced the notion of safety to our Hoare triple, as a way of ensuring that no commands that evaluate to an erroneous program state can satisfy the triple. Thus far we have only reasoned about safety in a local scope, so to use the frame rule to globalize our local Hoare rules we have to consider safety monotonicity. Safety monotonicity means that if executing a command $c$ is safe in a program state involving a heap $h'$ , and $h'\;\heapsubop\;h$, then $c$ must also be safe in a program state involving $h$. To be able to prove the frame rule, we have to also prove safety monotonicity.
+In Section \ref{sec:safety} we introduced the notion of safety to our Hoare triple, as a way of ensuring that no commands that evaluate to an erroneous program state can satisfy the triple. Thus far we have only reasoned about safety in a local scope, so to use the frame rule to globalize our local Hoare rules, we have to consider safety monotonicity. Safety monotonicity means that if executing a command $c$ is safe in a program state involving a heap $h'$ , and $h'\;\heapsubop\;h$, then $c$ must also be safe in a program state involving $h$. To be able to prove the frame rule, we have to also prove safety monotonicity.
 
 \subsection{Rules of Consequence}
 \label{sec:rules_of_con}
-The precondition or postcondition of a Hoare rule might at times differ from the ones needed when verifying a program. While the condition we are trying to prove might be logically equivalent to one in a given rule, their differences prevent them from being unified. To accommodate this difference, Hoare logic introduces the rules of consequence\,\cite{Hoare69anaxiomatic}. They state that any precondition $P$ can be substituted for a weaker precondition $P'$, while any postcondition $Q$ can be substituted for a stronger postcondition $Q'$. These rules are shown in Figure \ref{fig:rules_of_consequence}.
+The precondition or postcondition of a Hoare rule might at times differ from the ones needed when verifying a program. While the condition we are trying to prove might be logically weaker or stronger than a given assertion, their semantical or structural differences might prevent them from being unified. To accommodate this difference, Hoare logic introduces the rules of consequence\,\cite{Hoare69anaxiomatic}. They state that any precondition $P$ can be substituted for a weaker precondition $P'$, while any postcondition $Q$ can be substituted for a stronger postcondition $Q'$. These rules are shown in Figure \ref{fig:rules_of_consequence}.
 
 \begin{figure}
 \[

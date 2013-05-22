@@ -1,7 +1,7 @@
 %!TEX root = ./report.tex
 \section{An Example}
 \label{sec:ex}
-Figure \ref{fig:example} shows a simple example program swapping two values on the heap. An informal correctness proof of this program using the rules we have developed in the above sections is given in Figure \ref{fig:dec_example}. The frame rule is applied prior to each application of a Hoare rule, and lines 19-20 gives an example of the use of the rule of consequence. Also, for simplicity, some trivial intermediate derivations are not shown. The derivations on lines 12 and 18 utilizes the notion of pure assertions\,\cite{reynolds2008AnIntroductionTo}, which in this case means that any conjunction between two assertions can be substituted for a separating conjunction if one (or both) of the assertions do not make claims about the heap.
+Figure \ref{fig:example} shows a simple example program swapping two values on the heap. An informal correctness proof of this program using the rules we have developed in the above sections is given in Figure \ref{fig:dec_example}. The frame rule is applied prior to each application of a Hoare rule, and lines 13--14 and 20--12 gives an example of the use of the rule of consequence. For simplicity, some trivial intermediate derivations are not shown. The derivations on lines 12 and 19 utilizes the notion of pure assertions\,\cite{reynolds2008AnIntroductionTo}, which in this case means that any conjunction between two assertions can be substituted for a separating conjunction if one (or both) of the assertions do not make claims about the heap.
 \begin{figure}
 \begin{alltt}
                         1  \{\( a\,\mapsto\,c * b\,\mapsto\,d \)\}
@@ -28,7 +28,7 @@ Figure \ref{fig:example} shows a simple example program swapping two values on t
 8        \((AId Y) \lsquigarr [ b ]\)
 9     \{\( \exists\,v,(b\,\mapsto\,d)\,\subst{v}{Y}\land\,Y=(d\,\subst{v}{Y}) \)\}
 10 \{\( (\exists\,v,(b\,\mapsto\,d)\,\subst{v}{Y}\land\,Y=(d\,\subst{v}{Y}) \)
-      \(* (\exists\,vs,(\exists\,v,(a\,\mapsto\,c)\,\subst{v}{X}\land\,X=(c\,\subst{v}{X}))\subst{vs}{modified_by((AId Y\lsquigarr[b])})) \)\}
+      \(* (\exists\,vs,(\exists\,v,(a\,\mapsto\,c)\,\subst{v}{X}\land\,X=(c\,\subst{v}{X}))\subst{vs}{modified_by((AId Y)\lsquigarr[b])})) \)\}
 11 \{\( ((\exists\,v,(a\,\mapsto\,c)\,\subst{v}{X})\land\,(\exists\,v',X=(c\,\subst{v'}{X}))\)
       \(* (\exists\,v,(b\,\mapsto\,d)\,\subst{v}{Y}\land\,Y=(d\,\subst{v}{Y}) \)\}
 12 \{\( ((\exists\,v,(a\,\mapsto\,c)\,\subst{v}{X})*(\exists\,v',X=(c\,\subst{v'}{X}))\)
