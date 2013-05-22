@@ -166,7 +166,7 @@ Local Existing Instance SABILogic.
 (* Assertions are an intuitionistic logic *)
 
 Definition Assertion := ILPreFrm (@Equiv.equiv Heap _) (state -> Prop).
-Check mkILPreFrm.
+
 Instance AssertionILogic : BILogic Assertion := _.
 
 Local Transparent ILFun_Ops.
@@ -325,13 +325,6 @@ Program Definition aexp_eq (a1 a2 : aexp) : Assertion :=
 
 Program Definition aexp_eq_sub (a1 : id) (a2 : aexp) (X : id) (n : nat) : Assertion :=
   mk_asn (fun h st => aeval st (AId a1) = aeval (update st X n) a2) _.
-(**
-Next Obligation.
-  split.
-  reflexivity.
-  rewrite <- H.
-  assumption.
-Defined.*)
 
 Lemma bexp_eval_true : forall st b,
   beval (cstack st) b = true <-> (bassn b) (cheap st) (cstack st).
@@ -352,13 +345,6 @@ Proof.
     apply not_true_iff_false.
     assumption.
 Qed.
-
-Definition pure'' (P : Assertion) :=
-  Forall Q, (P ** Q -|- P //\\ Q).
-
-Lemma convert_pure P Q (H: pure'' P) :
-  P ** Q -|- P //\\ Q.
-Proof. apply H. Qed.
 
 Definition pure (P: Assertion) :=
   forall s h h', P h s <-> P h' s.
@@ -422,36 +408,7 @@ Proof.
     simpl in *.
     assumption.
 Qed.
-
-
-(**
-list_sub ns ids a b X = n /\ X not_in ids -> b X = n
-*)
-
-
-
-
-
-(* Function calls *)
-
-
-Require Import Orders.
-(**
-Definition FunctionBody := list id -> com -> aexp.
-
-Definition Prog := Map [ id, FunctionBody ].
-
-Definition ProgSpec := Prog -> nat -> Prop.
-
-Instance ProgSpecILogic : ILogic ProgSpec := _.
-
-Definition mkspec (f: Prog -> nat -> Prop) 
-					(Spec: forall c st n (P: Assertion) (Q: Assertion), 
-						P (cheap st) (cstack st) -> forall n', n' < n -> 
-						safe c st /\ forall st', c / st || Some st' ->
-						Q (cheap st') (cstack st')) : ProgSpec.
-	Admitted.			
-*)						
+					
 Definition substitution := (id * aexp)%type.
 
 Fixpoint substitute (ast: state) (ost: state) (subs: list (id * aexp)) : state :=
@@ -460,14 +417,10 @@ Fixpoint substitute (ast: state) (ost: state) (subs: list (id * aexp)) : state :
 	| sub :: subz => substitute (ImpDep.update ast (fst sub) (aeval ost (snd sub))) ost subz
 	end.
 
-(* End function calls *) 
-
-
 (** Hoare rules *)
 Section Hoare_Rules.
 Require Import MapFacts SepAlg.
   
-
 Theorem hoare_skip : forall P,
      {{P}} SKIP {{P}}.
 Proof.
@@ -584,25 +537,6 @@ Proof.
   assumption.
 Qed.
 
-(**
-  {{fun st => Q st /\ st X = x}}
-    X ::= a
-  fun st => Q st' /\ st X = aeval st' a
-  (where st' = update st X x)
-*)
-(**
-e |-> 5 /\ 5 = 5   X <~ [ e ]  { e |-> 5 }
-*)
-  
-(**
-Q ** exists vs, r {vs/modifies c}
-                                 length vs = length modifies c
-                                 (exists s, r s /\ dom s / modifies c)
-                                 subst_fresh r vs
-                                 
-exists v, subst X/v e->e' //\\ subst X/v X=e'
-*)
-
 Require Export Coq.Logic.FunctionalExtensionality.
 
 Lemma update_stack_same : forall X st n,
@@ -651,12 +585,6 @@ Proof.
       inversion H5.
       reflexivity.
 Qed.
-
-Theorem hoare_read' : forall P Q X e e',
-  {{ P //\\  Q ** (e |-> e') }} X <~ [ e ] {{ Exists v, (assn_sub X (ANum v) (P //\\  Q ** (e |-> e'))) //\\ (aexp_eq_sub X e' X v) }}.                            
-Proof.
-
-Admitted.
 
 Lemma remove_addedL : forall a (v : nat) (h : Heap),
  h === []%map -> Equiv.equiv (remove a (add a v h)) h.
@@ -736,70 +664,6 @@ Proof.
     reflexivity.
 Qed.
 
-Theorem hoare_write'' : forall e e' X,
-  {{ (aexp_eq X e') //\\ (e |->_) }} [ e ] <~ X {{ (aexp_eq X e') //\\ (e |-> X) }}.
-Proof.
-  intros e e' X st Pre.
-  split.
-  Case "safe".
-    unfold safe; unfold not; intros.
-    inversion H. subst.
-    apply H4.
-    simpl in Pre.
-    inversion Pre.
-    inversion H1.
-    rewrite H2.
-    apply add_in_iff.
-    left.
-      reflexivity.
-  Case "postcondition".
-    simpl in *.
-    intros.
-    inversion H. subst. simpl.
-    split.
-      inversion Pre. assumption.
-  	unfold write.
-  	rewrite H6.
-  	inversion Pre.
-  	inversion H1.
-  	rewrite H2.
-  	assert ((remove (aeval (cstack st) e) ([]) [aeval (cstack st) e <- aeval (cstack st) x]) === []%map).
-        apply remove_addedL.
-        reflexivity.
-    rewrite H3.
-    rewrite H0.
-    reflexivity.
-Qed.
-
-Theorem frame_rule' : forall P Q R (c : com),
-  {{ P }} c {{ Q }} ->
-  {{ P ** R }} c {{ Q ** R }}.
-Proof.
-Admitted.
-
-Theorem frame_rule'' : forall P Q R (c : com),
-  {{ P }} c {{ Q }} ->
-  {{ R ** P }} c {{ R ** Q }}.
-Proof.
-Admitted.
-
-Theorem hoare_write''' : forall e X v' R,
-  {{ (aexp_eq X v' //\\ (e |->_)) ** R }} [ e ] <~ X {{ (aexp_eq X v' //\\ (e |-> X)) ** R }}.
-Proof.
-  intros.
-  apply frame_rule'.
-  apply hoare_write''.
-Qed.
-  
-
-Theorem hoare_write' : forall (P : Assertion) e e',
-  {{ (e |->_) ** P }} [ e ] <~ e' {{ (e |-> e') ** P }}.
-Proof.
-  intros.
-  apply frame_rule' with (c:=[ e ] <~ e').
-  apply hoare_write.
-Qed.
-
 Theorem hoare_deallocate : forall e,
   {{ e |->_ }} DEALLOC e {{ empSP }}.
 Proof.
@@ -857,6 +721,7 @@ Proof.
     intuition.
 Qed.
 
+(** TODO
 Theorem sep_hoare_consequence_pre2 : forall (P P' Q : Assertion) c,
   {{ P' }} c {{ Q }} ->
   P |-- P' ->
@@ -876,7 +741,7 @@ Proof.
     apply H in H1.
     apply H1.
     intuition.*)
-Admitted.
+Admitted.*)
 
 Theorem sep_hoare_consequence_post : forall (P Q Q' : Assertion) c,
   {{ P }} c {{ Q' }} ->
@@ -967,16 +832,12 @@ Proof.
   *)
   inversion H.
   assumption.
-Admitted.
-
-Definition empty_heap : Heap := []%map.
-      
+Qed.
+     
 Local Opaque ILFun_Ops.
 Local Opaque ILPre_Ops.
-(**
-Local Opaque SABIOps.
-   *)
-Local Opaque MapSepAlgOps.     
+Local Opaque MapSepAlgOps.  
+   
 Theorem frame_rule : forall P Q R c,
   {{ P }} c {{ Q }} ->
   {{ P ** R }} c {{ Q ** (Exists vs, var_sub R vs (modified_by c )) }}. 
@@ -1419,16 +1280,6 @@ Program Fixpoint alloc_cells (a n : nat) : Assertion :=
   | S n' => alloc_cell a ** alloc_cells (a+1) (n')
   end.
 
-(**
-forall heaps exists n, not In n heap -> forall n' > n, not In n' heap
-*)
-    
-(**
-P a s -> Q b s -> sa_mul a b c -> (P*Q) c s
-
-sa_mul h ([x <- 0]) (h[x<-0])
-*)
-
 Local Transparent MapSepAlgOps.
 
 Lemma conj_comp : forall (P Q : Assertion) (a b c : Heap) s,
@@ -1510,7 +1361,6 @@ Proof.
     assumption. 
 Qed.
 
-(* Make operators opaque, so separating conjunction does not unfold *)
 Local Opaque ILFun_Ops.
 Local Opaque ILPre_Ops.
 Local Opaque SABIOps.
@@ -1634,19 +1484,9 @@ Definition heap_swap :=
   [ a ] <~ (AId Y);
   [ b ] <~ (AId X).
   
-(* Make operators opaque, so separating conjunction does not unfold *)
 Local Transparent ILFun_Ops.
 Local Transparent ILPre_Ops.
 Local Transparent SABIOps.
-    
-Lemma sepSPC4 (P Q R S : Assertion) :
-  (P ** Q) ** R ** S -|- (P ** S) ** R ** Q.
-Proof.
-  split.
-    rewrite <- sepSPA.
-    rewrite sepSPC.
-    rewrite sepSPC.
-Admitted.
 
 Lemma exists_conj_elim : forall X a c,
   Exists v, ((points_to_sub a c X v) //\\ aexp_eq_sub X c X v) |-- (Exists v, (points_to_sub a c X v)) //\\ (Exists v', aexp_eq_sub X c X v').
@@ -1662,7 +1502,6 @@ Qed.
 Local Transparent ILFun_Ops.
 Local Transparent ILPre_Ops.
 Local Transparent SABIOps.
-
 
 Example heap_swap_prog :
   {{ a |-> c ** b |-> d }}
@@ -1910,86 +1749,6 @@ Definition alloc_list :=
 Local Transparent ILFun_Ops.
 Local Transparent ILPre_Ops.
 Local Opaque SABIOps.
-
-Example dups :
-  {{ (AId X) |-> (ANum 1) ** APlus (AId X) (ANum 1) |-> (ANum 1) ** APlus (AId X) (ANum 2) |-> (ANum 2) }}
-  Y ::= (ANum 1);
-  Z ::= (ANum 3);
-  V ::= (AId X);
-  WHILE BNot (BEq (AId Z) (ANum 0)) DO
-    T <~ [ (AId V) ];
-    IFB BEq (AId T) (AId Y) THEN
-      DEALLOC (AId V)
-    ELSE
-      [ (AId V) ] <~ APlus (AId T) (ANum 1)
-    FI;
-    V ::= APlus (AId V) (ANum 1);
-    Z ::= AMinus (AId Z) (ANum 1)
-  END
-  {{ APlus (AId X) (ANum 2) |-> (ANum 3) }}.
-Proof.
-  eapply hoare_seq.
-  eapply sep_hoare_consequence_pre2.
-  apply hoare_asgn.
-  instantiate (1:=AId X |-> ANum 1 **
-   APlus (AId X) (ANum 1) |-> ANum 1 ** APlus (AId X) (ANum 2) |-> ANum 2 //\\ aexp_eq (AId Y) (ANum 1)).
-   
-Admitted.
-
-
-Example new_ex :
-  {{ heap_list (AId X) (1::2::3::nil) }}
-  Y ::= (AId X);
-  Z ::= (ANum 1);
-  WHILE BNot (BEq (AId Z) (ANum 0)) DO
-    V <~ [ (AId Y) ];
-    [ (AId Y) ] <~ APlus (AId V) (ANum 1);
-    Z <~ [ APlus (AId Y) (ANum 1) ];
-    Y ::= APlus (AId Y) (ANum 2)
-  END
-  {{ heap_list (AId X) (2::3::4::nil) }}.
-Proof.
-  eapply hoare_seq.
-  eapply sep_hoare_consequence_pre2.
-  apply hoare_asgn.
-  instantiate (1:=heap_list (AId X) (1::2::3::nil) //\\ aexp_eq (AId Y) (AId X)).
-  simpl.
-  intros.
-  split.
-  assumption.
-  rewrite update_eq.
-  rewrite update_neq.
-  reflexivity.
-  reflexivity.
-  
-  eapply hoare_seq.
-  eapply sep_hoare_consequence_pre2.
-  apply hoare_asgn.
-  instantiate (1:=heap_list (AId X) (1::2::3::nil) //\\ aexp_eq (AId Y) (AId X) //\\ aexp_eq (AId Z) (ANum 1)).
-  simpl.
-  intros.
-  split.
-  inversion H0.
-  assumption.
-  split.
-  rewrite update_neq.
-  rewrite update_neq.
-  inversion H0.
-  assumption.
-  reflexivity.
-  reflexivity.
-  reflexivity.
-  
-  eapply sep_hoare_consequence_post.
-  apply hoare_while.
-  
-  eapply hoare_seq.
-  unfold heap_list.
-Admitted.
-  
- 
-  
-  
   
 Definition list_reversal :=
   Y ::= (ANum 0);
@@ -2013,14 +1772,18 @@ Program Definition l_rev l (a b : list nat) :=
 Definition list_rev_inv l (X Y : aexp) :=
   Exists a, Exists b, l_rev l a b ** heap_list X a ** heap_list Y b.
 
+
 Example list_reversal_proof :
   {{ heap_list (AId X) l }}
   list_reversal
   {{ heap_list (AId Y) (rev l) }}.
 Proof.
+(**
+  Failed List reversal proof attempts:
+
   unfold list_reversal.
   eapply hoare_seq.
-  eapply sep_hoare_consequence_pre2.
+  
   apply hoare_asgn.
   instantiate (1:= heap_list (AId X) l //\\ aexp_eq (AId Y) (ANum 0)).
   simpl.
@@ -2229,16 +1992,8 @@ Proof.
   unfold list_rev_inv.
   Local Opaque ILPre_Ops.
   simpl.
-  
-  
-    
-    
-  
-  
-  
-  
-  
-  
+    *)
+Admitted. 
 
 End Examples.
 

@@ -1,18 +1,40 @@
+COQC := coqc
 
+all : SfLib.vo ImpDep.vo Equiv.vo ILogic.vo ILTac.vo SepAlg.vo ILInsts.vo BILogic.vo SepAlgMap.vo BILTac.vo ILImp.vo
 
-MODULES := Equiv ILogic ILTac SepAlg BILogic SepAlgMap ILInsts BILTac
+clean:
+	rm -r *.vo
+	rm -r *.glob
 
-VS := $(MODULES:%=%.v)
+SfLib.vo: SfLib.v
+	$(COQC) SfLib.v
 
-.PHONY: coq clean
+ImpDep.vo: ImpDep.v
+	$(COQC) ImpDep.v
 
-coq: Makefile.coq
-	$(MAKE) -j1 -f Makefile.coq
+Equiv.vo: Equiv.v
+	$(COQC) Equiv.v
 
-Makefile.coq: Makefile $(VS)
-	coq_makefile $(VS) -o Makefile.coq
+ILogic.vo: ILogic.v
+	$(COQC) ILogic.v
 
-clean:: Makefile.coq
-	$(MAKE) -f Makefile.coq clean
-	rm -f Makefile.coq
+ILTac.vo: ILTac.v
+	$(COQC) ILTac.v
 
+SepAlg.vo: SepAlg.v
+	$(COQC) SepAlg.v
+
+BILogic.vo: BILogic.v
+	$(COQC) BILogic.v
+
+SepAlgMap.vo: SepAlgMap.v
+	$(COQC) SepAlgMap.v
+
+ILInsts.vo: ILInsts.v
+	$(COQC) ILInsts.v
+
+BILTac.vo: BILTac.v
+	$(COQC) BILTac.v
+
+ILImp.vo: ILImp.v
+	$(COQC) ILImp.v
