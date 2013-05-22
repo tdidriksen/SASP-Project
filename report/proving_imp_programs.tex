@@ -132,7 +132,7 @@ Despite its name, there is nothing magic about the magic wand. Also known as the
 Aside from the new connectives, separation logic uses the {\it points-to} relation. Denoted by {\it e} $\mapsto$ {\it e'}, it states that {\it e} points to {\it e'} on the heap, and nothing else is on the heap. As such, the points-to relation both says something about the contents and the size of the heap. Given {\it x} $\mapsto$ {\it x'} $\ast$ {\it y} $\mapsto$ {\it y'}, we know that in one part of the heap, {\it x} points to {\it x'}, and in another part of the heap, {\it y} points to {\it y'}, and nothing else is on the heap.
 
 \subsubsection{Local Reasoning and the Frame Rule}
-One of the key points of separation logic is the ability to reason locally about a shared mutable resource, which in our case is a heap. Local reasoning is achieved by specifying a program in terms of the heap cells  it accesses, and then using the frame rule to abstract away the rest of the heap. The frame rule is specified as follows:
+One of the key points of separation logic is the ability to reason locally about a shared mutable resource, which in our case is a heap. Local reasoning is achieved by specifying a program in terms of the heap cells  it accesses, and then using the frame rule to abstract away the rest of the heap. For this, we adopt the frame rule as described by Yang and O'Hearn\,\cite{Yang02asemantic}.
 
 \begin{figure}
 \[
@@ -459,10 +459,9 @@ The Deallocate rule removes an active address from the heap. As reflected in the
 
 \subsection{The Frame Rule}
 \label{sec:frame_rule}
-\paragraph{Frame Rule}
-The Hoare rules for the heap operations are defined as local rules for the sake of simplicity. To make claims about more complex programs with effects outside just a local scope, we need to widen our perspective. We need to prove that the behaviour of a given command is not changed by the fact that there might be an additional part of the heap which the it does not access. For this type of local reasoning, we adopt the frame rule as described by Yang and O'Hearn\,\cite{Yang02asemantic}.
+To make claims about more complex programs with effects outside just a local scope, we need to widen our perspective. We need to prove that the behaviour of a given command is not changed by the fact that there might be an additional part of the heap which the it does not modify. 
 
-As stated in the side condition in Figure \ref{fig:frame_rule}, the frame rule only holds in the event that $c$ does not modify $R$. This means that whenever this rule is used to prove a property of a program, it would have to be proven that the command does not modify $R$. To avoid this, we alter the frame rule slightly: If $c$ does not modify $R$, then $R$ is unchanged by the execution of $c$. In the case that $c$ does modify $R$, there must exist a list of values that when substituted with the variables that have been modified by $c$, will restore the original state of $R$ before $c$ was executed. We can use this to construct a postcondition for the frame rule that will preserve the side condition from the standard frame rule. We formalize the modified frame rule in Figure \ref{fig:modified_frame_rule}.
+The side condition of the frame rule states that the frame rule only holds in the event that $c$ does not modify $R$. This means that in order to use this rule, it would have to be proven that the command does not modify $R$. To avoid this, we alter the frame rule slightly: If $c$ does not modify $R$, then $R$ is unchanged by the execution of $c$. In the case that $c$ does modify $R$, there must exist a list of values that when substituted with the variables that have been modified by $c$, will restore the original state of $R$ before $c$ was executed. We can use this to construct a postcondition for the frame rule that will preserve the side condition from the standard frame rule. We formalize the modified frame rule in Figure \ref{fig:modified_frame_rule}.
 
 \begin{figure}
 \[
@@ -484,21 +483,17 @@ As stated in the side condition in Figure \ref{fig:frame_rule}, the frame rule o
 \end{figure}
 
 \paragraph{Safety Monotonicity}
-In Section \ref{sec:hoare_triple} we introduced the notion of safety to our Hoare triple, as a way of ensuring that no commands that evaluate to an erroneous state can satisfy the triple. Thus far we have only reasoned about safety in a local scope, but when using the local Hoare rules to prove programs involving arbitrary heaps, we assume safety monotonicity. This means that if executing a command c is safe in a state involving a heap $h'$ , and $h'\;\heapsubop\;h$, then c must also be safe in a state involving $h$. This property follows from the frame rule.
-\todo{Is this section accurate?}
+In Section \ref{sec:hoare_triple} we introduced the notion of safety to our Hoare triple, as a way of ensuring that no commands that evaluate to an erroneous state can satisfy the triple. Thus far we have only reasoned about safety in a local scope, so to use the frame rule to globalize our local Hoare rules we have to consider safety monotonicity. Safety monotonicity means that if executing a command c is safe in a state involving a heap $h'$ , and $h'\;\heapsubop\;h$, then c must also be safe in a state involving $h$. To be able to prove the frame rule, we have to also prove safety monotonicity.
 
 \subsection{Rules of Consequence}
-\paragraph{Rules of Consequence}
-The precondition or postcondition of a Hoare rule might at times differ from the ones needed when proving a program. While the condition in our goal might be logically equivalent to one in a given rule, their differences prevents them from being unified. To accommodate this difference, Hoare logic introduces the rules of consequence\,\cite{Hoare69anaxiomatic}. They state that any precondition $P$ can be substituted for a weaker precondition $P'$, provided that $P$ entails $P'$, while any postcondition $Q$ can be substituted for a stronger postcondition $Q'$, provided that $Q'$ entails $Q$. These rules are shown in Figure \ref{fig:rules_of_consequence}.
+The precondition or postcondition of a Hoare rule might at times differ from the ones needed when proving a program. While the condition we are trying to prove might be logically equivalent to one in a given rule, their differences prevents them from being unified. To accommodate this difference, Hoare logic introduces the rules of consequence\,\cite{Hoare69anaxiomatic}. They state that any precondition $P$ can be substituted for a weaker precondition $P'$, provided that $P$ entails $P'$, while any postcondition $Q$ can be substituted for a stronger postcondition $Q'$, provided that $Q'$ entails $Q$. These rules are shown in Figure \ref{fig:rules_of_consequence}.
 
 \begin{figure}
 \[
-	\infrule{P\entails P' \;\; \triple{P'}{\;c\;}{Q}} {\triple{P}{\;c\;}{Q}} 
+	\infrule{P\vdash P' \;\; \triple{P'}{\;c\;}{Q}} {\triple{P}{\;c\;}{Q}} 
 	\;\;\;\;\;\; 
-	\infrule{Q'\entails Q \;\; \triple{P}{\;c\;}{Q'}} {\triple{P}{\;c\;}{Q}}
+	\infrule{Q'\vdash Q \;\; \triple{P}{\;c\;}{Q'}} {\triple{P}{\;c\;}{Q}}
 \]
 \caption{The rules of consequence.}
 \label{fig:rules_of_consequence}
 \end{figure}
-
-While these rules have not been changed by our changes to states in Imp, the change to assertions have changed how these rules are proven.
