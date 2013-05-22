@@ -1,3 +1,10 @@
 %!TEX root = ./report.tex
 \section{Related Work}
 \label{sec:related_work}
+The problem of verifying imperative languages with mutable states is a common one. In this section we present some related projects as well as alternative approaches and resources.
+
+Appel and Blazy define formal semantics for a mid-level imperative programming language Cminor\,\cite{Appel07separationlogic}. Similar to use they have redesigned an existing imperative language, however as oppose Imp, Cminor already has the notion of a heap. Instead they have had to redesign Cminor to be suitable for Hoare logic.
+
+Jacobs et al. use Hoare triples extended with separation logic to create a verification environment for C and Java\,\cite{Jacobs:2010:QTV:1947873.1947902}. While VeriFast offer many features that we do not, the overall approach of the two projects have many aspects in common.
+
+Ynot is a library for Coq which turns it into an environment for writing and verifying imperative programs, which also defines a separation logic\,\cite{Ynot}. This could have been used as a base instead of defining our own separation logic.
