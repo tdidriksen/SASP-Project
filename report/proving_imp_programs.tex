@@ -111,12 +111,10 @@ Taking a closer look at the Assignment rule, we realize that it only holds for a
 \caption{Hoare rules of the basic version of the Imp language.}
 \label{fig:hoare_rules_basic_imp}
 \end{figure}
-\todo{Revise title of section}
-\todo{Mention partial correctness here.}
 
 \subsection{Separation Logic}
 \label{sec:separation_logic}
-Separation logic is an extension of Hoare logic that enables local reasoning about shared resources. While its original purpose was to provide assertions for reasoning about shared mutable data structures, such as heaps, it has now been applied to a broader range of subject areas, such as shared-variable concurrency\,\cite{reynolds2008AnIntroductionTo}\todo{Add page number?}.
+Separation logic is an extension of Hoare logic that enables local reasoning about shared resources. While its original purpose was to provide assertions for reasoning about shared mutable data structures, such as heaps, it has now been applied to a broader range of subject areas, such as shared-variable concurrency\,\cite{reynolds2008AnIntroductionTo}.
 
 \subsubsection{The Connectives}
 For separation logic, three new connectives are added to those already known from Hoare logic. 
@@ -167,7 +165,6 @@ If we have a program {\it c} with the precondition {\it P} and the postcondition
 \paragraph{}
 We can define heaps in terms of a separation algebra by taking $\Sigma$ to be a type of heaps, $\circ$ to be a composition operator for two disjoint heaps, and {\it u} to be {\it emp}, the unit of the separating conjunction \cite{BirkedalL:veroop-conf}.
 
-\todo{Have another look at forall and exists axioms}
 \begin{figure}
 \begin{center}
 \setlength{\tabcolsep}{0.5cm}
@@ -377,7 +374,6 @@ $ &
 \end{figure}
 
 \subsubsection{Building the Separation Logic}
-\todo{Maybe add a reference to low-level separation logic-paper}
 This section describes how we have used prior work by Jesper Bengtson et al.\,\cite{BirkedalL:veroop-conf} to build a separation logic. Here, an intuitionistic logic is defined as a logic for which the axioms presented in Figure \ref{fig:axioms_int_logic} hold. Accordingly, a separation logic is defined as a logic for which the axioms presented in Figure \ref{fig:axioms_sep_logic} hold.
 
 \paragraph{Purpose.}
@@ -389,7 +385,7 @@ The basis of our separation logic is {\it Prop}, the sort for propositions in Co
 \begin{enumerate}[label=\arabic*)]
 \item We can to create an intuitionstic logic from a function space {\it A} $\to$ {\it B}, where {\it B} is the carrier of an intuitionistic logic and {\it A} is any type.
 \item We can create a separation logic from a function space {\it A} $\to$ {\it B}, where {\it A} is the carrier of a separation algebra and {\it B} is the carrier of an intuitionistic logic.\,\cite{JBSlides}
-\end{enumerate} \todo{maybe move 2) to between the next two paragraphs.}
+\end{enumerate}
 
 By 1), we can extend the intuitionistic logic of {\it Prop} with a state to achieve an intermediate logic {\it state} $\to$ {\it Prop}. This will allow us to create assertions about programs using a state. Note that all of the connectives defined for the logic of {\it Prop} now work on assertions of {\it state} $\to$ {\it Prop}, as these are just pointwise liftings.
 
@@ -398,10 +394,7 @@ As we have already established, we can define heaps in terms of a separation alg
 \paragraph{}
 Using this logic, we can now define Hoare rules in terms of assertions that make claims about heaps. In other words, we are now able to define Hoare rules for the heap-manipulating operations of the extended Imp language. 
 
-\todo{We define our heap to be a partial function on natural numbers mapping addresses (locations) to values}
-
 \subsection{Hoare Rules --- Extended Version of Imp}
-\todo{Revise title of section}
 \label{sec:hoare_rules_heap}
 % All the rules have been proven sound in Coq.
 This section describes Hoare rules for each of the four heap-manipulating operations. Note that these rules are local\,\cite{Reynolds02}, and thus rely on the frame rule for reasoning about non-local specifications.
@@ -428,7 +421,6 @@ The Read rule reads the value at address {\it e}, {\it e'}, into the state. Beca
 		}
 \]
 The Write rule destructively updates an address on the heap. Importantly, the precondition requires the updated address to be active, i.e. it must exist on the heap beforehand. If one wishes to write to a non-active address, the address must be allocated first.
-\todo{Write somewhere that all addresses are evaluated on the stack.}
 
 \subsubsection{Allocate}
 \[
