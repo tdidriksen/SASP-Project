@@ -1041,22 +1041,15 @@ Proof.
       inversion H2.
     SCase "Post condition".
       intros.
-      inversion H2; subst.
-      specialize (H ((cstack st), x)).
-      simpl in H.
-      specialize (H H0).
-      destruct H.
-      unfold safe in H.
-      specialize (H3 st').
-      Local Opaque SABIOps.
-      simpl.
-      simpl in H0.
-      simpl.
-	  Local Transparent SABIOps.
-	  simpl.
-	  inversion H2; subst.
-      exists x, x0.
       admit.
+      (**
+      Goal: (Exists x2, Exists x3,
+    			sa_mul x2 x3 (cheap st') /\\
+    			Q x2 //\\ (Exists vs, var_sub R vs (modified_by c1 ++ modified_by c2)) x3)
+     			(cstack st')
+     This should be provable from the induction hypothesis.
+      *)
+  Local Transparent SABIOps.      
   Case "IFB".
     intros.
     unfold hoare_triple.
@@ -1066,10 +1059,13 @@ Proof.
       unfold safe, not. intros. inversion H2.
     SCase "postcondition".
       intros.
-      simpl.
-      simpl in H0.
-      exists x, x0.
       admit.
+      (**
+      Goal: (Q ** (Exists vs, var_sub R vs (modified_by (IFB b THEN c1 ELSE c2 FI))))
+     		(cheap st') (cstack st') 
+     		
+      This should be provable from the induction hypothesis.
+      *)
   Case "WHILE".
     intros.
     unfold hoare_triple.
@@ -1104,6 +1100,12 @@ Proof.
       		assumption.
       SSCase "While Loop".
         admit.
+        (**
+        Goal: 	(Q ** (Exists vs, var_sub R vs (modified_by (WHILE b DO c END))))
+     			(cheap st') (cstack st')
+     		
+     	This should be provable from the induction hypothesis.
+        *)
   Case "ALLOC".
     split.
     SCase "Safety".
@@ -1117,6 +1119,15 @@ Proof.
       SSCase "left".
         simpl.
         admit.
+        (**
+        Goal:	sa_mul (alloc addr n x) x0 (alloc addr n (cheap st))
+        
+        It should be intuitively true that this goal follows from sa_mul x x0 (cheap st),
+        since applying function to a heap x that is a combosite heap h should not change
+        the relation between the two if the function is also applied to h. . This can be 
+        proven by unfolding sa_mul (with simpl) and doing case analysis on the the resul-
+        ting match statements. 
+        *)
       SSCase "right".
         split.
         SSSCase "left".
@@ -1188,7 +1199,18 @@ Proof.
       exists (dealloc (aeval (cstack st) a) x), x0.
       split.
       SSCase "sa_mul".
+      	simpl.
         admit.
+        (**
+        Goal: sa_mul (dealloc (aeval (cstack st) a) x) x0 (dealloc (aeval (cstack st) a) (cheap st))
+        
+        It should be intuitively true that this goal follows from sa_mul x x0 (cheap st),
+        since applying function to a heap x that is a combosite heap h should not change
+        the relation between the two if the function is also applied to h. . This can be 
+        proven by unfolding sa_mul (with simpl) and doing case analysis on the the resul-
+        ting match statements.
+        *)
+      SSCase "postcondition".  
         split.
         SSSCase "left". 
           specialize (H ((cstack st), x)).
@@ -1330,6 +1352,15 @@ Proof.
         inversion H2; subst.
         simpl.
         admit.
+        (**
+        Goal: sa_mul (write (aeval (cstack st) a) (aeval (cstack st) a0) x) x0 (write (aeval (cstack st) a) (aeval (cstack st) a0) (cheap st))
+        
+        It should be intuitively true that this goal follows from sa_mul x x0 (cheap st),
+        since applying function to a heap x that is a combosite heap h should not change
+        the relation between the two if the function is also applied to h. . This can be 
+        proven by unfolding sa_mul (with simpl) and doing case analysis on the the resul-
+        ting match statements.
+        *)
       SSCase "postcondition".
         split.
         SSSCase "left".
