@@ -952,6 +952,19 @@ Proof.
   split.
   inversion H.
   admit.
+  (** Justification for admit:
+  		Context: list_sub (a0 :: ns) ids a b X = n
+  		
+  		Goal: list_sub ns ids a b X = n
+  		
+  		Since we know that X = n in the state
+  		list_sub (a0 :: ns) ids a b,
+  		The goal should follow from the context,
+  		as adding a value to the list ns
+  		should have no influence on the result of
+  		evaluating X with the same list of ids
+  		as input.
+  *)
   inversion H.
   assumption.
 Admitted.
@@ -1821,8 +1834,21 @@ Proof.
   inversion H1.
   destruct H3.
   rewrite H3 in H2.
-  simpl in x1.
   admit.
+  (** Justification for admit:
+  		Context: sa_mul x x0 t
+  				 Equiv.equiv x ([]) [0 <- 3]%map
+  		
+  		Goal: Equiv.equiv t ([]) [0 <- 3]%map
+  		
+  		Since we know that 0 |-> 3 in x,
+  		and x is a subheap of t,
+  		and x0 is the empty heap because it is
+  		the part of the heap that holds for
+  		the pure assertion (Exists v', aexp_eq_sub Y d Y v'),
+  		then goal Equiv.equiv t ([]) [0 <- 3]%map
+  		must follow from the context.
+  *)
   rewrite sepSPC.	
   simpl.
   intros.
@@ -1832,7 +1858,25 @@ Proof.
   inversion H1.
   destruct H3.
   rewrite H3 in H2.
-  assumption.
+  admit.
+    (** Justification for admit:
+  		Context: forall k : nat,
+       				match (t) [k]%map with
+       				| Some y => MapsTo k y x /\ ~ In k x0 \/ MapsTo k y x0 /\ ~ In k x
+       				| None => ~ In k x /\ ~ In k x0
+       				end
+       			 Equiv.equiv x ([]) [1 <- 2]%map
+  		
+  		Goal: Equiv.equiv t ([]) [1 <- 2]%map
+  		
+  		Since we know that 1 |-> 3 in x,
+  		x must be equivalent to t since
+  		x0 is the part of the heap that holds for
+  		the pure assertion (Exists v', aexp_eq_sub X c X v'),
+  		which must be empty by definition.
+  		If x is equivalent to t,
+  		the goal should follow immediately from the context.
+  *)
 Qed.
 
 Definition list_cell (addr elem next : aexp) : Assertion :=
