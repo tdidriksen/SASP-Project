@@ -1,2 +1,56 @@
 %!TEX root = ./report.tex
 \section{An Example}
+Figure \ref{fig:example} shows a simple example program swapping two values on the heap. An informal correctness proof of this program using the rules we have developed in the above sections is given in Figure \ref{fig:dec_example}. The frame rule is applied prior to each application of a Hoare rule, and lines 19-20 gives an example of the use of the rule of consequence. Also, for simplicity, some trivial intermediate derivations are not shown. The derivations on lines 12 and 18 utilizes the notion of pure assertions\,\cite{reynolds2008AnIntroductionTo}, which in this case means that any conjunction between two assertions can be substituted for a separating conjunction if one (or both) of the assertions do not make claims about the heap.
+\begin{figure}
+\begin{alltt}
+                        1  \{\( a\,\mapsto\,c * b\,\mapsto\,d \)\}
+                        2     \((AId X) \lsquigarr [ a ]\);
+                        3     \((AId Y) \lsquigarr [ b ]\);
+                        4     \([ a ] \lsquigarr (AId Y)\);
+                        5     \([ b ] \lsquigarr (AId X)\)
+                        6  \{\({ a\,\mapsto\,d * b\,\mapsto\,c }\)\}
+\end{alltt}
+\caption{Example program: swap}
+\label{fig:example}
+\end{figure}
+
+\begin{figure}
+\begin{alltt}
+1  \{\( a\,\mapsto\,c * b\,\mapsto\,d \)\}
+2     \{\( a\,\mapsto\,c \)\}                    (* Frame rule applied *)
+3        \((AId X) \lsquigarr [ a ]\)
+4     \{\( \exists\,v,(a\,\mapsto\,c)\,\subst{v}{X}\land\,X=(c\,\subst{v}{X}) \)\}
+5  \{\( (\exists\,v,(a\,\mapsto\,c)\,\subst{v}{X}\land\,X=(c\,\subst{v}{X})) \)
+      \(* (\exists\,vs,(b\,\mapsto\,d)\subst{vs}{modified_by((AId X)\lsquigarr[a])}) \)\}
+6  \{\( (b\,\mapsto\,d)*(\exists\,v,(a\,\mapsto\,c)\,\subst{v}{X}\land\,X=(c\,\subst{v}{X})) \)\}
+7     \{\( b\,\mapsto\,d \)\}                    (* Frame rule applied *)
+8        \((AId Y) \lsquigarr [ b ]\)
+9     \{\( \exists\,v,(b\,\mapsto\,d)\,\subst{v}{Y}\land\,Y=(d\,\subst{v}{Y}) \)\}
+10 \{\( (\exists\,v,(b\,\mapsto\,d)\,\subst{v}{Y}\land\,Y=(d\,\subst{v}{Y}) \)
+      \(* (\exists\,vs,(\exists\,v,(a\,\mapsto\,c)\,\subst{v}{X}\land\,X=(c\,\subst{v}{X}))\subst{vs}{modified_by((AId Y\lsquigarr[b])})) \)\}
+11 \{\( ((\exists\,v,(a\,\mapsto\,c)\,\subst{v}{X})\land\,(\exists\,v',X=(c\,\subst{v'}{X}))\)
+      \(* (\exists\,v,(b\,\mapsto\,d)\,\subst{v}{Y}\land\,Y=(d\,\subst{v}{Y}) \)\}
+12 \{\( ((\exists\,v,(a\,\mapsto\,c)\,\subst{v}{X})*(\exists\,v',X=(c\,\subst{v'}{X}))\)
+      \(* (\exists\,v,(b\,\mapsto\,d)\,\subst{v}{Y}\land\,Y=(d\,\subst{v}{Y}) \)\}
+13    \{\( \exists\,v,(a\,\mapsto\,c)\,\subst{v}{X} \)\}           (* Frame rule applied *)
+14       \([ a ] \lsquigarr (AId Y)\)
+15    \{\( a\,\mapsto\,(AId Y) \)\}
+16 \{\( a\,\mapsto\,(AId Y)*(\exists\,vs,(\exists\,v',X=(c\,\subst{v'}{X}))\subst{vs}{modified_by([a]\lsquigarr(AId Y))}) \)
+      \(* ((\exists\,vs,(\exists\,v,(b\,\mapsto\,d)\subst{v}{Y}\land\,Y=(d\,\subst{v}{Y}))\subst{vs}{modified_by([a]\lsquigarr(AId Y)}) \)\}
+17 \{\( ((\exists\,v,(b\,\mapsto\,d)\subst{v}{Y}))\land\,(\exists\,v',Y=(d\subst{v'}{Y})))*(\exists\,v,X=(c\subst{v}{X})) \)
+      \(* (a\,\mapsto\,(AId Y)) \)\}
+18 \{\( (\exists\,v,(b\,\mapsto\,d)\subst{v}{Y})*\,(\exists\,v',Y=(d\subst{v'}{Y}))*(\exists\,v,X=(c\subst{v}{X})) \)
+      \(* (a\,\mapsto\,(AId Y)) \)\}
+19    \{\( (\exists\,v,(b\,\mapsto\,d)\subst{v}{Y}) \)\}           (* Frame rule applied *)
+20    \{\( (b\,\mapsto-) \)\}
+21       \([ b ] \lsquigarr (AId X)\)
+22    \{\( (b\,\mapsto\,(AId X)) \)\}
+23 \{\( (b\,\mapsto\,(AId X))*(\exists\,vs,(\exists\,v',Y=(d\subst{v'}{Y}))\subst{vs}{modified_by([b]\lsquigarr(AId X))}) \)
+      \(* (\exists\,vs,(\exists\,v,X=(c\subst{v}{X}))\subst{vs}{modified_by([b]\lsquigarr(AId X))}) \)
+      \(* (\exists\,vs,a\,\mapsto\,(AId Y))\subst{vs}{modified_by([b]\lsquigarr(AId X))}) \)\}
+24 \{\( (b\,\mapsto\,(AId X))*(Y=d)*(X=c)*(a\,\mapsto\,(AId Y)) \)\}
+25 \{\({ a\,\mapsto\,d * b\,\mapsto\,c }\)\}
+\end{alltt}
+\caption{Example: Swapping two values on the heap.}
+\label{fig:dec_example}
+\end{figure}
